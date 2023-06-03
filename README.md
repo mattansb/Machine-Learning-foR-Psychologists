@@ -10,8 +10,8 @@
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
 evaluate and compare various **machine learning models, using
-[`caret`](http://lavaan.ugent.be/)**. (Materials developed with Yael
-Bar-Shachar.)
+[`caret`](https://topepo.github.io/caret/)**. (Materials developed with
+Yael Bar-Shachar.)
 
 These topics were taught in the graduate-level course ***Machine
 Learning for Psychologists*** (Psych Dep., Ben-Gurion University of the
