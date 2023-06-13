@@ -19,6 +19,7 @@ head(Harman74)
 # PCA ---------------------------------------------------------------------
 
 PCA_params <- principal_components(Harman74, n = "max")
+PCA_params[,1:10] # too large to print
 
 PCA_model <- attr(PCA_params, "model")
 
@@ -62,7 +63,7 @@ rec <- recipe( ~ ., data = Harman74) |>
            num_comp = 5)
 
 PCs <- bake(prep(rec), new_data = Harman74)
-
+head(PCs)
 
 
 ### With parameters ---------------------

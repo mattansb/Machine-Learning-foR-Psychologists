@@ -37,7 +37,7 @@ USArrests_z <- prep(rec) |> bake(new_data = USArrests,
                                  composition = "data.frame")
 rownames(USArrests_z) <- rownames(USArrests)
 
-
+head(USArrests_z)
 
 
 
@@ -154,6 +154,7 @@ fviz_dist()
 hc.complete <- hclust(, method = "complete")
 # Or method = "average"
 # Or method = "single"
+# Or method = "centroid"
 
 
 # plotting the dendrograms and determining clusters:
@@ -191,21 +192,21 @@ bfi <- bfi |>
   mutate(
     gender = factor(gender, labels = c("Male", "Female")),
     education = factor(education, labels = c("HS", "finished HS", "some college", "college graduate", "graduate degree"))
-  )
+  ) |>
+  drop_na(1:25)
 
 head(bfi)
 
 bfi_scales <- bfi |> 
-  select(1:25) |> 
-  drop_na()
+  select(1:25)
 
 
 ## A. Clustering
 # 1. Cluster people into groups based on these data
-#   - hclust
+#   - use hclust
 #   - decide on a distance metric
 #   - choose a linkage method
-#   - plot the dendrogram - a choose the number of clusters
+#   - plot the dendrogram - and choose the number of clusters
 # 2. Validate the clusters - are they related to gender? age? education?
 #   - Answer visually.
 
