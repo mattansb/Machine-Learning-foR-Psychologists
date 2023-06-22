@@ -136,6 +136,7 @@ Wage$maritl3 <- forcats::fct_collapse(
 Wage.train <- Wage[-(1:5),] # all but the first 5 rows
 Wage.test <- Wage[1:5,] # only the first 5 rows
 
+table(Wage$maritl3)
 
 rec <- recipe(maritl3 ~ ., data = Wage.train) |> 
   step_rm(maritl) |> 
