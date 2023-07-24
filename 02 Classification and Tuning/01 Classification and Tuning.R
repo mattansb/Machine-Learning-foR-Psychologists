@@ -15,7 +15,9 @@ library(recipes)
 # In Tutorial 1 we've used caret for a regression problem. Today we are looking
 # at classification with the Smarket dataset:
 # Smarket (from ISLR) consists of percentage returns for the a stock index over
-# 1,250 days. For each date, the following vars were recorded:
+# 1,250 days. 
+data(Smarket, package = "ISLR")
+# For each date, the following vars were recorded:
 # - Lag1 through Lag5 - percentage returns for each of the five previous trading
 #   days.
 # - Volume - the number of shares traded on the previous day(in billions).
@@ -29,7 +31,6 @@ contrasts(Smarket$Direction)
 
 table(Smarket$Direction)
 # The base rate probability:
-648 / (648 + 602)
 proportions(table(Smarket$Direction))
 
 # We'll start by using a parametric method - logistic regression:
