@@ -27,8 +27,8 @@ accuracy(Caravan.test, truth = Purchase, estimate = pred_NO)
 table(Truth = Caravan.test$Purchase, 
       Estimate = Caravan.test$pred_NO)
 
-specificity(Caravan.test, truth = Purchase, estimate = pred_NO)
-
+metrics <- metric_set(accuracy, specificity, sensitivity)
+metrics(Caravan.test, truth = Purchase, estimate = pred_NO)
 
 # Training with Imbalance Data --------------------------------------------
 
@@ -94,8 +94,6 @@ knn_down <- train(
 Caravan.test$pred0 <- predict(knn0, newdata = Caravan.test)
 Caravan.test$pred_up <- predict(knn_up, newdata = Caravan.test)
 Caravan.test$pred_down <- predict(knn_down, newdata = Caravan.test)
-
-metrics <- metric_set(accuracy, specificity, sensitivity)
 
 metrics(Caravan.test, truth = Purchase, estimate = pred_NO)
 metrics(Caravan.test, truth = Purchase, estimate = pred0)
