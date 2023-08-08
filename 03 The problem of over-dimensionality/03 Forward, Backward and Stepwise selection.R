@@ -27,7 +27,9 @@ rec <- recipe(Salary ~ ., data = Hitters_train) |>
 
 # Forward Selection --------------------------------------
 
-tg <- expand.grid(nvmax = 1:19)
+tg <- expand.grid(
+  nvmax = 1:19 # [1, p] 
+)
 
 tc <- trainControl(method = "cv", number = 5)
 

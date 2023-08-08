@@ -131,7 +131,9 @@ set.seed(1)
 
 # lets' explore train():
 
-tg <- expand.grid(k = 5)
+tg <- expand.grid(
+  k = 5 # [1, N] neighbors 
+)
 # (An OPTIONAL\MUST argument depends on the method used)
 # A data frame with possible tuning values (also called hyperparameters).
 # For knn we MUST enter the k. (Or do we?)
@@ -210,7 +212,9 @@ c(
 # We chose K=5, but what will happen if we will use bigger k? like 10?
 
 # (B) Fitting the same model using KNN (with k=10) on the train data:
-tg2 <- expand.grid(k = 10)
+tg2 <- expand.grid(
+  k = 10 # [1, N] neighbors 
+)
 
 knn.fit10 <- train(
   x = rec,
@@ -249,7 +253,7 @@ c(
 
 rec2 <- recipe(mpg ~ ., # all predictors,
                data = train.data) |>
-  step_rm(name) |> # EXPECT for the name of the model (meaningless!)
+  step_rm(name) |> # EXCEPT for the name of the car-model (meaningless!)
   step_center(all_numeric()) |> # Note the use of all_numeric
   step_scale(all_numeric()) |> 
   step_dummy(all_factor_predictors(), # Make dummy variables (we'll talk about this later!)

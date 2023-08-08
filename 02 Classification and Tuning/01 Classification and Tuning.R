@@ -194,7 +194,9 @@ tc <- trainControl(method = "LOOCV",
 # it in order to CHOOSE the best K (i.e., hyperparameter)!
 
 # Let's try now some options for k to better understand:
-tg <- expand.grid(k = c(5, 10, 50, 200))
+tg <- expand.grid(
+  k = c(5, 10, 50, 200) # [1, N] neighbors 
+)
 
 set.seed(12345)  # For KNN fitting process (see tutorial 1)
 

@@ -28,7 +28,9 @@ rec <- recipe(Salary ~ ., data = Hitters.train) |>
 
 tc <- trainControl(method = "cv", number = 5)
 
-tg <- expand.grid(k = c(1, 2, 4, 8, 16))
+tg <- expand.grid(
+  k = c(1, 2, 4, 8, 16) # [1, N]
+)
 
 model_reg <- train(
   x = rec, 
@@ -148,7 +150,9 @@ rec <- recipe(maritl3 ~ ., data = Wage.train) |>
 
 tc <- trainControl(method = "cv", number = 5)
 
-tg <- expand.grid(k = c(1, 2, 4, 8, 16))
+tg <- expand.grid(
+  k = c(1, 2, 4, 8, 16) # [1, N]
+)
 
 model_class <- train(
   x = rec, 

@@ -37,7 +37,9 @@ rec <- recipe(Purchase ~ ., data = Caravan.train) |>
 
 tc <- trainControl(method = "none", classProbs = TRUE)
 
-tg <- expand.grid(k = 10)
+tg <- expand.grid(
+  k = 10 # [1, N] neighbors
+)
 
 knn0 <- train(
   x = rec,

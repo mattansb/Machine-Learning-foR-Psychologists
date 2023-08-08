@@ -49,7 +49,9 @@ tc <- trainControl(method = "cv", number = 5)
 # value of the cost parameter. Here, we directly try more then one value and
 # find the best fit with CV!
 
-tg <- expand.grid(C = 10 ^ seq(-3, 0, by = 0.1))
+tg <- expand.grid(
+  C = 10 ^ seq(-3, 0, by = 0.1) # [0, 1]
+)
 tg
 # A cost argument allows us to specify the cost of a violation to the margin:
 # small cost -> wide margins and many support vectors violate the margin.
@@ -114,15 +116,17 @@ confusionMatrix(OJ.test$pred_lin, OJ.test$Purchase) # confusion matrix
 
 ## Polynomial ------------------------------------
 
-tg <- expand.grid(C = 10 ^ seq(-3, 0, by = 0.1), 
-                  degree = 2,
-                  scale = 1)
+tg <- expand.grid(
+  C = 10 ^ seq(-3, 0, by = 0.1), # [0, 1]
+  degree = 2, # [1, Inf]
+  scale = 1 # [0, Inf]
+)
 # Here we also add the degree argument to specify a degree for the polynomial
 # kernel (for quadratic: degree = 2).
 
 # We will also add a parameter called "scale" which is related to gamma\sigma
 # which will become relevant for radial kernel, but means nothing for poly
-# kernel. For some reason- caret insist we will set some value (non zero) in
+# kernel. For some reason caret insist we will set some value (non zero) in
 # scale. Without it train() will not run. We will put scale = 1, but it means
 # nothing!
 
@@ -158,8 +162,10 @@ plot(fit.poly2$finalModel, data = X_train)
 # https://vitalflux.com/svm-rbf-kernel-parameters-code-sample/
 
 
-tg <- expand.grid(C = 10 ^ seq(-3, 0, by = 0.4), 
-                  sigma = 2 ^ seq(-2, 2))
+tg <- expand.grid(
+  C = 10 ^ seq(-3, 0, by = 0.4), # [0, 1]
+  sigma = 2 ^ seq(-2, 2) # [0, Inf]
+)
 
 set.seed(1)
 fit.rad <- train(
@@ -225,7 +231,9 @@ table(Wage.train$maritl3) |> proportions()
 # will perform multi-class classification using the one-versus-one approach.
 
 
-tg <- expand.grid(C = 10 ^ seq(-3, 0, len = 10))
+tg <- expand.grid(
+  C = 10 ^ seq(-3, 0, len = 10) # [0, 1]
+)
 
 set.seed(1)
 fit.lin3class <- train(

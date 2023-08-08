@@ -226,8 +226,10 @@ rec <- recipe(Salary ~ ., data = Hitters.train) |>
 # Another hyperparameter will be the tuning penalty lambda. Let's choose a range
 # for lambda values.
 
-tg <- expand.grid(alpha = 0,
-                  lambda = c(2 ^ seq(10, -2, length = 50)))
+tg <- expand.grid(
+  alpha = 0, # [0, 1]
+  lambda = 2 ^ seq(10, -2, length = 50) # [0, Inf]
+)
 
 # Here we will implement it over a grid of 100 values ranging from lambda=10^10
 # to lambda=10^-2, thus covering the full range of scenarios from the null model
@@ -309,8 +311,10 @@ plot(coef(rigreg_fit$finalModel, s = 1000), ylab = "Value")
 
 # (B) TUNE:
 
-tg <- expand.grid(alpha = 1, # switch to alpha=1 for lasso
-                  lambda = c(2 ^ seq(10,-2, length = 50))) # SAME lambdas
+tg <- expand.grid(
+  alpha = 1, # [0, 1] switch to alpha=1 for lasso
+  lambda = c(2 ^ seq(10,-2, length = 50)) # [0, Inf] SAME lambdas
+) 
 
 set.seed(1)
 lasso_fit <- train(
@@ -356,8 +360,10 @@ plot(coef)
 # for Elastic Net there are two parameters to tune: lambda and alpha.
 
 # lets try 25 possible alpha values:
-tg <- expand.grid(alpha = c(seq(0, 1, length.out = 15)),
-                  lambda = c(2 ^ seq(10,-2, length = 50)))# SAME lambdas
+tg <- expand.grid(
+  alpha = seq(0, 1, length.out = 15), # [0, 1]
+  lambda = 2 ^ seq(10,-2, length = 50) # [0, Inf] SAME lambdas
+) 
 tg # 15 alphas * 50 lambda = 750 models (each one with 10-fold CV!)
 
 # Train the model:

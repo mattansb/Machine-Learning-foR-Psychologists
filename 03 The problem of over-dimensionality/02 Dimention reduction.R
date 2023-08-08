@@ -37,7 +37,9 @@ rec <- recipe(Salary ~ ., data = Hitters_train) |>
 
 ## (B) Tune:
 
-tg <- expand.grid(ncomp = 1:15)
+tg <- expand.grid(
+  ncomp = 1:15 # [1, p]
+)
 
 tc <- trainControl(method = "cv", number = 10)
 
@@ -118,7 +120,9 @@ rec_with_PCA <- rec |>
 
 ## (B) Tune:
 
-tg <- expand.grid(k = c(1, 2, 5, 10, 20, 50, 100))
+tg <- expand.grid(
+  k = c(1, 2, 5, 10, 20, 50, 100) # [1, N]
+)
 
 set.seed(44)
 KNN_fit <- train(

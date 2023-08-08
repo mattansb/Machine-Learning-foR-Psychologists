@@ -23,7 +23,9 @@ tc <- trainControl(method = "cv", number = 10,
                    # need these:
                    classProbs = TRUE, 
                    savePredictions = TRUE)
-tg <- expand.grid(k = c(5:15))
+tg <- expand.grid(
+  k = c(5:15) # [1, N] neighbors
+)
 
 rec <- recipe(Economy ~ horsepower + cylinders + weight, 
               data = Auto.train) |> 
