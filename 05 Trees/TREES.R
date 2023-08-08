@@ -58,7 +58,9 @@ rec <- recipe(HighSales ~ ., data = Carseats.train) |>
 
 tc <- trainControl(method = "cv", number = 5) # using 5-folds CV
 
-tg <- expand.grid(cp = 0)
+tg <- expand.grid(
+  cp = 0 # [0, Inf] complexity
+)
 # cp is the complexity parameter. If set to 0, no pruning is done.
 
 
@@ -108,8 +110,6 @@ text(fit.tree$finalModel, pretty = 0, cex = 0.7) # display the node labels.
 
 
 
-
-
 ### Predict and evaluate performance on test set ----------------------------
 
 # Predicting High sales for test data:
@@ -141,8 +141,10 @@ proportions(table(Carseats.test$HighSales))
 
 # For finding the best size for the tree using CV change the possible cp
 # values for complexity parameters in the tune grid.
-tg <- expand.grid(cp = seq(0, 0.3, length = 100))
-# check 100 alphas- from 0 to 0.3 
+tg <- expand.grid(
+  cp = seq(0, 0.3, length = 100) # [0, Inf] complexity
+)
+# check 100 alphas - from 0 to 0.3 
 
 
 # cp specifies how the cost of a tree is penalized by the number of terminal
@@ -222,7 +224,9 @@ rec <- recipe(medv ~ ., data = Boston.train)
 
 tc <- trainControl(method = "cv", number = 5) # using 5-folds CV
 
-tg <- expand.grid(cp = seq(0, 0.2, length = 100))
+tg <- expand.grid(
+  cp = seq(0, 0.2, length = 100) # [0, Inf] complexity
+)
 
 
 set.seed(1234)
@@ -273,7 +277,9 @@ rsq(Boston.test, truth = medv, estimate = pred_tree)
 # use method= "rf" (as bagging in type of random forest) with maximal number of
 # predictors.
 
-tg <- expand.grid(mtry = 13)
+tg <- expand.grid(
+  mtry = 13 # [1, p] number of random predictors
+)
 # mtry=13 indicates that all 13 predictors should always be considered:
 rec
 # In other words, that bagging should be done.
@@ -352,7 +358,9 @@ rsq(Boston.test, truth = medv, estimate = pred_bag)
 # lets try: mtry=4, (closest p/3) and also mtry=2,7,10 for fun, as well as 13
 # (i.e. bagging)
 
-tg <- expand.grid(mtry = c(2, 4, 7, 10, 13))
+tg <- expand.grid(
+  mtry = c(2, 4, 7, 10, 13) # [1, p] number of random predictors
+)
 
 set.seed(1234)
 rf.boston <- train(
@@ -399,21 +407,29 @@ plot(rf.vi)
 # we use method="gbm", but there are many many more methods for boosting:
 # https://topepo.github.io/caret/train-models-by-tag.html#boosting
 
-# Boosting has three tuning parameters:
-# 1. The number of trees
-# 2. The shrinkage parameter (lambda)
-# 3. The number of splits in each tree, which controls the complexity of the
-#    boosted ensemble (depth) - often set to 1, for stumps.
+# Boosting has three types of tuning parameters:
+# 1. Model complexity
+# 2. Learning gradient
+# 3. Randomness
   
-
 tg <- expand.grid(
-  n.trees = 1000, # number of trees
-  shrinkage = 0.1, # learning rate
-  interaction.depth = 1, # limits the depth of each tree
-  n.minobsinnode = 5 # don't split if you get less obs in a node
+  ## Complexity
+  max_depth = 1, # [1, Inf] limits the depth of each tree
+  min_child_weight = 5, # [1, Inf] don't split if you get less obs in a node
+  gamma = 0, # [0, Inf] node splitting regularization
+  
+  ## Gradient
+  eta = 0.1, # [0, 1] learning rate
+  nrounds = 1000, # [1, Inf] number of trees
+  # lower eta should come with higher nrounds
+  
+  ## Randomness
+  colsample_bytree = 1, # [0, 1] like mtry in rf
+  subsample = 1 # [0, 1] like bagging
 )
-# A note regarding n.minobsinnode- What is the best value to use? It depends on
-# the data set and whether you are doing classification or regression. Since
+
+# A note regarding min_child_weight - What is the best value to use? It depends
+# on the data set and whether you are doing classification or regression. Since
 # each trees' prediction is taken as the average of the dependent variable of
 # all inputs in the terminal node, a value of 1 probably won't work so well for
 # regression(!) but may be suitable for classification.
@@ -428,10 +444,9 @@ set.seed(1234)
 boost.boston <- train(
   x = rec, 
   data = Boston.train,
-  method = "gbm",
+  method = "xgbTree",
   tuneGrid = tg,
-  trControl = tc, 
-  verbose = FALSE # gbm likes to talk...
+  trControl = tc
 )
 
 boost.boston
@@ -447,8 +462,7 @@ rmse(Boston.test, truth = medv, estimate = pred_boost)
 rsq(Boston.test, truth = medv, estimate = pred_boost)
 # This is worse than rf, but note we used STUMPS!!
 #
-# We can improve upon this model by tuning the shrinkage and interaction.depth
-# parameters.
+# We can improve upon this model by tuning the eta and max_depth parameters.
 
 
 
