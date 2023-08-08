@@ -425,7 +425,7 @@ tg <- expand.grid(
   
   ## Randomness
   colsample_bytree = 1, # [0, 1] like mtry in rf
-  subsample = 1 # [0, 1] like bagging
+  subsample = 1 # [0, 1] like bagging / rf
 )
 
 # A note regarding min_child_weight - What is the best value to use? It depends
