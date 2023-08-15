@@ -404,13 +404,14 @@ plot(rf.vi)
 # - each tree is fitted using the current residuals, rather than the outcome Y.
 
 
-# we use method="gbm", but there are many many more methods for boosting:
+# we use method="xgbTree", but there are many many more methods for boosting:
 # https://topepo.github.io/caret/train-models-by-tag.html#boosting
 
 # Boosting has three types of tuning parameters:
 # 1. Model complexity
 # 2. Learning gradient
 # 3. Randomness
+# https://xgboost.readthedocs.io/en/stable/parameter.html
   
 tg <- expand.grid(
   ## Complexity
