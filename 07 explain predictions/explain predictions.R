@@ -120,6 +120,13 @@ sv <- shapviz(shaps)
 sv_importance(sv, max_display = 100)
 
 
+
+# Limitations:
+# https://proceedings.mlr.press/v119/kumar20e.html
+
+
+
+
 # Classification ------------------------------------------------------------
 
 # It's basically the same, but we need some arguments new in lime() and in

@@ -1,6 +1,7 @@
 ### Tutorial 6- Clustering  ###
 
 library(tidyverse)
+library(Rtsne)
 library(factoextra) # https://rpkgs.datanovia.com/factoextra/index.html
 library(recipes)
 
@@ -40,6 +41,29 @@ rownames(USArrests_z) <- rownames(USArrests)
 head(USArrests_z)
 
 
+## t-NSE plot -------------------------------------------------
+
+# t-NSE plots are useful for visualizing high dimensional data in 2D space.
+# Unlike PCA or other methods we've discussed, t-NSE is *only* good for
+# visualization - it is a non-linear method the preserve the local structure of
+# data but not the global structure of the data.
+# Read more:
+# https://suneeta-mall.github.io/2022/06/09/feature_analysis_tsne_vs_umap.html
+
+# It is also non-deterministic = it will return different results each time, 
+# so don't forget to:
+set.seed(42)
+
+USArrests_z_tSNE <- Rtsne(USArrests_z, perplexity = 5,
+                          pca = FALSE, normalize = FALSE)
+
+p_tSNE <- data.frame(USArrests_z_tSNE$Y) |> 
+  ggplot(aes(X1, X2)) + 
+  geom_point(size = 2) + 
+  # scales are meaningless
+  theme_void()
+p_tSNE
+# It seems like there are 3 or 4 clumps of high-D (4D in out case) data.
 
 
 # K-Means Clustering --------------------------------------------------------
@@ -78,6 +102,9 @@ km$cluster # vector which assigns obs. to each cluster
 # Plotting each observation colored according to its cluster assignment:
 plot(USArrests, col = km$cluster, 
      pch = 20, cex = 2)
+
+# How does this look on our t-SNE plot?
+p_tSNE + aes(color = factor(km$cluster))
 
 # Maybe K=3 will be better?
 # If we don't have any prior knowledge about k... we can use fviz_nbclust() from
@@ -157,7 +184,7 @@ hc.complete <- hclust(, method = "complete")
 # Or method = "centroid"
 
 
-# plotting the dendrograms and determining clusters:
+# plotting the dendrograms (with small-ish samples) and determining clusters:
 plot(hc.complete)
 # The numbers / labels at the bottom of the plot identify each observation.
 
@@ -174,11 +201,16 @@ fviz_dend(hc.complete, k = 4)
 
 # To determine the cluster labels for each observation associated with a given
 # cut of the dendrogram, we can use the cutree() function:
-cutree(hc.complete, k = 4)
-cutree(hc.complete, h = 1)
+(hc_cut.k4 <- cutree(hc.complete, k = 4))
+(hc_cut.h1 <- cutree(hc.complete, h = 1))
 
 
+# Plotting each observation colored according to its cluster assignment:
+plot(USArrests, col = hc_cut.k4, 
+     pch = 20, cex = 2)
 
+# How does this look on our t-SNE plot?
+p_tSNE + aes(color = factor(hc_cut.k4))
 
 
 
@@ -207,6 +239,7 @@ bfi_scales <- bfi |>
 #   - decide on a distance metric
 #   - choose a linkage method
 #   - plot the dendrogram - and choose the number of clusters
+#   - plot the clusters on a t-SNE plot.
 # 2. Validate the clusters - are they related to gender? age? education?
 #   - Answer visually.
 
