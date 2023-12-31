@@ -59,7 +59,8 @@ USArrests_z_tSNE <- Rtsne(USArrests_z, perplexity = 5,
 
 p_tSNE <- data.frame(USArrests_z_tSNE$Y) |> 
   ggplot(aes(X1, X2)) + 
-  geom_point(size = 2) + 
+  geom_point(size = 2) +
+  ggrepel::geom_text_repel(aes(label = rownames(USArrests_z))) + 
   # scales are meaningless
   theme_void()
 p_tSNE
