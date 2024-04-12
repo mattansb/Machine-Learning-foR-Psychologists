@@ -42,12 +42,15 @@ Smarket.train <- training(splits)
 Smarket.test <- testing(splits)
 
 ## (A) Fitting logistic regression on train data using caret --------------
+rec <- recipe(Direction ~ Lag1 + Lag2, 
+              data = Smarket.train)
+
 tc <- trainControl(method = "none") # remember "none" = no training method.
                                     # for the warmup we will leave it like that...
                                   
 # We will use train().
 LogRegfit <- train(
-  Direction ~ Lag1 + Lag2, # model syntax
+  x = rec,
   data = Smarket.train, # the data
   method = "glm", family = binomial("logit"), # For logistic regression
   trControl = tc # although this is redundant when set to "none"
@@ -128,8 +131,11 @@ confusionMatrix(predicted.classes,
 # https://en.wikipedia.org/wiki/Confusion_matrix for more about terminology and
 # derivations of a confusion matrix
 
-# ANYWAY, all indices tells us that this model wasn't that amazing (for accuracy
-# flipping a coin would be better...)
+# ANYWAY, all indices tells us that this model wasn't that amazing (flipping a
+# coin might be better...)
+f_meas_vec(truth = Smarket.test$Direction, estimate = predicted.classes, beta = 1, event_level = "second")
+mcc_vec(truth = Smarket.test$Direction, estimate = predicted.classes)
+# And more....
 
 ## We can also look at the ROC curves!
 
@@ -144,6 +150,7 @@ Smarket.test |>
           event_level = "second") |> 
   ggplot2::autoplot()
 
+roc_auc_vec(truth = Smarket.test$Direction, estimate = Smarket.test$prob_logisticReg, event_level = "second")
 # Here we can see how our modeled classifier acts (in terms of True Positive
 # Rate and False Positive Rates) using different thresholds. It seems that for
 # some varied thresholds our classifier isn't much better than a random
@@ -187,7 +194,7 @@ rec <- recipe(Direction ~ .,
 
 tc <- trainControl(method = "LOOCV", 
                    selectionFunction = "best") 
-# remember we used "none" in the previous examples? that ment we told R 'don't
+# remember we used "none" in the previous examples? that meשnt we told R 'don't
 # use resampling when fitting the data' now we tell R to do resampling, and
 # specifically- LOOCV We can just use this fitting method to make the fitting
 # proceadure to be more reliable (for any chosen k), or, we can also make use of
@@ -210,26 +217,26 @@ knn.fit.LOOCV <- train(
 )
 # NOTE 1: this specify the summary metric will be used to select the optimal
 # model. By default, possible values are "RMSE" and "Rsquared" for regression
-# and "Accuracy" and "Kappa" for classification. We can specify custom metrics.
+# and "Accuracy" and "Kappa" for classification. We can also specify custom
+# metrics.
 
-# NOTE 2: caret uses a threshold of 0.5 by default!
+# NOTE 2: caret uses a threshold of 0.5 by default.
 
 
 # (notice the time it takes to fit using LOOCV!)
 
 knn.fit.LOOCV$results 
 # Here we see accuracy for all values of K
-# 1- accuracy will be the VALIDATION ERROR
+# 1 - accuracy will be the VALIDATION ERROR
 # (it is somewhat in-between train and test errors)
 # *Kappa is a metric that compares an Observed Accuracy with an 
 # Expected Accuracy (random chance).  
 
-val.error <- 1 - knn.fit.LOOCV$results$Accuracy
-plot(knn.fit.LOOCV$results$k, val.error)
+plot(knn.fit.LOOCV)
 knn.fit.LOOCV$bestTune 
 
-# Best K is k=50 , where Accuracy = 0.899 and the validation error is
-# 1 - 0.899 = 0.101
+# Best K is k=10 , where Accuracy = 0.855 and the validation error is
+# 1 - 0.855 = 0.145
 
 # Final model is automatically chosen based on the best tuning hyperparameter(s)
 # (for now only one hyperparameter - k) is set to k=50
@@ -267,8 +274,7 @@ Smarket.test |>
 
 tc <- trainControl(method = "cv", number = 10,
                    selectionFunction = "best")
-# for preforming k-Fold Cross-Validation just switch "trainControl" to:
-# trainControl(method = "cv", number = k, selectionFunction = "best")
+# Or selectionFunction = "oneSE"
 
 # Let's try again the same options for knn's k:
 tg
@@ -338,8 +344,14 @@ psych::describe(Caravan)
 # In this task we will predict Purchase out this variables:
 # MOSTYPE,MOSHOOFD, MOPLLAAG
 
-# 1. Fit KNN with k=1, 5 and 20 using 10-folds CV and assess performance on test data.
-#    what were the chosen tuning parameter, cv error and test error?
-# 2. Fit KNN with k=1, 5 and 20 using LOOCV and assess performance on test data.
-#    Fitting time will be much longer than the time it took to fit the knn model
-#     on the Auto dataset. How can you explain it?
+# 1. Fit KNN with k=1, 5 and 20 using 10-folds CV and assess performance on test
+#   data. what were the chosen tuning parameter, cv error and test error?
+# 2. Repeat (1) using either 50 bootstrap samples
+tc <- trainControl(method = "boot", number = 50)
+#   repeated 10-fold CV.
+tc <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+
+# 3. How did the resampling methods (1 vs 2) differ in their results?
+
+
+

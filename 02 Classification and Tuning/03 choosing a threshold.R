@@ -57,7 +57,7 @@ resample_stats |>
 
 # Note that the dataset is not balanced, and still F1 and Accuracy are both best
 # at the same threshold of 0.4.
-# How about Ses and Spec? Depends on your needs...
+# How about Sens and Spec? Depends on your needs...
 
 
 ## Set threshold to use in training -----------------------------------------

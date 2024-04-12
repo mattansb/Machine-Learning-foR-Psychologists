@@ -79,7 +79,7 @@ test.data <- testing(splits) # We will test the model on 30% of the obs.
 # (A) Prepossessing >>> 
 #     (B) Fitting >>> 
 #         (C) Predicting >>> 
-#             (D) assessing performance
+#             (D) Assessing performance
 
 
 ## (A) Prepossessing ---------------------------------------------------------
