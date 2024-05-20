@@ -303,7 +303,7 @@ plot(mpg ~ mpg_hat_3, data = test.data)
 # Note- when needed- use set.seed(1) for replicability
 
 # (1) Split the data to train and test (use prop=0.7)
-# (2) Predict wage out 3 of the other variables with a knn model with 
+# (2) Predict wage using 3 of the other variables with a knn model with 
 #     (k=5). That is, fit and predict.
 # (3) Assess performance using the metrics you've learned
 # (4) To improve flexibility, try a different k. Will you use bigger\ smaller k?
