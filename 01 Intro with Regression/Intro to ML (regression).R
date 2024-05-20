@@ -13,8 +13,6 @@ library(caret)
 # of functions that attempt to streamline the process for creating predictive
 # models. The package contains tools for:
 
-# - data splitting
-# - pre-processing
 # - model tuning using re-sampling
 # - model fitting and prediction
 
@@ -56,7 +54,8 @@ str(Auto)
 
 # Initial Data Splitting - Train & Test Data ----------------------------------
 
-library(rsample) # part of tidymodels
+library(rsample) # part of tidymodels (data splitting and resampling)
+
 
 # We will TRAIN the model (i.e. fit) on the 70% of the observations randomly
 # assigned and TEST the model (i.e. predict and assess performance) on the 30%
@@ -94,10 +93,10 @@ test.data <- testing(splits) # We will test the model on 30% of the obs.
 
 # WHY DO WE DO THIS ON THE TRAINING DATA?
 
-library(recipes)
+library(recipes) # data pre-processing pipeline
 
-rec <- recipe(mpg ~ horsepower + weight, # model specification (a MUST argument)
-              data = train.data) # the data (a MUST argument)
+rec <- recipe(mpg ~ horsepower + weight, # model specification
+              data = train.data) # the data
 rec
 
 # There are many prepossessing "steps" we can take:
@@ -256,7 +255,7 @@ rec2 <- recipe(mpg ~ ., # all predictors,
   step_rm(name) |> # EXCEPT for the name of the car-model (meaningless!)
   step_center(all_numeric()) |> # Note the use of all_numeric
   step_scale(all_numeric()) |> 
-  step_dummy(all_factor_predictors(), # Make dummy variables (we'll talk about this later!)
+  step_dummy(all_factor(), # Make dummy variables (we'll talk about this later!)
              one_hot = TRUE)
 
 bake(prep(rec2), new_data = NULL) |> head()
@@ -275,7 +274,7 @@ knn.fit10.B <- train(
 
 # (C) PREDICTING for the test data
 test.data$mpg_hat_3 <- predict(knn.fit10.B, newdata = test.data)
-plot(mpg ~ mpg_hat_3, data = test.data)
+
 
 # (D) ASSESSING performance
 
@@ -284,8 +283,9 @@ c(
   RMSE = rmse_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_3),
   MAE = mae_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_3)
 )
+plot(mpg ~ mpg_hat_3, data = test.data)
 
-# Rsq is better! But what happened to RMSE/MAE??
+# Rsq is better! But what happened to RMSE/MAE?? And the plot??
 # Go back and fix it!
 
 
