@@ -111,24 +111,23 @@ cv_data <- list(
   bind_rows(.id = "Model")
 
 # Summary across folds
-cv_summary <- list(
-  logistic1 = fit_logistic1$results,
-  logistic2 = fit_logistic2$results,
-  KNN = fit_KNN$results[2,]
-) |> 
-  bind_rows(.id = "Model") |> 
-  # Compute SE
-  mutate(
-    AccuracySE = AccuracySD / sqrt(5)
+cv_summary <- cv_data |> 
+  group_by(Model) |> 
+  summarise(
+    across(Accuracy:Kappa, 
+           list(Mean = mean, 
+                SE = \(x) sd(x) / sqrt(5)))
   )
+cv_summary
 
 ## Plot -----------------
 
 ggplot(cv_data, aes(Model, Accuracy)) + 
   geom_hline(yintercept = 0.5, linetype = "dashed") + 
   geom_line(aes(group = Resample)) + 
-  geom_pointrange(aes(ymin = Accuracy - AccuracySE,
-                      ymax = Accuracy + AccuracySE),
+  geom_pointrange(aes(y = Accuracy_Mean, 
+                      ymin = Accuracy_Mean - Accuracy_SE,
+                      ymax = Accuracy_Mean + Accuracy_SE),
                   data = cv_summary,
                   color = "red") +
   coord_cartesian(ylim = c(NA, 1)) + 
@@ -146,8 +145,10 @@ cv_data_wide <- cv_data |>
 cv_cor <- cor(cv_data_wide)
   
 # Compare (almost like a paired t-test...)
-d_log1.vs.log2 <- cv_summary$Accuracy[1] - cv_summary$Accuracy[2]
-se_log1.vs.log2 <- sqrt(cv_summary$AccuracySE[1]^2 + cv_summary$AccuracySE[2]^2 - 2*cv_cor[1,2]*cv_summary$AccuracySE[1]^2 + cv_summary$AccuracySE[2]^2)
+d_log1.vs.log2 <- cv_summary$Accuracy_Mean[1] - cv_summary$Accuracy_Mean[2]
+se_log1.vs.log2 <- sqrt(cv_summary$Accuracy_SE[1]^2 + 
+                          cv_summary$Accuracy_SE[2]^2 - 
+                          2 * cv_cor[1,2] * cv_summary$Accuracy_SE[1]^2 * cv_summary$Accuracy_SE[2]^2)
 c(d_log1.vs.log2 - se_log1.vs.log2, d_log1.vs.log2 + se_log1.vs.log2)
 
 

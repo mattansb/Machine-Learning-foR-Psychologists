@@ -23,6 +23,7 @@ library(caret)
 # For datasets we will mostly use the Book official package ISLR
 library(ISLR) # The "ISLR" package includes data sets we will use this semester
 data("Auto")
+str(Auto)
 
 # The Auto Dataset contains information about ... cars.
 # For each car, the following vars were recorded:
@@ -50,7 +51,6 @@ Auto$origin <- factor(Auto$origin)
 dim(Auto)
 names(Auto)
 head(Auto)
-str(Auto)
 
 # Initial Data Splitting - Train & Test Data ----------------------------------
 
@@ -200,9 +200,10 @@ c(
   MAE = mae_vec(truth = test.data$mpg, estimate = test.data$mpg_hat)
 )
 
-# # Or you can do this.. But you won't really need to...
-# quant_metrics <- metric_set(rsq, rmse, mae)
-# quant_metrics(test.data, truth = mpg, estimate = mpg_hat)
+# Or:
+quant_metrics <- metric_set(rsq, rmse, mae)
+test.data |> 
+  quant_metrics(truth = mpg, estimate = mpg_hat)
 
 
 
@@ -227,11 +228,8 @@ knn.fit10 <- train(
 test.data$mpg_hat_2 <- predict(knn.fit10, newdata = test.data)
 
 # (D) ASSESSING performance
-c(
-  Rsq = rsq_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_2),
-  RMSE = rmse_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_2),
-  MAE = mae_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_2)
-)
+test.data |> 
+  quant_metrics(truth = mpg, estimate = mpg_hat_2)
 # Gives very similar results to K=5...
 
 
@@ -255,10 +253,10 @@ rec2 <- recipe(mpg ~ ., # all predictors,
   step_rm(name) |> # EXCEPT for the name of the car-model (meaningless!)
   step_center(all_numeric()) |> # Note the use of all_numeric
   step_scale(all_numeric()) |> 
-  step_dummy(all_factor(), # Make dummy variables (we'll talk about this later!)
+  step_dummy(all_factor_predictors(), # Make dummy variables (we'll talk about this later!)
              one_hot = TRUE)
 
-bake(prep(rec2), new_data = NULL) |> head()
+bake(prep(rec2), new_data = NULL) |> View()
 # Note that the order matters - where we put step_dummy() determines if the
 # dummies will be centered and scaled!
 
@@ -277,12 +275,8 @@ test.data$mpg_hat_3 <- predict(knn.fit10.B, newdata = test.data)
 
 
 # (D) ASSESSING performance
-
-c(
-  Rsq = rsq_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_3),
-  RMSE = rmse_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_3),
-  MAE = mae_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_3)
-)
+test.data |> 
+  quant_metrics(truth = mpg, estimate = mpg_hat_3)
 plot(mpg ~ mpg_hat_3, data = test.data)
 
 # Rsq is better! But what happened to RMSE/MAE?? And the plot??

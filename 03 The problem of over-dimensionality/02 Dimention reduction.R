@@ -53,6 +53,7 @@ PCR_fit <- train(
 )
 
 PCR_fit$bestTune
+plot(PCR_fit)
 
 summary(PCR_fit$finalModel)
 
@@ -76,6 +77,7 @@ PLS_fit <- train(
 )
 
 PLS_fit$bestTune
+plot(PLS_fit)
 
 summary(PLS_fit$finalModel)
 
@@ -113,6 +115,8 @@ rsq(Hitters_test, Salary, PLS_pred)
 
 rec
 # Already has a scaling step and centering step
+# If we didn't we would have to add 
+# step_pca(..., options = list(center = TRUE, scale. = TRUE))
 
 rec_with_PCA <- rec |> 
   step_pca(all_numeric_predictors(), 
@@ -133,8 +137,8 @@ KNN_fit <- train(
   trControl = tc
 )
 
-PLS_fit$recipe |> bake(new_data = NULL) # We had 22 predictors
-KNN_fit$recipe |> bake(new_data = NULL) # We used 7 PCs
+PLS_fit$recipe |> bake(new_data = NULL) |> ncol() # We had 22 predictors
+KNN_fit$recipe |> bake(new_data = NULL) |> ncol() # We used 7 PCs
 
 ## Compare -------------------
 

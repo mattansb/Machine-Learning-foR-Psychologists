@@ -26,12 +26,12 @@ data(Smarket, package = "ISLR")
 
 # Assume the following classification task on the Smarket data:
 # predict Direction (Up/Down) using the features Lag1 and Lag2.
-# If we are not sure how Direction is coded we can use contrasts():
-contrasts(Smarket$Direction)
+# If we are not sure how Direction is coded we can use levels():
+levels(Smarket$Direction)
 
 table(Smarket$Direction)
 # The base rate probability:
-proportions(table(Smarket$Direction))
+table(Smarket$Direction) |> proportions()
 
 # We'll start by using a parametric method - logistic regression:
 
@@ -80,8 +80,7 @@ predicted.probs <- predict(LogRegfit, newdata = Smarket.test, type = "prob")
 # output probabilities of the form:
 # p(Y = 1|X) -> p(direction is UP given the specific Xs).
 # This is relevant for classification problems of course
-head(predicted.probs)  # predicted outcomes for the first 6 obs.
-predicted.probs[1:10,"Up"]
+head(predicted.probs, n = 10)  # predicted outcomes for the first 6 obs.
 
 # Here we predicted probabilities, but what if we want to predict classes?
 # use "raw" instead of "prob" and get the class prediction (based on 0.5 cutoff)
@@ -90,6 +89,7 @@ predicted.classes <- predict(LogRegfit, newdata = Smarket.test, type = "raw")
 predicted.classes <- predict(LogRegfit, newdata = Smarket.test) 
 
 predicted.classes[1:10] # predicted.classes for the market to go up for the 10 first observations
+cbind(predicted.probs, predicted.classes)[1:10,]
 
 # OR, if from some reason we don't want to use the 0.5 cutoff, we can convert
 # the predicted probabilities to a binary variable based on selected cutoff
@@ -99,6 +99,7 @@ predicted.classes2 <- factor(predicted.probs[["Up"]] > 0.9,
                              labels = c("Down", "Up"))
 # as columns complete to 1.
 predicted.classes2[1:10]
+table(predicted.classes2)
 
 
 ## (C) Assessing model performance -------------------------------------------
@@ -133,8 +134,13 @@ confusionMatrix(predicted.classes,
 
 # ANYWAY, all indices tells us that this model wasn't that amazing (flipping a
 # coin might be better...)
-f_meas_vec(truth = Smarket.test$Direction, estimate = predicted.classes, beta = 1, event_level = "second")
-mcc_vec(truth = Smarket.test$Direction, estimate = predicted.classes)
+Smarket.test$pred_logistic_raw <- predicted.classes
+class_metrics <- metric_set(metric_tweak("f1_meas", f_meas, beta = 1),
+                            metric_tweak("f0.5_meas", f_meas, beta = 0.5),
+                            metric_tweak("f2_meas", f_meas, beta = 2),
+                            mcc)
+Smarket.test |> 
+  class_metrics(truth = Direction, estimate = pred_logistic_raw, b = 2)
 # And more....
 
 ## We can also look at the ROC curves!
@@ -150,7 +156,8 @@ Smarket.test |>
           event_level = "second") |> 
   ggplot2::autoplot()
 
-roc_auc_vec(truth = Smarket.test$Direction, estimate = Smarket.test$prob_logisticReg, event_level = "second")
+Smarket.test |> 
+  roc_auc(truth = Direction, prob_logisticReg, event_level = "second")
 # Here we can see how our modeled classifier acts (in terms of True Positive
 # Rate and False Positive Rates) using different thresholds. It seems that for
 # some varied thresholds our classifier isn't much better than a random
@@ -246,7 +253,9 @@ knn.fit.LOOCV$finalModel
 predicted.classes.LOOCV <- predict(knn.fit.LOOCV, newdata = Smarket.test, type = "raw") 
 
 ## (C) Assessing performance: 
-confusionMatrix(predicted.classes.LOOCV, Smarket.test$Direction, positive = "Up")
+confusionMatrix(predicted.classes.LOOCV, 
+                Smarket.test$Direction, 
+                positive = "Up")
 # Accuracy (0.91) is great, even in contrast to the validation error! 
 # It might be that our model is just good\or that CV help us to create a stable
 # model (also, remember that accuracy isn't everything and we have many
@@ -324,7 +333,7 @@ confusionMatrix(predicted.classes.10CV, Smarket.test$Direction, positive = "Up")
 # Exercises: ----------------------------------------------------------------------
 
 # Note- * when needed- use set.seed({some number}) for replicability
-#       * work with split to train =70% of the data (and test= 30%)
+#       * work with split to train = 70% of the data (and test= 30%)
 
 # A) Use the Smarket dataset and predict Direction from Lag1 + Lag2 + Lag3.
 #   But now fit a *logistic regression* using 10-folds CV and assess
@@ -341,7 +350,7 @@ confusionMatrix(predicted.classes.10CV, Smarket.test$Direction, positive = "Up")
 Caravan$Purchase # Purchase is a factor with 2 levels "No","Yes"
 str(Caravan) # all other variables are numeric
 psych::describe(Caravan)
-# In this task we will predict Purchase out this variables:
+# In this task we will predict Purchase out these variables:
 # MOSTYPE,MOSHOOFD, MOPLLAAG
 
 # 1. Fit KNN with k=1, 5 and 20 using 10-folds CV and assess performance on test

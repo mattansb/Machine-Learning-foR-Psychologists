@@ -4,6 +4,7 @@
 # want during training.
 
 # Here is the same example for the 10-fold CV:
+library(ggplot2)
 
 library(caret)
 library(yardstick)
@@ -11,8 +12,9 @@ library(recipes)
 library(rsample)
 
 data("Auto", package = "ISLR")
-Auto$Economy <- ifelse(Auto$mpg > 30, 1, 0) |> 
-  factor(labels = c("Yes", "No"))
+Auto$Economy <- factor(Auto$mpg > 30,
+                       levels = c(FALSE, TRUE), 
+                       labels = c("Yes", "No"))
 
 set.seed(2345) 
 splits <- initial_split(Auto,prop = 0.7)
@@ -52,9 +54,13 @@ resample_stats <- thresholder(knn.fit.10CV,
                               threshold = seq(0.1, 0.9, by = 0.1), 
                               final = FALSE, # look only at the final chosen model
                               statistics = c("F1", "Accuracy", "Sensitivity", "Specificity")) # choose which
-resample_stats |> 
-  dplyr::arrange(prob_threshold)
 
+resample_stats |> 
+  tidyr::pivot_longer(cols = F1:Specificity, 
+                      names_to = "Metric") |> 
+  ggplot(aes(prob_threshold, value, color = factor(k))) + 
+  facet_wrap(~Metric, scales = "free") + 
+  geom_line()
 # Note that the dataset is not balanced, and still F1 and Accuracy are both best
 # at the same threshold of 0.4.
 # How about Sens and Spec? Depends on your needs...
