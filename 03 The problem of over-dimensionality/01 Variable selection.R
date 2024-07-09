@@ -52,6 +52,8 @@ Hitters.test <- testing(splits)
 # generally better than the stepwise/forward/backward methods (script 03) - it
 # is less biased.
 
+library(leaps)
+
 # We can use the {leaps} package to preform Best Subset Selection based on Cp,
 # adj-R2, or BIC.
 
@@ -171,7 +173,7 @@ tg <- expand.grid(
 
 tc <- trainControl(method = "cv", number = 5)
 
-# Fit ridge regression with 10-folds cv:
+# Fit ridge regression with 5-folds cv:
 
 set.seed(1)
 rigreg_fit <- train(

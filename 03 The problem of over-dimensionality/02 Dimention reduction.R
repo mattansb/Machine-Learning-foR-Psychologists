@@ -86,8 +86,8 @@ coef(PLS_fit$finalModel, ncomp = 3)
 
 ## Compare ----------------
 
-cbind(coef(PCR_fit$finalModel, ncomp = 2),
-      coef(PLS_fit$finalModel, ncomp = 2))
+cbind(coef(PCR_fit$finalModel, ncomp = 7),
+      coef(PLS_fit$finalModel, ncomp = 3))
 
 
 Hitters_test$PCR_pred <- predict(PCR_fit, newdata = Hitters_test)
@@ -117,6 +117,8 @@ rec
 # Already has a scaling step and centering step
 # If we didn't we would have to add 
 # step_pca(..., options = list(center = TRUE, scale. = TRUE))
+
+?step_pca
 
 rec_with_PCA <- rec |> 
   step_pca(all_numeric_predictors(), 
