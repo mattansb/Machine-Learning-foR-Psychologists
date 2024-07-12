@@ -144,7 +144,7 @@ proportions(table(Carseats.test$HighSales))
 tg <- expand.grid(
   cp = seq(0, 0.3, length = 100) # [0, Inf] complexity
 )
-# check 100 alphas - from 0 to 0.3 
+# check 100 cp - from 0 to 0.3 
 
 
 # cp specifies how the cost of a tree is penalized by the number of terminal
@@ -389,6 +389,7 @@ rsq(Boston.test, truth = medv, estimate = pred_rf)
 rf.vi <- varImp(rf.boston, scale = FALSE)
 rf.vi
 plot(rf.vi)
+# lstat was "given a chance".
 # Same conclusions with better fit!
 
 
