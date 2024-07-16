@@ -113,7 +113,7 @@ rec <- recipe(Salary ~ ., data = Hitters.train) |>
 tg <- expand.grid(nvmax = 1:19)
 
 
-# Fit ridge regression with 10-folds cv:
+# Fit with 10-folds cv:
 tc <- trainControl(method = "cv", number = 10)
 
 set.seed(1)
@@ -134,7 +134,7 @@ coef(bestsub_fit$finalModel, id = bestsub_fit$bestTune$nvmax)
 # (C) Predict:
 Hitters.test$bss.pred <- predict(bestsub_fit, newdata = Hitters.test)
 
-# EVALUATE the RMSE on the TEST set, associated with this value of lambda:
+# EVALUATE the RMSE on the TEST set:
 rsq(Hitters.test, truth = Salary, estimate = bss.pred)
 rmse(Hitters.test, truth = Salary, estimate = bss.pred)
 hist(Hitters.train$Salary)

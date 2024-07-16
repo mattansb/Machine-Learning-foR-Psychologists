@@ -217,15 +217,15 @@ Wage.test <- testing(splits)
 
 # We will try to predict marital status from age and wage.
 
-rec <- recipe(maritl3 ~ age + wage,
-              data = Wage.train) |> 
-  step_range(all_numeric_predictors())
-
-
 table(Wage.train$maritl3)
 table(Wage.train$maritl3) |> proportions()
 # If the response is a factor containing more than two levels, then train()
 # will perform multi-class classification using the one-versus-one approach.
+
+
+rec <- recipe(maritl3 ~ age + wage,
+              data = Wage.train) |> 
+  step_range(all_numeric_predictors())
 
 
 tg <- expand.grid(
@@ -275,7 +275,6 @@ rec <- recipe(wage ~ age + maritl3,
 tg <- expand.grid(
   C = 10 ^ seq(-3, 2, length = 20) # [0, Inf]
 )
-tg
 # A cost argument allows us to specify the cost of a violation to the margin:
 # small cost -> wide margins and many support vectors violate the margin.
 # large cost -> narrow margins and few support vectors violate the margin.
