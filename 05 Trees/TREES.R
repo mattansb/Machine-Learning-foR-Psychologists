@@ -485,7 +485,8 @@ rsq(Boston.test, truth = medv, estimate = pred_boost)
 # 2. Random Forrest - find the optimal mtry with CV (one value should include
 #    the bagging option for this model).
 #    What was the best mtry?
-# 3. Boosting - tune at least one of shrinkage and interaction.depth with CV.
+# 3. Boosting - tune at least one of Complexity and one of the Gradient
+#    hyperparameters with CV.
 #    What was the best value(s)?
 
 # B) Compare the models:
