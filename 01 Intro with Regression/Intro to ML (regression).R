@@ -54,7 +54,7 @@ head(Auto)
 
 # Initial Data Splitting - Train & Test Data ----------------------------------
 
-library(rsample) # part of tidymodels (data splitting and resampling)
+library(rsample) # data splitting and resampling
 
 
 # We will TRAIN the model (i.e. fit) on the 70% of the observations randomly
