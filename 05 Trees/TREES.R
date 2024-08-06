@@ -31,7 +31,7 @@ head(Carseats)
 # will recode it as a binary variable: 'High' is "Yes" if the Sales exceeds 8
 # and "No" otherwise.
 Carseats <- Carseats |>
-  mutate(HighSales = factor(Carseats$Sales <= 8,
+  mutate(HighSales = factor(Carseats$Sales > 8,
                             labels = c("No", "Yes")))
 
 # Base rate:
@@ -253,6 +253,8 @@ text(tree.boston$finalModel,pretty=0,cex=0.55)
 
 ## Evaluate the tree performance on test data
 Boston.test$pred_tree <- predict(tree.boston, newdata = Boston.test)
+plot(Boston.test$pred_tree, Boston.test$medv)
+abline(0, 1)
 
 rmse(Boston.test, truth = medv, estimate = pred_tree)
 rsq(Boston.test, truth = medv, estimate = pred_tree)
