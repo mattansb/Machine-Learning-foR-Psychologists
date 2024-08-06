@@ -1,3 +1,4 @@
+
 # https://easystats.github.io/parameters/articles/efa_cfa.html
 
 library(tidyverse)
@@ -54,7 +55,7 @@ get_eigenvalue(PCA_model) |>
 rec <- recipe( ~ ., data = Harman74) |> 
   # We need to do this - all PCA methods we've shown so far do this by default.
   step_normalize(all_numeric_predictors()) |> 
-  step_pca(all_numeric_predictors(), 
+  step_pca(all_numeric_predictors(),
            threshold = 0.9)
 
 rec <- recipe( ~ ., data = Harman74) |> 
@@ -74,7 +75,7 @@ head(PCs[,1:5])
 
 ## Plots -----------------
 
-fviz_pca_biplot(PCA_model, axes = 1:2)
+fviz_pca_biplot(PCA_model, axes = c(1, 2))
 
 
 # FA ----------------------------------------------------------------------
@@ -115,8 +116,8 @@ as.data.frame(n)
 
 
 ## Run FA
-EFA <- fa(Harman74, nfactors = 5, 
-          fm = "pa", # (principal factor solution), or use gm = "minres" (minimum residual method)
+EFA <- fa(Harman74, nfactors = 4, 
+          fm = "pa", # (principal factor solution), or use fm = "minres" (minimum residual method)
           rotate = "oblimin") # or rotate = "varimax"
 # You can see a full list of rotation types here:
 ?GPArotation::rotations
@@ -131,7 +132,7 @@ model_parameters(EFA, sort = TRUE, threshold = 0.45)
 
 
 # fa.diagram(EFA, cut = 0.45)
-# biplot(EFA, choose = c(1,2,5), pch = ".", cuts = 0.45)  # choose = NULL to look at all of them
+biplot(EFA, choose = c(1,2), pch = ".", cuts = 0.45)  # choose = NULL to look at all of them
 
 
 
@@ -141,7 +142,7 @@ model_parameters(EFA, sort = TRUE, threshold = 0.45)
 
 # We can now use the factor scores just as we would any variable:
 data_scores <- predict(EFA, data = Harman74)
-colnames(data_scores) <- c("Verbal","Numeral","Visual","Math","Je Ne Sais Quoi") # name the factors
+colnames(data_scores) <- c("Verbal","Visual","Math","Recognition") # name the factors
 head(data_scores)
 
 
@@ -177,7 +178,7 @@ efa_reliability <- function(x, keys = NULL, threshold = 0, labels = NULL) {
 }
 
 efa_reliability(EFA, threshold = 0.45, 
-                labels = c("Verbal","Numeral","Visual","Math","Je Ne Sais Quoi"))
+                labels = c("Verbal","Visual","Math","Recognition"))
 # These are interpretable similarly to Cronbach's alpha
 
 
