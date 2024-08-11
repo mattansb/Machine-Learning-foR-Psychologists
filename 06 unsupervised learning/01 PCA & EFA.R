@@ -74,7 +74,7 @@ head(PCs[,1:5])
 
 ## Plots -----------------
 
-fviz_pca_biplot(PCA_model, axes = 1:2)
+fviz_pca_biplot(PCA_model, axes = 4:5)
 
 
 # FA ----------------------------------------------------------------------
@@ -93,7 +93,7 @@ check_sphericity_bartlett(Harman74)
 ### Scree plot --------
 
 scree(Harman74, factors = TRUE, pc = FALSE)
-# 2 / 5 seem to be supported by the elbow
+# 1 / 4 seem to be supported by the elbow
 # 2 seem to be supported by the Kaiser criterion.
 
 
@@ -115,8 +115,8 @@ as.data.frame(n)
 
 
 ## Run FA
-EFA <- fa(Harman74, nfactors = 5, 
-          fm = "pa", # (principal factor solution), or use gm = "minres" (minimum residual method)
+EFA <- fa(Harman74, nfactors = 4, 
+          fm = "pa", # (principal factor solution), or use fm = "minres" (minimum residual method)
           rotate = "oblimin") # or rotate = "varimax"
 # You can see a full list of rotation types here:
 ?GPArotation::rotations
@@ -141,7 +141,7 @@ model_parameters(EFA, sort = TRUE, threshold = 0.45)
 
 # We can now use the factor scores just as we would any variable:
 data_scores <- predict(EFA, data = Harman74)
-colnames(data_scores) <- c("Verbal","Numeral","Visual","Math","Je Ne Sais Quoi") # name the factors
+colnames(data_scores) <- c("Verbal","Visual","Math","Je Ne Sais Quoi") # name the factors
 head(data_scores)
 
 
@@ -177,7 +177,7 @@ efa_reliability <- function(x, keys = NULL, threshold = 0, labels = NULL) {
 }
 
 efa_reliability(EFA, threshold = 0.45, 
-                labels = c("Verbal","Numeral","Visual","Math","Je Ne Sais Quoi"))
+                labels = c("Verbal","Visual","Math","Je Ne Sais Quoi"))
 # These are interpretable similarly to Cronbach's alpha
 
 

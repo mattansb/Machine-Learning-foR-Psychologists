@@ -85,7 +85,7 @@ p_tSNE
 
 # The function kmeans() performs K-means clustering. 
 km <- kmeans(USArrests_z, # Features to guide clustering
-             centers = 2, # K
+             centers = 4, # K
              nstart = 20) # how many random starting centers
 # NOTE: If nstart > 1, then K-means clustering will be performed using multiple
 # random assignments in Step 1 of the Algorithm, and kmeans() will report only
@@ -172,14 +172,14 @@ USArrests_d_cor <- get_dist(USArrests_z, method = "pearson")
 
 # Which should we use?
 
-fviz_dist()
+fviz_dist(USArrests_d_euc)
 
 
 
 ## Build dendrogram -----------------
 # The hclust() function implements hierarchical clustering.
 
-hc.complete <- hclust(, method = "complete")
+hc.complete <- hclust(USArrests_d_euc, method = "complete")
 # Or method = "average"
 # Or method = "single"
 # Or method = "centroid"
