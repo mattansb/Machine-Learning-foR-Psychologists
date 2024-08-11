@@ -31,7 +31,7 @@ head(Carseats)
 # will recode it as a binary variable: 'High' is "Yes" if the Sales exceeds 8
 # and "No" otherwise.
 Carseats <- Carseats |>
-  mutate(HighSales = factor(Carseats$Sales <= 8,
+  mutate(HighSales = factor(Carseats$Sales > 8,
                             labels = c("No", "Yes")))
 
 # Base rate:
@@ -144,7 +144,7 @@ proportions(table(Carseats.test$HighSales))
 tg <- expand.grid(
   cp = seq(0, 0.3, length = 100) # [0, Inf] complexity
 )
-# check 100 alphas - from 0 to 0.3 
+# check 100 cp - from 0 to 0.3 
 
 
 # cp specifies how the cost of a tree is penalized by the number of terminal
@@ -253,6 +253,8 @@ text(tree.boston$finalModel,pretty=0,cex=0.55)
 
 ## Evaluate the tree performance on test data
 Boston.test$pred_tree <- predict(tree.boston, newdata = Boston.test)
+plot(Boston.test$pred_tree, Boston.test$medv)
+abline(0, 1)
 
 rmse(Boston.test, truth = medv, estimate = pred_tree)
 rsq(Boston.test, truth = medv, estimate = pred_tree)
@@ -389,6 +391,7 @@ rsq(Boston.test, truth = medv, estimate = pred_rf)
 rf.vi <- varImp(rf.boston, scale = FALSE)
 rf.vi
 plot(rf.vi)
+# lstat was "given a chance".
 # Same conclusions with better fit!
 
 
@@ -484,7 +487,8 @@ rsq(Boston.test, truth = medv, estimate = pred_boost)
 # 2. Random Forrest - find the optimal mtry with CV (one value should include
 #    the bagging option for this model).
 #    What was the best mtry?
-# 3. Boosting - tune at least one of shrinkage and interaction.depth with CV.
+# 3. Boosting - tune at least one of Complexity and one of the Gradient
+#    hyperparameters with CV.
 #    What was the best value(s)?
 
 # B) Compare the models:

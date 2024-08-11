@@ -21,14 +21,14 @@ table(Caravan.train$Purchase) |> proportions()
 
 Caravan.test$pred_NO <- factor("No", levels = c("No", "Yes"))
 
-accuracy(Caravan.test, truth = Purchase, estimate = pred_NO)
+Caravan.test |> accuracy(truth = Purchase, estimate = pred_NO)
 
 # But as we can see, we essentially have no specificity
 table(Truth = Caravan.test$Purchase, 
       Estimate = Caravan.test$pred_NO)
 
 metrics <- metric_set(accuracy, specificity, sensitivity)
-metrics(Caravan.test, truth = Purchase, estimate = pred_NO)
+Caravan.test |> metrics(truth = Purchase, estimate = pred_NO)
 
 # Training with Imbalance Data --------------------------------------------
 
@@ -97,10 +97,10 @@ Caravan.test$pred0 <- predict(knn0, newdata = Caravan.test)
 Caravan.test$pred_up <- predict(knn_up, newdata = Caravan.test)
 Caravan.test$pred_down <- predict(knn_down, newdata = Caravan.test)
 
-metrics(Caravan.test, truth = Purchase, estimate = pred_NO)
-metrics(Caravan.test, truth = Purchase, estimate = pred0)
-metrics(Caravan.test, truth = Purchase, estimate = pred_up)
-metrics(Caravan.test, truth = Purchase, estimate = pred_down)
+Caravan.test |> metrics(truth = Purchase, estimate = pred_NO)
+Caravan.test |> metrics(truth = Purchase, estimate = pred0)
+Caravan.test |> metrics(truth = Purchase, estimate = pred_up)
+Caravan.test |> metrics(truth = Purchase, estimate = pred_down)
 
 # As we can see, the accuracy (and sensitivity) have dropped, but specificity is
 # higher.
@@ -111,9 +111,9 @@ Caravan.test$pred0_p <- predict(knn0, newdata = Caravan.test, type = "prob")[["N
 Caravan.test$pred_up_p <- predict(knn_up, newdata = Caravan.test, type = "prob")[["No"]]
 Caravan.test$pred_down_p <- predict(knn_down, newdata = Caravan.test, type = "prob")[["No"]]
 
-roc_auc(Caravan.test, truth = Purchase, pred0_p)
-roc_auc(Caravan.test, truth = Purchase, pred_up_p) # About the same?
-roc_auc(Caravan.test, truth = Purchase, pred_down_p) # Better!
+Caravan.test |> roc_auc(truth = Purchase, pred0_p)
+Caravan.test |> roc_auc(truth = Purchase, pred_up_p) # About the same?
+Caravan.test |> roc_auc(truth = Purchase, pred_down_p) # Better!
 
 
 library(ggplot2)
@@ -124,6 +124,7 @@ ggplot(mapping = aes(1 - specificity, sensitivity)) +
   geom_path(aes(color = "(None)"), data = roc_curve(Caravan.test, Purchase, pred0_p)) + 
   geom_path(aes(color = "Up"), data = roc_curve(Caravan.test, Purchase, pred_up_p)) + 
   geom_path(aes(color = "Down"), data = roc_curve(Caravan.test, Purchase, pred_down_p)) + 
-  theme_classic() +
+  theme_bw() +
+  coord_equal() + 
   labs(color = "Sampling")
 

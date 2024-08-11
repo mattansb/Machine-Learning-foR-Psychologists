@@ -34,24 +34,25 @@ USArrests_z <- datawizard::standardize(USArrests)
 rec <- recipe( ~ ., data = USArrests) |>
   step_normalize(all_numeric_predictors())
 
-USArrests_z <- prep(rec) |> bake(new_data = USArrests, 
-                                 composition = "data.frame")
-rownames(USArrests_z) <- rownames(USArrests)
+USArrests_z <- bake(prep(rec),
+                    new_data = USArrests, 
+                    composition = "data.frame")
+rownames(USArrests_z) <- rownames(USArrests) # we need to re-add rownames :/
 
 head(USArrests_z)
 
 
-## t-NSE plot -------------------------------------------------
+## t-SNE plot -------------------------------------------------
 
-# t-NSE plots are useful for visualizing high dimensional data in 2D space.
-# Unlike PCA or other methods we've discussed, t-NSE is *only* good for
+# t-SNE plots are useful for visualizing high dimensional data in 2D space.
+# Unlike PCA or other methods we've discussed, t-SNE is *only* good for
 # visualization - it is a non-linear method the preserve the local structure of
 # data but not the global structure of the data.
 # Read more:
 # https://suneeta-mall.github.io/2022/06/09/feature_analysis_tsne_vs_umap.html
 
 # It is also non-deterministic = it will return different results each time, 
-# so don't forget to:
+# so don't forget to set a seed:
 set.seed(42)
 
 USArrests_z_tSNE <- Rtsne(USArrests_z, perplexity = 5,
@@ -61,7 +62,7 @@ p_tSNE <- data.frame(USArrests_z_tSNE$Y) |>
   ggplot(aes(X1, X2)) + 
   geom_point(size = 2) +
   ggrepel::geom_text_repel(aes(label = rownames(USArrests_z))) + 
-  # scales are meaningless
+  # scales are meaningless, so remove them
   theme_void()
 p_tSNE
 # It seems like there are 3 or 4 clumps of high-D (4D in out case) data.
@@ -85,7 +86,7 @@ p_tSNE
 
 # The function kmeans() performs K-means clustering. 
 km <- kmeans(USArrests_z, # Features to guide clustering
-             centers = 4, # K
+             centers = 3, # K
              nstart = 20) # how many random starting centers
 # NOTE: If nstart > 1, then K-means clustering will be performed using multiple
 # random assignments in Step 1 of the Algorithm, and kmeans() will report only
@@ -172,14 +173,14 @@ USArrests_d_cor <- get_dist(USArrests_z, method = "pearson")
 
 # Which should we use?
 
-fviz_dist(USArrests_d_euc)
+fviz_dist( )
 
 
 
 ## Build dendrogram -----------------
 # The hclust() function implements hierarchical clustering.
 
-hc.complete <- hclust(USArrests_d_euc, method = "complete")
+hc.complete <- hclust( , method = "complete")
 # Or method = "average"
 # Or method = "single"
 # Or method = "centroid"

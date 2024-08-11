@@ -50,7 +50,7 @@ tc <- trainControl(method = "cv", number = 5)
 # find the best fit with CV!
 
 tg <- expand.grid(
-  C = 10 ^ seq(-3, 0, by = 0.1) # [0, 1]
+  C = 10 ^ seq(-3, 0, length = 20) # [0, 1]
 )
 tg
 # A cost argument allows us to specify the cost of a violation to the margin:
@@ -67,7 +67,7 @@ fit.lin <- train(
 )
 
 
-fit.lin # Best fit with cost = 0.02511
+fit.lin # Best fit with cost = 0.335
 
 # Plot CP by accuracy:
 plot(fit.lin, xTrans = log)
@@ -76,8 +76,8 @@ plot(fit.lin, xTrans = log)
 ## Explore the final model ----------------------
 
 fit.lin$finalModel
-# best training error is 0.170561 (for the cost 0.02511)
-# Number of Support Vectors : 425! 
+# best training error is 0.169393 (for the cost 0.335)
+# Number of Support Vectors : 365! 
 
 
 # Here we demonstrated the use of this function on a two-dimensional example so
@@ -86,7 +86,7 @@ X_train <- bake(prep(rec), new_data = NULL, all_predictors(), composition = "mat
 plot(fit.lin$finalModel, data = X_train)
 
 
-# Full circles\triangles = support vectors (425 obs.)
+# Full circles\triangles = support vectors (365 obs.)
 # Hollow circles\triangles = the remaining observations 
 
 
@@ -117,7 +117,7 @@ confusionMatrix(OJ.test$pred_lin, OJ.test$Purchase) # confusion matrix
 ## Polynomial ------------------------------------
 
 tg <- expand.grid(
-  C = 10 ^ seq(-3, 0, by = 0.1), # [0, 1]
+  C = 10 ^ seq(-3, 0, length = 20), # [0, 1]
   degree = 2, # [1, Inf]
   scale = 1 # [0, Inf]
 )
@@ -141,7 +141,6 @@ fit.poly2 <- train(
 )
 
 
-fit.poly2 # Best fit with cost = 0.1995262
 fit.poly2$bestTune
 plot(fit.poly2, xTran = log)
 
@@ -163,8 +162,8 @@ plot(fit.poly2$finalModel, data = X_train)
 
 
 tg <- expand.grid(
-  C = 10 ^ seq(-3, 0, by = 0.4), # [0, 1]
-  sigma = 2 ^ seq(-2, 2) # [0, Inf]
+  C = 10 ^ seq(-3, 0, length = 20), # [0, 1]
+  sigma = 2 ^ seq(-2, 2, length = 5) # [0, Inf]
 )
 
 set.seed(1)
@@ -177,7 +176,6 @@ fit.rad <- train(
 )
 
 
-fit.rad # Best fit with sigma = 0.25 and C = 0.63
 fit.rad$bestTune
 plot(fit.rad, xTran = log)
 
@@ -196,8 +194,7 @@ accuracy(OJ.test, truth = Purchase, estimate = pred_lin)
 accuracy(OJ.test, truth = Purchase, estimate = pred_poly2)
 accuracy(OJ.test, truth = Purchase, estimate = pred_rad)
 
-# Although the linear model visually seems best, the radial model was able to
-# get a better performance!
+
 
 
 
@@ -220,19 +217,19 @@ Wage.test <- testing(splits)
 
 # We will try to predict marital status from age and wage.
 
-rec <- recipe(maritl3 ~ age + wage,
-              data = Wage.train) |> 
-  step_range(all_numeric_predictors())
-
-
 table(Wage.train$maritl3)
 table(Wage.train$maritl3) |> proportions()
 # If the response is a factor containing more than two levels, then train()
 # will perform multi-class classification using the one-versus-one approach.
 
 
+rec <- recipe(maritl3 ~ age + wage,
+              data = Wage.train) |> 
+  step_range(all_numeric_predictors())
+
+
 tg <- expand.grid(
-  C = 10 ^ seq(-3, 0, len = 10) # [0, 1]
+  C = 10 ^ seq(-3, 0, length = 10) # [0, 1]
 )
 
 set.seed(1)
@@ -246,7 +243,7 @@ fit.lin3class <- train(
 
 
 fit.lin3class$bestTune
-# best tune is with C = 0.1
+
 
 ## Predict and evaluate
 
@@ -266,6 +263,32 @@ ggplot(Wage.train, aes(age, wage)) +
 # the response vector that is numerical rather than a factor.
 
 
+
+rec <- recipe(wage ~ age + maritl3, 
+              data = Wage.train) |> 
+  step_range(all_numeric_predictors()) |> 
+  step_dummy(all_nominal_predictors(), one_hot = TRUE)
+
+# Note that for SVR, the C parameter can be bigger then 1 - it represents the
+# total allowed error.
+
+tg <- expand.grid(
+  C = 10 ^ seq(-3, 2, length = 20) # [0, Inf]
+)
+# A cost argument allows us to specify the cost of a violation to the margin:
+# small cost -> wide margins and many support vectors violate the margin.
+# large cost -> narrow margins and few support vectors violate the margin.
+
+set.seed(1) # for CV
+fit.lin2 <- train(
+  x = rec,
+  data = Wage.train,
+  method = "svmLinear",
+  tuneGrid = tg,
+  trControl  = tc
+)
+
+fit.lin2$bestTune
 
 
 # Exercise ---------------------------------------------------------------

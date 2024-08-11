@@ -117,7 +117,7 @@ sv <- shapviz(shaps)
 # compare to p_lime
 
 ## - Plot a all explanation to look for patterns:
-sv_importance(sv, max_display = 100)
+sv_importance(sv, max_display = 10)
 
 
 

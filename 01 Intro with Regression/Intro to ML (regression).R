@@ -13,8 +13,6 @@ library(caret)
 # of functions that attempt to streamline the process for creating predictive
 # models. The package contains tools for:
 
-# - data splitting
-# - pre-processing
 # - model tuning using re-sampling
 # - model fitting and prediction
 
@@ -25,6 +23,7 @@ library(caret)
 # For datasets we will mostly use the Book official package ISLR
 library(ISLR) # The "ISLR" package includes data sets we will use this semester
 data("Auto")
+str(Auto)
 
 # The Auto Dataset contains information about ... cars.
 # For each car, the following vars were recorded:
@@ -52,11 +51,11 @@ Auto$origin <- factor(Auto$origin)
 dim(Auto)
 names(Auto)
 head(Auto)
-str(Auto)
 
 # Initial Data Splitting - Train & Test Data ----------------------------------
 
-library(rsample) # part of tidymodels
+library(rsample) # data splitting and resampling
+
 
 # We will TRAIN the model (i.e. fit) on the 70% of the observations randomly
 # assigned and TEST the model (i.e. predict and assess performance) on the 30%
@@ -79,7 +78,7 @@ test.data <- testing(splits) # We will test the model on 30% of the obs.
 # (A) Prepossessing >>> 
 #     (B) Fitting >>> 
 #         (C) Predicting >>> 
-#             (D) assessing performance
+#             (D) Assessing performance
 
 
 ## (A) Prepossessing ---------------------------------------------------------
@@ -94,10 +93,10 @@ test.data <- testing(splits) # We will test the model on 30% of the obs.
 
 # WHY DO WE DO THIS ON THE TRAINING DATA?
 
-library(recipes)
+library(recipes) # data pre-processing pipeline
 
-rec <- recipe(mpg ~ horsepower + weight, # model specification (a MUST argument)
-              data = train.data) # the data (a MUST argument)
+rec <- recipe(mpg ~ horsepower + weight, # model specification
+              data = train.data) # the data
 rec
 
 # There are many prepossessing "steps" we can take:
@@ -201,9 +200,10 @@ c(
   MAE = mae_vec(truth = test.data$mpg, estimate = test.data$mpg_hat)
 )
 
-# # Or you can do this.. But you won't really need to...
-# quant_metrics <- metric_set(rsq, rmse, mae)
-# quant_metrics(test.data, truth = mpg, estimate = mpg_hat)
+# Or:
+quant_metrics <- metric_set(rsq, rmse, mae)
+test.data |> 
+  quant_metrics(truth = mpg, estimate = mpg_hat)
 
 
 
@@ -228,11 +228,8 @@ knn.fit10 <- train(
 test.data$mpg_hat_2 <- predict(knn.fit10, newdata = test.data)
 
 # (D) ASSESSING performance
-c(
-  Rsq = rsq_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_2),
-  RMSE = rmse_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_2),
-  MAE = mae_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_2)
-)
+test.data |> 
+  quant_metrics(truth = mpg, estimate = mpg_hat_2)
 # Gives very similar results to K=5...
 
 
@@ -259,7 +256,7 @@ rec2 <- recipe(mpg ~ ., # all predictors,
   step_dummy(all_factor_predictors(), # Make dummy variables (we'll talk about this later!)
              one_hot = TRUE)
 
-bake(prep(rec2), new_data = NULL) |> head()
+bake(prep(rec2), new_data = NULL) |> View()
 # Note that the order matters - where we put step_dummy() determines if the
 # dummies will be centered and scaled!
 
@@ -275,17 +272,14 @@ knn.fit10.B <- train(
 
 # (C) PREDICTING for the test data
 test.data$mpg_hat_3 <- predict(knn.fit10.B, newdata = test.data)
-plot(mpg ~ mpg_hat_3, data = test.data)
+
 
 # (D) ASSESSING performance
+test.data |> 
+  quant_metrics(truth = mpg, estimate = mpg_hat_3)
+plot(mpg ~ mpg_hat_3, data = test.data)
 
-c(
-  Rsq = rsq_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_3),
-  RMSE = rmse_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_3),
-  MAE = mae_vec(truth = test.data$mpg, estimate = test.data$mpg_hat_3)
-)
-
-# Rsq is better! But what happened to RMSE/MAE??
+# Rsq is better! But what happened to RMSE/MAE?? And the plot??
 # Go back and fix it!
 
 
@@ -302,8 +296,8 @@ c(
 
 # Note- when needed- use set.seed(1) for replicability
 
-# (1) Split the data to train and test (use p=0.7)
-# (2) Predict wage out 3 of the other variables with a knn model with 
+# (1) Split the data to train and test (use prop=0.7)
+# (2) Predict wage using 3 of the other variables with a knn model with 
 #     (k=5). That is, fit and predict.
 # (3) Assess performance using the metrics you've learned
 # (4) To improve flexibility, try a different k. Will you use bigger\ smaller k?

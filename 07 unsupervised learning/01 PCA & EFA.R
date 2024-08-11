@@ -1,3 +1,4 @@
+
 # https://easystats.github.io/parameters/articles/efa_cfa.html
 
 library(tidyverse)
@@ -54,7 +55,7 @@ get_eigenvalue(PCA_model) |>
 rec <- recipe( ~ ., data = Harman74) |> 
   # We need to do this - all PCA methods we've shown so far do this by default.
   step_normalize(all_numeric_predictors()) |> 
-  step_pca(all_numeric_predictors(), 
+  step_pca(all_numeric_predictors(),
            threshold = 0.9)
 
 rec <- recipe( ~ ., data = Harman74) |> 
@@ -74,7 +75,7 @@ head(PCs[,1:5])
 
 ## Plots -----------------
 
-fviz_pca_biplot(PCA_model, axes = 4:5)
+fviz_pca_biplot(PCA_model, axes = c(1, 2))
 
 
 # FA ----------------------------------------------------------------------
@@ -131,7 +132,7 @@ model_parameters(EFA, sort = TRUE, threshold = 0.45)
 
 
 # fa.diagram(EFA, cut = 0.45)
-# biplot(EFA, choose = c(1,2,5), pch = ".", cuts = 0.45)  # choose = NULL to look at all of them
+biplot(EFA, choose = c(1,2), pch = ".", cuts = 0.45)  # choose = NULL to look at all of them
 
 
 

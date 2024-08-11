@@ -26,12 +26,12 @@ data(Smarket, package = "ISLR")
 
 # Assume the following classification task on the Smarket data:
 # predict Direction (Up/Down) using the features Lag1 and Lag2.
-# If we are not sure how Direction is coded we can use contrasts():
-contrasts(Smarket$Direction)
+# If we are not sure how Direction is coded we can use levels():
+levels(Smarket$Direction)
 
 table(Smarket$Direction)
 # The base rate probability:
-proportions(table(Smarket$Direction))
+table(Smarket$Direction) |> proportions()
 
 # We'll start by using a parametric method - logistic regression:
 
@@ -42,12 +42,15 @@ Smarket.train <- training(splits)
 Smarket.test <- testing(splits)
 
 ## (A) Fitting logistic regression on train data using caret --------------
+rec <- recipe(Direction ~ Lag1 + Lag2, 
+              data = Smarket.train)
+
 tc <- trainControl(method = "none") # remember "none" = no training method.
                                     # for the warmup we will leave it like that...
                                   
 # We will use train().
 LogRegfit <- train(
-  Direction ~ Lag1 + Lag2, # model syntax
+  x = rec,
   data = Smarket.train, # the data
   method = "glm", family = binomial("logit"), # For logistic regression
   trControl = tc # although this is redundant when set to "none"
@@ -77,8 +80,7 @@ predicted.probs <- predict(LogRegfit, newdata = Smarket.test, type = "prob")
 # output probabilities of the form:
 # p(Y = 1|X) -> p(direction is UP given the specific Xs).
 # This is relevant for classification problems of course
-head(predicted.probs)  # predicted outcomes for the first 6 obs.
-predicted.probs[1:10,"Up"]
+head(predicted.probs, n = 10)  # predicted outcomes for the first 6 obs.
 
 # Here we predicted probabilities, but what if we want to predict classes?
 # use "raw" instead of "prob" and get the class prediction (based on 0.5 cutoff)
@@ -87,6 +89,7 @@ predicted.classes <- predict(LogRegfit, newdata = Smarket.test, type = "raw")
 predicted.classes <- predict(LogRegfit, newdata = Smarket.test) 
 
 predicted.classes[1:10] # predicted.classes for the market to go up for the 10 first observations
+cbind(predicted.probs, predicted.classes)[1:10,]
 
 # OR, if from some reason we don't want to use the 0.5 cutoff, we can convert
 # the predicted probabilities to a binary variable based on selected cutoff
@@ -96,6 +99,7 @@ predicted.classes2 <- factor(predicted.probs[["Up"]] > 0.9,
                              labels = c("Down", "Up"))
 # as columns complete to 1.
 predicted.classes2[1:10]
+table(predicted.classes2)
 
 
 ## (C) Assessing model performance -------------------------------------------
@@ -128,8 +132,16 @@ confusionMatrix(predicted.classes,
 # https://en.wikipedia.org/wiki/Confusion_matrix for more about terminology and
 # derivations of a confusion matrix
 
-# ANYWAY, all indices tells us that this model wasn't that amazing (for accuracy
-# flipping a coin would be better...)
+# ANYWAY, all indices tells us that this model wasn't that amazing (flipping a
+# coin might be better...)
+Smarket.test$pred_logistic_raw <- predicted.classes
+class_metrics <- metric_set(metric_tweak("f1_meas", f_meas, beta = 1),
+                            metric_tweak("f0.5_meas", f_meas, beta = 0.5),
+                            metric_tweak("f2_meas", f_meas, beta = 2),
+                            mcc)
+Smarket.test |> 
+  class_metrics(truth = Direction, estimate = pred_logistic_raw, b = 2)
+# And more....
 
 ## We can also look at the ROC curves!
 
@@ -144,6 +156,8 @@ Smarket.test |>
           event_level = "second") |> 
   ggplot2::autoplot()
 
+Smarket.test |> 
+  roc_auc(truth = Direction, prob_logisticReg, event_level = "second")
 # Here we can see how our modeled classifier acts (in terms of True Positive
 # Rate and False Positive Rates) using different thresholds. It seems that for
 # some varied thresholds our classifier isn't much better than a random
@@ -187,7 +201,7 @@ rec <- recipe(Direction ~ .,
 
 tc <- trainControl(method = "LOOCV", 
                    selectionFunction = "best") 
-# remember we used "none" in the previous examples? that ment we told R 'don't
+# remember we used "none" in the previous examples? that meשnt we told R 'don't
 # use resampling when fitting the data' now we tell R to do resampling, and
 # specifically- LOOCV We can just use this fitting method to make the fitting
 # proceadure to be more reliable (for any chosen k), or, we can also make use of
@@ -210,26 +224,26 @@ knn.fit.LOOCV <- train(
 )
 # NOTE 1: this specify the summary metric will be used to select the optimal
 # model. By default, possible values are "RMSE" and "Rsquared" for regression
-# and "Accuracy" and "Kappa" for classification. We can specify custom metrics.
+# and "Accuracy" and "Kappa" for classification. We can also specify custom
+# metrics.
 
-# NOTE 2: caret uses a threshold of 0.5 by default!
+# NOTE 2: caret uses a threshold of 0.5 by default.
 
 
 # (notice the time it takes to fit using LOOCV!)
 
 knn.fit.LOOCV$results 
 # Here we see accuracy for all values of K
-# 1- accuracy will be the VALIDATION ERROR
+# 1 - accuracy will be the VALIDATION ERROR
 # (it is somewhat in-between train and test errors)
 # *Kappa is a metric that compares an Observed Accuracy with an 
 # Expected Accuracy (random chance).  
 
-val.error <- 1 - knn.fit.LOOCV$results$Accuracy
-plot(knn.fit.LOOCV$results$k, val.error)
+plot(knn.fit.LOOCV)
 knn.fit.LOOCV$bestTune 
 
-# Best K is k=50 , where Accuracy = 0.899 and the validation error is
-# 1 - 0.899 = 0.101
+# Best K is k=10 , where Accuracy = 0.855 and the validation error is
+# 1 - 0.855 = 0.145
 
 # Final model is automatically chosen based on the best tuning hyperparameter(s)
 # (for now only one hyperparameter - k) is set to k=50
@@ -239,7 +253,9 @@ knn.fit.LOOCV$finalModel
 predicted.classes.LOOCV <- predict(knn.fit.LOOCV, newdata = Smarket.test, type = "raw") 
 
 ## (C) Assessing performance: 
-confusionMatrix(predicted.classes.LOOCV, Smarket.test$Direction, positive = "Up")
+confusionMatrix(predicted.classes.LOOCV, 
+                Smarket.test$Direction, 
+                positive = "Up")
 # Accuracy (0.91) is great, even in contrast to the validation error! 
 # It might be that our model is just good\or that CV help us to create a stable
 # model (also, remember that accuracy isn't everything and we have many
@@ -267,8 +283,7 @@ Smarket.test |>
 
 tc <- trainControl(method = "cv", number = 10,
                    selectionFunction = "best")
-# for preforming k-Fold Cross-Validation just switch "trainControl" to:
-# trainControl(method = "cv", number = k, selectionFunction = "best")
+# Or selectionFunction = "oneSE"
 
 # Let's try again the same options for knn's k:
 tg
@@ -318,7 +333,7 @@ confusionMatrix(predicted.classes.10CV, Smarket.test$Direction, positive = "Up")
 # Exercises: ----------------------------------------------------------------------
 
 # Note- * when needed- use set.seed({some number}) for replicability
-#       * work with split to train =70% of the data (and test= 30%)
+#       * work with split to train = 70% of the data (and test= 30%)
 
 # A) Use the Smarket dataset and predict Direction from Lag1 + Lag2 + Lag3.
 #   But now fit a *logistic regression* using 10-folds CV and assess
@@ -335,11 +350,17 @@ confusionMatrix(predicted.classes.10CV, Smarket.test$Direction, positive = "Up")
 Caravan$Purchase # Purchase is a factor with 2 levels "No","Yes"
 str(Caravan) # all other variables are numeric
 psych::describe(Caravan)
-# In this task we will predict Purchase out this variables:
+# In this task we will predict Purchase out these variables:
 # MOSTYPE,MOSHOOFD, MOPLLAAG
 
-# 1. Fit KNN with k=1, 5 and 20 using 10-folds CV and assess performance on test data.
-#    what were the chosen tuning parameter, cv error and test error?
-# 2. Fit KNN with k=1, 5 and 20 using LOOCV and assess performance on test data.
-#    Fitting time will be much longer than the time it took to fit the knn model
-#     on the Auto dataset. How can you explain it?
+# 1. Fit KNN with k=1, 5 and 20 using 10-folds CV and assess performance on test
+#   data. what were the chosen tuning parameter, cv error and test error?
+# 2. Repeat (1) using either 50 bootstrap samples
+tc <- trainControl(method = "boot", number = 50)
+#   repeated 10-fold CV.
+tc <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+
+# 3. How did the resampling methods (1 vs 2) differ in their results?
+
+
+
