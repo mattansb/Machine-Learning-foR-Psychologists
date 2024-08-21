@@ -1,12 +1,8 @@
 ---
-output: github_document
+format: gfm
+execute:
+  echo: true
 ---
-
-```{r setup, include=FALSE}
-library(knitr)
-
-opts_chunk$set(echo = TRUE)
-```
 
 # Machine Learning foR Psychologists
 
@@ -16,7 +12,7 @@ opts_chunk$set(echo = TRUE)
 
 <sub>*Last updated `r Sys.Date()`.*</sub>
 
-This Github repo contains all lesson files for *Machine Learning in R*. The goal is to impart students with the basic tools to construct, evaluate and compare various **machine learning models, using [`caret`](https://topepo.github.io/caret/)**. (Materials developed with Yael Bar-Shachar.)
+This Github repo contains all lesson files for *Machine Learning in R*. The goal is to impart students with the basic tools to construct, evaluate and compare various **machine learning models, using [`tidymodels`](https://www.tidymodels.org/)**. (Materials developed with Yael Bar-Shachar.)
 
 These topics were taught in the graduate-level course ***Machine Learning for Psychologists*** (Psych Dep., Ben-Gurion University of the Negev; Psych Dep., Tel-Aviv University). This course assumes basic competence in R (importing, regression modeling, plotting, etc.), along the lines of [*Practical Applications in R for Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psychologists).
 
@@ -27,7 +23,8 @@ These topics were taught in the graduate-level course ***Machine Learning for Ps
 
 ## Setup
 
-```{r, echo=FALSE}
+```{r}
+#| echo: false
 extract_pkgs <- function(fl) {
   if (length(fl) == 1) {
     txt <- read.delim(fl, header = FALSE)[[1]] |> 
@@ -71,7 +68,7 @@ make_pkg_table <- function(pkgs) {
 
 You will need:
 
-1. A fresh installation of [**`R`**](https://cran.r-project.org/) (preferably version 4.2 or above).
+1. A fresh installation of [**`R`**](https://cran.r-project.org/) (preferably version 4.3.2 or above).
 2. [RStudio IDE](https://www.rstudio.com/products/rstudio/download/) (optional, but recommended).
 3. The following packages, listed by lesson:
 
@@ -93,7 +90,10 @@ print_pkgs <- make_pkg_table(pkgs)
 
 You can install all the packages used by running:
 
-```{r echo=FALSE, comment = "", warning=FALSE}
+```{r}
+#| echo: false
+#| warning: false
+#| comment: ""
 
 pkgs <- pkgs |> 
   unlist(recursive = TRUE) |> 
@@ -110,7 +110,8 @@ cat("install.packages(pkgs, dependencies = TRUE)")
 <details>
 <summary><i>Package Versions</i></summary>
 The package versions used here:
-```{r, echo=FALSE}
+```{r}
+# | echo: false
 packinfo <- installed.packages(fields = c("Package", "Version"))
 
 get_src <- function(pkg) {

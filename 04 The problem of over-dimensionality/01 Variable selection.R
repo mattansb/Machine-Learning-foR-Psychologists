@@ -14,7 +14,7 @@ library(leaps)
 # Hitters Dataset: Baseball Data from the 1986 and 1987 seasons
 data("Hitters", package = "ISLR")
 ISLR::Hitters
-Hitters <- tidyr::drop_na(Hitters, Salary)
+Hitters <- Hitters |> drop_na(Salary)
 # A data frame with 263 observations of major league players on the following 20
 # variables.
 

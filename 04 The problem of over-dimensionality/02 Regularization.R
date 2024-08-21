@@ -96,24 +96,25 @@ coef(ridge_eng, s = 0)
 
 # Build a function to plot the coefficients with different lambda (s) values
 plot_glmnet_coef <- function(mod, s = 0, show_intercept = TRUE) {
-  b <- coef(mod, s = s) |> 
+  b <- glmnet::coef.glmnet(mod, s = s, exact = FALSE) |> 
     as.matrix() |> as.data.frame() |> 
     tibble::rownames_to_column("Coef")
+  
   if (isFALSE(show_intercept)) {
     b <- b |> filter(Coef != "(Intercept)")
   }
   
-  ggplot(b, aes(Coef, s1)) + 
-    geom_hline(yintercept = 0) + 
-    geom_point(aes(shape = s1 == 0), fill = "red", size = 2, 
-               show.legend = c(shape = TRUE)) + 
-    scale_shape_manual(NULL, 
-                       breaks = c(FALSE, TRUE), values = c(16, 24),
-                       labels = c("none-0", "0"), 
-                       limits = c(FALSE, TRUE)) + 
-    scale_x_discrete(guide = guide_axis(angle = 30)) + 
-    labs(y = "Coef", x = NULL) + 
-    ggtitle(bquote(labda==.(s)))
+  ggplot2::ggplot(b, ggplot2::aes(Coef, s1)) + 
+    ggplot2::geom_hline(yintercept = 0) + 
+    ggplot2::geom_point(ggplot2::aes(shape = s1 == 0), fill = "red", size = 2, 
+                        show.legend = c(shape = TRUE)) + 
+    ggplot2::scale_shape_manual(NULL, 
+                                breaks = c(FALSE, TRUE), values = c(16, 24),
+                                labels = c("none-0", "0"), 
+                                limits = c(FALSE, TRUE)) + 
+    ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 30)) + 
+    ggplot2::labs(y = "Coef", x = NULL) + 
+    ggplot2::ggtitle(bquote(labda==.(s)))
 }
 
 plot_glmnet_coef(ridge_eng)
