@@ -2,7 +2,6 @@
 # https://easystats.github.io/parameters/articles/efa_cfa.html
 
 library(tidyverse)
-library(recipes)
 
 library(psych)
 library(parameters)
@@ -19,27 +18,26 @@ head(Harman74)
 
 # PCA ---------------------------------------------------------------------
 
-PCA_params <- principal_components(Harman74, n = "max")
+PCA_params <- principal_components(Harman74, n = "max", sort = TRUE)
 PCA_params[,1:10] # too large to print
 
+# Extract the underlying PCA "model":
 PCA_model <- attr(PCA_params, "model")
 
 
 
-## How many components? ---------------------
-n <- n_factors(Harman74)
-# This function calls many methods, e.g., nFactors::nScree... Read the doc!
+## How many components to keep? ---------------------
+# See also
+?parameters::n_components
 
-as.data.frame(n) # Different methods...
 
-### Scree plot --------------------
-# Visually:
+### Scree plot --------------------------------
 scree(Harman74, factors = FALSE, pc = TRUE)
 # 2/5 seems to be supported by the elbow method,
 # and 5 by the Kaiser criterion.
 
-### %Variance accounted for --------------------
 
+### Variance accounted for --------------------
 
 get_eigenvalue(PCA_model) |> 
   ggplot(aes(seq_along(cumulative.variance.percent), cumulative.variance.percent)) + 
@@ -48,29 +46,12 @@ get_eigenvalue(PCA_model) |>
   geom_hline(yintercept = 90)
 # Or 16....
 
+
+
 ## Extract component scores ----------------------
 
-### With recipe() ---------------------
-
-rec <- recipe( ~ ., data = Harman74) |> 
-  # We need to do this - all PCA methods we've shown so far do this by default.
-  step_normalize(all_numeric_predictors()) |> 
-  step_pca(all_numeric_predictors(),
-           threshold = 0.9)
-
-rec <- recipe( ~ ., data = Harman74) |> 
-  step_pca(all_numeric_predictors(), 
-           options = list(center = TRUE, scale. = TRUE),
-           num_comp = 5)
-
-PCs <- bake(prep(rec), new_data = Harman74)
-head(PCs)
-
-
-### With parameters ---------------------
-
 PCs <- predict(PCA_model, newdata = Harman74) # returns all PCs
-head(PCs[,1:5])
+head(PCs[,1:2])
 
 
 ## Plots -----------------
@@ -78,8 +59,13 @@ head(PCs[,1:5])
 fviz_pca_biplot(PCA_model, axes = c(1, 2))
 
 
+
+
+
+
 # FA ----------------------------------------------------------------------
-#Is the data suitable for FA? 
+
+# Is the data suitable for FA? 
 round(cor(Harman74), 2) # hard to visually "see" structure in the data...
 
 check_sphericity_bartlett(Harman74)
@@ -90,8 +76,9 @@ check_sphericity_bartlett(Harman74)
 
 
 ## How many factors? -------------------------
+# See also:
+?parameters::n_factors
 
-### Scree plot --------
 
 scree(Harman74, factors = TRUE, pc = FALSE)
 # 1 / 4 seem to be supported by the elbow
@@ -99,23 +86,9 @@ scree(Harman74, factors = TRUE, pc = FALSE)
 
 
 
-### Other methods --------
-
-n <- n_factors(Harman74, algorithm = "pa", rotation = "oblimin")
-# This function calls many methods, e.g., nFactors::nScree... Read the doc!
-
-as.data.frame(n)
-
-
-
-
-
-
-
 ## Run Factor Analysis (FA) ------------------------------------------------
 
 
-## Run FA
 EFA <- fa(Harman74, nfactors = 4, 
           fm = "pa", # (principal factor solution), or use fm = "minres" (minimum residual method)
           rotate = "oblimin") # or rotate = "varimax"
@@ -123,18 +96,23 @@ EFA <- fa(Harman74, nfactors = 4,
 ?GPArotation::rotations
 
 
+## Understanding the results -----------------------------------------------
 
-EFA # Read about the outputs here: https://m-clark.github.io/posts/2020-04-10-psych-explained/
+EFA 
+# Read about the outputs here: https://m-clark.github.io/posts/2020-04-10-psych-explained/
+#
+# A better output:
 model_parameters(EFA, sort = TRUE, threshold = 0.45)
 # These give the pattern matrix
 
 
 
 
-# fa.diagram(EFA, cut = 0.45)
-biplot(EFA, choose = c(1,2), pch = ".", cuts = 0.45)  # choose = NULL to look at all of them
+fa.diagram(EFA, cut = 0.45) # factor loading plot
 
-
+# A biplot:
+biplot(EFA, choose = c(1,2), pch = ".", cuts = 0.45)
+# choose = NULL to look at all of them
 
 
 
