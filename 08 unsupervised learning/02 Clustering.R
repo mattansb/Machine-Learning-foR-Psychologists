@@ -1,15 +1,18 @@
 ### Tutorial 6- Clustering  ###
 
 library(tidyverse)
+library(recipes)
+
 library(Rtsne)
 library(factoextra) # https://rpkgs.datanovia.com/factoextra/index.html
-library(recipes)
 
 # recall the difference between clustering and PCA:
 # - PCA looks to find a low-dimensional representation of the obs. that accounts
 #   for a good fraction of their variance.
 # - clustering looks to find homogeneous subgroups among the observations.
 
+# Learn more at:
+# https://tidyclust.tidymodels.org/index.html
 
 
 # The Data ---------------------------------------
@@ -23,12 +26,10 @@ data(USArrests)
 
 ## Prep -------------------
 
-datawizard::describe_distribution(USArrests) 
+summary(USArrests)
 # variables are on very different scales.
 #
 # We should re-scale them.
-
-USArrests_z <- datawizard::standardize(USArrests)
 
 # We can also use recipe:
 rec <- recipe( ~ ., data = USArrests) |>
