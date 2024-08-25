@@ -1,4 +1,6 @@
 
+library(patchwork)
+
 library(tidymodels)
 # library(kknn)
 
@@ -85,12 +87,26 @@ translate(knn_spec)
 rec <- recipe(mpg ~ origin + weight + horsepower,
               data = Auto.train) |> 
   step_dummy(origin) |> 
-  step_scale(all_numeric())
+  # The Yeo–Johnson transformation (a generalization of the Box-Cox
+  # transformation) can be used to make highly skewed variables resemble a more
+  # normal-like distribution, typically improving the performance of the model.
+  # https://en.wikipedia.org/wiki/Power_transform#Yeo%E2%80%93Johnson_transformation
+  # It requires the "training" of a Lambda parameter, which {recipes} finds for
+  # us.
+  step_YeoJohnson(horsepower) |> 
+  step_normalize(all_numeric())
 # Note that the order of steps matters - where we put step_dummy() determines if
 # the dummies will be centered and scaled!
 rec
 
 
+(ggplot(Auto.train, aes(horsepower)) + 
+    geom_density() + 
+    labs(title = "Raw")) + 
+  (bake(prep(rec), new_data = NULL) |> 
+     ggplot(aes(horsepower)) + 
+     geom_density() + 
+     labs(title = "Standardized Yeo–Johnson"))
 
 
 # Finally, we can combine the recipe and the model spec to a workflow - together
