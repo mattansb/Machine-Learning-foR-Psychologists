@@ -87,6 +87,17 @@ cv_folds <- vfold_cv(Smarket.train, v = 10)
 cv_folds
 # In each "set" we have 788 obs. for training, and 87 obs. for validation.
 
+# See more methods:
+# https://rsample.tidymodels.org/reference/index.html
+# https://www.tidymodels.org/learn/work/nested-resampling/
+# Note that loo_cv() and nested_cv() do not (yet?) play nicely with resampling
+# methods as implemented throughout {tidymodels} since it is often ambiguous how
+# to meaningfully compute metric with just one OOS observation/inner-outer CV.
+# You can still use it -- e.g., for OOS performance estimation -- but it
+# requires manual code writing.
+
+
+
 
 # For each fold we will compute the out-of-sample performance using the
 # following metrics:
@@ -198,14 +209,15 @@ Smarket.test_predictions |>
 #   A. define a grid of K values
 #   B. use a metric(s) of your choice
 #     https://yardstick.tidymodels.org/reference/index.html
-#   C. Use 2 of the following resampling methods:
-#     1. With LOOCV
-(cv_loo <- loo_cv(Smarket.train))
-#     2. With 50 bootstrap samples
+#   C. Use the following resampling methods:
+#     1. With 50 bootstrap samples
 (bootstrap_samps <- bootstraps(Smarket.train, times = 50)) 
 # (Note that the validation set is not always of the same size!)
-#     3. 10 repeated 5-fold CV:
+#     2. 10 repeated 5-fold CV:
 (cv_repeated_folds <- vfold_cv(Smarket.train, v = 5, repeats = 10))
 #   D. Select K using best / one-SE rule.
 #     How did the resampling methods differ in their results?
+
+
+
 

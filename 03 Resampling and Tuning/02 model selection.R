@@ -25,7 +25,7 @@ mset_class <- metric_set(j_index, sensitivity, roc_auc)
 
 ## Train 1: Logistic regression --------------------------------------------
 
-rec1 <- recipe(Direction ~ ., 
+rec1 <- recipe(Direction ~ Lag1 + Lag2 + Lag3, 
                data = Smarket)
 
 log_spec <- logistic_reg(mode = "classification", engine = "glm")
@@ -42,8 +42,12 @@ oos_logistic1 <- fit_resamples(
   metrics = mset_class
 )
 
-collect_metrics(oos_logistic1)
-collect_metrics(oos_logistic1, type = "wide", summarize = FALSE)
+
+# get a summary of the metrics across resamples:
+collect_metrics(oos_logistic1) 
+# We can also get the raw data:c data (per-resample):
+collect_metrics(oos_logistic1, summarize = FALSE)
+collect_metrics(oos_logistic1, summarize = FALSE, type = "wide")
 
 
 
@@ -51,7 +55,7 @@ collect_metrics(oos_logistic1, type = "wide", summarize = FALSE)
 
 ## Train 2: Logistic regression --------------------------------------------
 
-rec2 <- recipe(Direction ~ Lag1 + Lag2 + Lag3, 
+rec2 <- recipe(Direction ~ ., 
                data = Smarket)
 
 wf_log2 <- workflow(preprocessor = rec2, spec = log_spec)
@@ -65,7 +69,7 @@ oos_logistic2 <- fit_resamples(
 
 ## Train 3: KNN --------------------------------------------
 
-rec3 <- rec1 |> 
+rec3 <- rec2 |> 
   step_normalize(all_predictors())
 
 knn_spec <- nearest_neighbor(
@@ -93,7 +97,7 @@ knn_tuner <- tune_grid(
 
 autoplot(knn_tuner)
 
-k_1SE <- select_by_one_std_err(knn_tuner, desc(neighbors), metric = "roc_auc")
+(k_1SE <- select_by_one_std_err(knn_tuner, desc(neighbors), metric = "roc_auc"))
 
 ### Fit the final model -----------------------
 
@@ -105,7 +109,10 @@ oos_knn <- fit_resamples(
 
 
 # Compare models based on CV ------------------------------------------------
-
+# We're actually doing two things with this:
+# 1. We are getting CV estimates of the OOS performance of the models.
+# 2. Because we used the *same* folds, we can compare the models in a paired
+#    fashion!
 
 
 ## Plot -----------------
@@ -115,7 +122,10 @@ cv_results <- bind_rows(
   logistic2 = collect_metrics(oos_logistic2, summarize = FALSE),
   KNN = collect_metrics(oos_knn, summarize = FALSE),
   .id = "model"
-)
+) |> 
+  mutate(
+    model = factor(model, levels = c("logistic1", "logistic2", "KNN")), 
+  )
 
 cv_summary <- bind_rows(
   logistic1 = collect_metrics(oos_logistic1),
@@ -142,7 +152,8 @@ cv_results |>
   # summary
   geom_pointrange(aes(y = mean, ymin = mean - std_err, ymax = mean + std_err),
                   data = cv_summary,
-                  color = "red")
+                  color = "red") + 
+  scale_x_discrete(breaks = )
 
 
 
@@ -153,8 +164,8 @@ cv_compare_log1.knn <- cv_results |>
   group_by(.metric) |> 
   summarise(
     # Because these are paired (fold-wise) we can do this:
-    mean_diff = mean(logistic1 - KNN),
-    se_diff = sd(logistic1 - KNN) / sqrt(n()),
+    mean_diff = mean(logistic2 - KNN),
+    se_diff = sd(logistic2 - KNN) / sqrt(n()),
     
     lb = mean_diff - 1.96 * se_diff,
     ub = mean_diff + 1.96 * se_diff
