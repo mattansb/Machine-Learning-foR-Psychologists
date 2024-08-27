@@ -94,7 +94,7 @@ cv_folds
 # methods as implemented throughout {tidymodels} since it is often ambiguous how
 # to meaningfully compute metric with just one OOS observation/inner-outer CV.
 # You can still use it -- e.g., for OOS performance estimation -- but it
-# requires manual code writing.
+# requires manual code writing (see 04 estimating performance with LOO-CV.R).
 
 
 

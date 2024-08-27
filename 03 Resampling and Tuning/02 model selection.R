@@ -4,6 +4,12 @@ library(tidymodels)
 
 # Read mode about model comparisons using resampling here:
 # https://www.tmwr.org/compare
+# The basic idea behind model comparison with k-folds, is that we can measure
+# the OOS performance of each model on each of the folds. Some folds might (by
+# chance) be harder / easier to predict for across models, so these are paired
+# measures of fit, but each fold is independent (insofar as they _are_ part of a
+# set) so we can use rather standard procedures for comparing models across
+# paired samples.
 
 # The data -----------------------------------------------------------
 
