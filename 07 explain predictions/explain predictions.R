@@ -1,5 +1,7 @@
 
 library(tidymodels)
+# library(kknn)
+# library(randomForest)
 
 library(kernelshap)
 library(shapviz)
@@ -93,6 +95,10 @@ sv_force(sv, row_id = 10, max_display = Inf)
 # that if he was in a different Division his salary would have been lower - just
 # that the model chose to give him a higher prediction because he's in division
 # W.
+#
+# For counterfactual information, you might want to learn about "partial
+# dependence plots". 
+# See https://modeloriented.github.io/DALEX/reference/model_profile.html
 
 
 ## Variable importance ----------------------
@@ -138,6 +144,7 @@ sv_dependence2D(sv, x = "Hits", y = "HmRun")
 
 
 data("penguins", package = "palmerpenguins")
+?palmerpenguins::penguins
 
 # split the data
 set.seed(111)
@@ -229,6 +236,41 @@ sv_dependence2D(sv, x = "bill_length_mm", y = "body_mass_g")
 
 
 
+
+
+
+
+
+
+
+
+# We can also make custom plots:
+# This function takes a shapviz object and converts it to a data frame that can
+# be manipulated / plotted with ggplot.
+extract_agg_shaps <- function(x, variables, ...) {
+  UseMethod("extract_agg_shaps")
+}
+
+extract_agg_shaps.shapviz <- function(x, variables, ...) {
+  out <- x[["X"]][,variables, drop = FALSE]
+  out[[".shap"]] <- rowSums(x[["S"]][,variables, drop = FALSE])
+  out
+}
+
+extract_agg_shaps.mshapviz <- function(x, variables, ...) {
+  lapply(x, extract_agg_shaps, variables = variables) |> 
+    dplyr::bind_rows(.id = ".class")
+}
+
+
+extract_agg_shaps(sv, variables = c("bill_length_mm", "body_mass_g", "sex")) |> 
+  # SHAP values are saved in the ".shap" column. For classification, the class
+  # is saved in the ".class" column.
+  ggplot(aes(bill_length_mm, .shap, color = sex)) + 
+  facet_grid(cols = vars(.class),
+             rows = vars(cut_interval(body_mass_g, 2))) + 
+  geom_point() + 
+  geom_smooth(se = FALSE, method = "gam")
 
 
 

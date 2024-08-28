@@ -5,7 +5,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)  
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2024-08-27.*</sub>
+<sub>*Last updated 2024-08-28.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
@@ -46,7 +46,7 @@ You will need:
 | [04 The problem of over-dimensionality](/04%20The%20problem%20of%20over-dimensionality) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`leaps`](https://CRAN.R-project.org/package=leaps), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`stats`](https://CRAN.R-project.org/package=stats), [`MASS`](https://CRAN.R-project.org/package=MASS), [`insight`](https://CRAN.R-project.org/package=insight), [`glmnet`](https://CRAN.R-project.org/package=glmnet), [`tidyr`](https://CRAN.R-project.org/package=tidyr), [`tibble`](https://CRAN.R-project.org/package=tibble), [`ggplot2`](https://CRAN.R-project.org/package=ggplot2), [`kknn`](https://CRAN.R-project.org/package=kknn), [`plsmod`](https://CRAN.R-project.org/package=plsmod), [`pls`](https://CRAN.R-project.org/package=pls), [`BiocManager`](https://CRAN.R-project.org/package=BiocManager) |
 | [05 SVM](/05%20SVM)                                                                     | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`kernlab`](https://CRAN.R-project.org/package=kernlab), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`palmerpenguins`](https://CRAN.R-project.org/package=palmerpenguins)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | [06 Trees](/06%20Trees)                                                                 | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`rpart`](https://CRAN.R-project.org/package=rpart), [`rpart.plot`](https://CRAN.R-project.org/package=rpart.plot), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`vip`](https://CRAN.R-project.org/package=vip), [`MASS`](https://CRAN.R-project.org/package=MASS), [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`baguette`](https://CRAN.R-project.org/package=baguette), [`randomForest`](https://CRAN.R-project.org/package=randomForest), [`xgboost`](https://CRAN.R-project.org/package=xgboost), [`MASS`](https://CRAN.R-project.org/package=MASS), [`vip`](https://CRAN.R-project.org/package=vip)                                                                                             |
-| [07 explain predictions](/07%20explain%20predictions)                                   | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`kernelshap`](https://CRAN.R-project.org/package=kernelshap), [`shapviz`](https://CRAN.R-project.org/package=shapviz), [`ISLR`](https://CRAN.R-project.org/package=ISLR)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| [07 explain predictions](/07%20explain%20predictions)                                   | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`kknn`](https://CRAN.R-project.org/package=kknn), [`randomForest`](https://CRAN.R-project.org/package=randomForest), [`kernelshap`](https://CRAN.R-project.org/package=kernelshap), [`shapviz`](https://CRAN.R-project.org/package=shapviz), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`palmerpenguins`](https://CRAN.R-project.org/package=palmerpenguins), [`dplyr`](https://CRAN.R-project.org/package=dplyr)                                                                                                                                                                                                                                                                                                     |
 | [08 unsupervised learning](/08%20unsupervised%20learning)                               | [`tidyverse`](https://CRAN.R-project.org/package=tidyverse), [`psych`](https://CRAN.R-project.org/package=psych), [`parameters`](https://CRAN.R-project.org/package=parameters), [`factoextra`](https://CRAN.R-project.org/package=factoextra), [`performance`](https://CRAN.R-project.org/package=performance), [`GPArotation`](https://CRAN.R-project.org/package=GPArotation), [`recipes`](https://CRAN.R-project.org/package=recipes), [`Rtsne`](https://CRAN.R-project.org/package=Rtsne), [`ggrepel`](https://CRAN.R-project.org/package=ggrepel)                                                                                                                                                                                                                                        |
 
 You can install all the packages used by running:
@@ -54,13 +54,14 @@ You can install all the packages used by running:
     # in alphabetical order:
 
     pkgs <- c(
-      "baguette", "BiocManager", "datasets", "factoextra", "finetune",
-      "ggplot2", "ggrepel", "glmnet", "glue", "GPArotation", "insight",
-      "ISLR", "kernelshap", "kernlab", "kknn", "leaps", "MASS", "modeldata",
-      "palmerpenguins", "parameters", "patchwork", "performance", "pls",
-      "plsmod", "probably", "psych", "randomForest", "recipes", "rpart",
-      "rpart.plot", "Rtsne", "shapviz", "stats", "themis", "tibble",
-      "tidymodels", "tidyr", "tidyverse", "tune", "vip", "xgboost"
+      "baguette", "BiocManager", "datasets", "dplyr", "factoextra",
+      "finetune", "ggplot2", "ggrepel", "glmnet", "glue", "GPArotation",
+      "insight", "ISLR", "kernelshap", "kernlab", "kknn", "leaps",
+      "MASS", "modeldata", "palmerpenguins", "parameters", "patchwork",
+      "performance", "pls", "plsmod", "probably", "psych", "randomForest",
+      "recipes", "rpart", "rpart.plot", "Rtsne", "shapviz", "stats",
+      "themis", "tibble", "tidymodels", "tidyr", "tidyverse", "tune",
+      "vip", "xgboost"
     )
 
     install.packages(pkgs, dependencies = TRUE)
@@ -98,6 +99,7 @@ v_info <- paste0(glue::glue(" - `{pkgs}` {V} (*{src}*)"), collapse = "\n")
 - `baguette` 1.0.2 (*CRAN*)
 - `BiocManager` 1.30.23 (*CRAN*)
 - `datasets` 4.3.2 (*Dev*)
+- `dplyr` 1.1.4 (*CRAN*)
 - `factoextra` 1.0.7 (*CRAN*)
 - `finetune` 1.2.0 (*CRAN*)
 - `ggplot2` 3.5.1 (*CRAN*)
