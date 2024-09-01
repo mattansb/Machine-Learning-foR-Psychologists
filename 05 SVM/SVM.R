@@ -38,8 +38,9 @@ rec <- recipe(Purchase ~ PriceDiff + LoyalCH,
 # different classes. Hence, the distance between data points affects the
 # decision boundary SVM chooses. In other words, training an SVM over the scaled
 # and non-scaled data leads to the generation of different models.
-
-
+#
+# Note: We're only using 2 predictors because it allowed us to visualize the
+# "space". But SVM can of course use many predictors.
 
 folds <- vfold_cv(OJ.train, v = 5)
 
