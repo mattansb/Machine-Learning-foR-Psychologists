@@ -95,8 +95,8 @@ coef(ridge_eng, s = best_ridge$penalty)
 coef(ridge_eng, s = 0)
 
 # Build a function to plot the coefficients with different lambda (s) values
-plot_glmnet_coef <- function(mod, s = 0, show_intercept = TRUE) {
-  b <- glmnet::coef.glmnet(mod, s = s, exact = FALSE) |> 
+plot_glmnet_coef <- function(mod, s = 0, show_intercept = FALSE) {
+  b <- glmnet::coef.glmnet(mod, s = c(s, 0), exact = FALSE) |> 
     as.matrix() |> as.data.frame() |> 
     tibble::rownames_to_column("Coef")
   
@@ -113,6 +113,7 @@ plot_glmnet_coef <- function(mod, s = 0, show_intercept = TRUE) {
                                 labels = c("none-0", "0"), 
                                 limits = c(FALSE, TRUE)) + 
     ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 30)) + 
+    ggplot2::coord_cartesian(ylim = range(b[,-1])) + 
     ggplot2::labs(y = "Coef", x = NULL) + 
     ggplot2::ggtitle(bquote(labda==.(s)))
 }
@@ -124,6 +125,14 @@ plot_glmnet_coef(ridge_eng)
 plot_glmnet_coef(ridge_eng)
 plot_glmnet_coef(ridge_eng, s = 1000)
 plot_glmnet_coef(ridge_eng, s = 10000)
+
+# We can also plot the coefficients with the sign of the coefficients using the
+# {vip} package:
+vip::vip(ridge_eng, method = "model", lambda = 10000, 
+         num_features = 100,
+         mapping = aes(fill = Sign)) + 
+  theme(legend.position = "bottom")
+
 
 # We can see that the Ridge penalty shrink all coefficients, but doesn't set any
 # of them exactly to zero. Ridge regression does not perform variable selection!
