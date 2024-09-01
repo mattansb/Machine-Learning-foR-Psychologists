@@ -7,6 +7,11 @@ library(tidymodels)
 data("Caravan", package = "ISLR")
 ?ISLR::Caravan
 
+levels(Caravan$Purchase)
+# We will relevel the factor so the *first* class is the event class!
+Caravan$Purchase <- relevel(Caravan$Purchase, ref = "Yes")
+levels(Caravan$Purchase)
+# This way we won't have to set `event_level = "second"` everywhere.
 
 # Data Splitting
 set.seed(1234)
@@ -42,7 +47,7 @@ thresholds <- seq(0, 1, length = 20)
 threshold_metrics <- Caravan.test_predictions |> 
   probably::threshold_perf(truth = Purchase, estimate = .pred_Yes,
                            thresholds = thresholds, 
-                           metrics = mset_class, event_level = "second")
+                           metrics = mset_class)
 
 # Plot metrics vs threshold
 ggplot(threshold_metrics, aes(x = .threshold, y = .estimate, color = .metric)) +
@@ -58,9 +63,9 @@ ggplot(threshold_metrics, aes(x = .threshold, y = .estimate, color = .metric)) +
 Caravan.test_predictions$.pred_class0.1 <- 
   # this function is defined with respect to the FIRST level
   probably::make_two_class_pred(
-    estimate = Caravan.test_predictions$.pred_No,
+    estimate = Caravan.test_predictions$.pred_Yes,
     levels = levels(Caravan.test_predictions$Purchase),
-    threshold = 1 - 0.1 
+    threshold = 0.1 
   )
 
 Caravan.test_predictions |> 
@@ -75,7 +80,7 @@ Caravan.test_predictions |>
 source(".rethresh.R")
 
 accuracy0.1 <- metric_tweak("accuracy0.1", .fn = rethresh,
-                            threshold = 0.1, event_level = "second",
+                            threshold = 0.1,
                             class_metric = accuracy_vec)
 
 Caravan.test_predictions |> accuracy(Purchase, estimate = .pred_class)

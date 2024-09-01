@@ -16,7 +16,7 @@ nlevels(hotel_rates$country)
 
 
 
-# For this demo, we'll use data from the first 30
+# For this demo, we'll use data from the first 15
 hotel_rates <- hotel_rates |> 
   mutate(country = droplevels(country)) |> 
   filter(country %in% levels(country)[1:15])

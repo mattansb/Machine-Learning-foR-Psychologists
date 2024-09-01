@@ -7,6 +7,11 @@ library(tidymodels)
 data("Caravan", package = "ISLR")
 ?ISLR::Caravan
 
+levels(Caravan$Purchase)
+# We will relevel the factor so the *first* class is the event class!
+Caravan$Purchase <- relevel(Caravan$Purchase, ref = "Yes")
+levels(Caravan$Purchase)
+# This way we won't have to set `event_level = "second"` everywhere.
 
 # Data Splitting
 set.seed(1234)
@@ -24,14 +29,15 @@ table(Caravan.train$Purchase) |> proportions()
 # This means that, technically, we can achieve high accuracy by simply
 # predicting "No"....
 
-Caravan.test$pred_NO <- factor("No", levels = c("No", "Yes"))
+Caravan.test$.pred_class.BAD <- factor("No", levels = c("Yes", "No"))
+Caravan.test$.pred_Yes.BAD <- 0
 
-Caravan.test |> conf_mat(truth = Purchase, estimate = pred_NO)
+Caravan.test |> conf_mat(truth = Purchase, estimate = .pred_class.BAD)
 
 
 # But as we can see, we have no specificity!
 mset_class <- metric_set(accuracy, specificity, sensitivity)
-Caravan.test |> mset_class(truth = Purchase, estimate = pred_NO, event_level = "second")
+Caravan.test |> mset_class(truth = Purchase, estimate = .pred_class.BAD)
 
 
 # Training with Imbalance Data --------------------------------------------
@@ -86,17 +92,13 @@ Caravan.test_down.predictions <- augment(knn_fit.down, new_data = Caravan.test)
 
 
 Caravan.test |> 
-  mset_class(truth = Purchase, estimate = pred_NO,
-             event_level = "second")
+  mset_class(truth = Purchase, estimate = .pred_class.BAD)
 Caravan.test_predictions |> 
-  mset_class(truth = Purchase, estimate = .pred_class,
-             event_level = "second")
+  mset_class(truth = Purchase, estimate = .pred_class)
 Caravan.test_up.predictions |> 
-  mset_class(truth = Purchase, estimate = .pred_class,
-             event_level = "second")
-Caravan.test_down.predictions |>
-  mset_class(truth = Purchase, estimate = .pred_class,
-             event_level = "second")
+  mset_class(truth = Purchase, estimate = .pred_class)
+Caravan.test_down.predictions |> 
+  mset_class(truth = Purchase, estimate = .pred_class)
 
 # As we can see, the accuracy (and specificity) have dropped, but sensitivity is
 # higher.
@@ -105,14 +107,10 @@ Caravan.test_down.predictions |>
 
 # We can also compare ROC curves and AUCs:
 ROCs <- bind_rows(
-  Fixed = Caravan.test |> 
-    roc_curve(truth = Purchase, 1, event_level = "second"),  
-  None = Caravan.test_predictions |> 
-    roc_curve(truth = Purchase, .pred_Yes, event_level = "second"),
-  Up = Caravan.test_up.predictions |> 
-    roc_curve(truth = Purchase, .pred_Yes, event_level = "second"),
-  Down = Caravan.test_down.predictions |> 
-    roc_curve(truth = Purchase, .pred_Yes, event_level = "second"), 
+  Fixed = Caravan.test |> roc_curve(truth = Purchase, .pred_Yes.BAD),  
+  None = Caravan.test_predictions |> roc_curve(truth = Purchase, .pred_Yes),
+  Up = Caravan.test_up.predictions |> roc_curve(truth = Purchase, .pred_Yes),
+  Down = Caravan.test_down.predictions |> roc_curve(truth = Purchase, .pred_Yes), 
   
   .id = "Method"
 )

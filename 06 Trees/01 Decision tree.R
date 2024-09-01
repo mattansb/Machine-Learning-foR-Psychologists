@@ -31,8 +31,9 @@ OJ.test <- testing(splits)
 OJ.folds <- vfold_cv(OJ.train, v = 10) # Make 10-folds for CV
 
 # We will use these metric:
-f2_meas <- metric_tweak("f2_meas", f_meas, beta = 2)
-OJ_metrics <- metric_set(accuracy, f2_meas, roc_auc)
+# (For some reason, recall of MM is more important than sensitivity/precision.)
+f2_meas <- metric_tweak("f2_meas", f_meas, beta = 2, event_level = "second") 
+OJ_metrics <- metric_set(bal_accuracy, f2_meas, roc_auc)
 
 
 
@@ -113,7 +114,7 @@ pruned.OJ.tree_tuner <- tune_grid(pruned.OJ.tree_wf,
                                   metrics = OJ_metrics)
 
 autoplot(pruned.OJ.tree_tuner)
-# See the drop in accuracy when cp gets bigger.
+# See the drop in performance when cp gets too big.
 
 
 
@@ -121,7 +122,7 @@ autoplot(pruned.OJ.tree_tuner)
 (pruned.OJ.tree_params <- 
     select_by_one_std_err(pruned.OJ.tree_tuner, desc(cost_complexity), 
                           # smaller values of cp lead to more complex models
-                          metric = "accuracy"))
+                          metric = "roc_auc"))
 
 
 # Fit the final model:

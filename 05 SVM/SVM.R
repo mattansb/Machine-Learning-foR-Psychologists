@@ -10,6 +10,14 @@ data("OJ", package = "ISLR")
 ?ISLR::OJ
 # Which brand of orange juice was purchased?
 
+# We don't really "care" about the "event", so we will not use any
+# "even"-related metrics. This also means the order of the classes does not
+# mater
+levels(OJ$Purchase)
+oj_metrics <- metric_set(accuracy, f_meas, roc_auc)
+
+
+
 set.seed(1)
 splits <- initial_split(OJ, prop = 0.8)
 OJ.train <- training(splits)
@@ -34,8 +42,6 @@ rec <- recipe(Purchase ~ PriceDiff + LoyalCH,
 
 
 folds <- vfold_cv(OJ.train, v = 5)
-
-oj_metrics <- metric_set(accuracy, sens, spec, f_meas)
 
 
 
@@ -105,9 +111,9 @@ plot(svmlin_eng, data = X_train)
 # (on a new TEST DATA)
 
 # Predict the class labels of these test observations. 
-OJ.test$pred_lin <- predict(svmlin_fit, new_data = OJ.test, type = "raw")
-OJ.test |> conf_mat(Purchase, pred_lin)
-OJ.test |> oj_metrics(Purchase, estimate = pred_lin)
+svmlin_predictions <- augment(svmlin_fit, new_data = OJ.test)
+svmlin_predictions |> conf_mat(Purchase, .pred_class)
+svmlin_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
 
 
 
@@ -191,13 +197,13 @@ plot(svmrad_eng, data = X_train)
 ## Compare models ----------------------------------------------------------
 
 
-OJ.test$pred_poly <- predict(svmpoly_fit, new_data = OJ.test, type = "raw")
-OJ.test$pred_rad <- predict(svmrad_fit, new_data = OJ.test, type = "raw")
+svmpoly_predictions <- augment(svmpoly_fit, new_data = OJ.test)
+svmrad_predictions <- augment(svmrad_fit, new_data = OJ.test)
 
 
-OJ.test |> oj_metrics(Purchase, estimate = pred_lin)
-OJ.test |> oj_metrics(Purchase, estimate = pred_poly)
-OJ.test |> oj_metrics(Purchase, estimate = pred_rad)
+svmlin_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
+svmpoly_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
+svmrad_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
 # These are all basically the same...
 
 
@@ -284,7 +290,7 @@ svrlin_tune <- tune_grid(svrlin_wf, resamples = folds, grid = svrlin_grid)
 
 autoplot(svrlin_tune)
 
-# Finilize the model
+# Finalize the model
 svrlin_fit <- 
   svrlin_wf |> 
   finalize_workflow(select_best(svrlin_tune, metric = "rmse")) |> 
@@ -300,7 +306,10 @@ penguins.test |>
 
 ggplot(penguins.test, aes(bill_length_mm, body_mass_g, color = species)) + 
   geom_point() + 
-  geom_line(aes(y = .pred))
+  stat_smooth(aes(linetype = "linear reg"), 
+              method = "lm", se = FALSE, 
+              geom = "line") + 
+  geom_line(aes(y = .pred, linetype = "linear SVR"))
 
 
 # Exercise ---------------------------------------------------------------

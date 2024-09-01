@@ -99,9 +99,13 @@ Smarket.test_predictions |>
 
 mset_classifier <- metric_set(accuracy, sensitivity, specificity, f_meas)
 
+# Confusingly enough, the "event" in ML is typically the *first* class, whereas
+# in classical tools like logistic regression it is the *second* class. We can
+# deal with this by telling the various functions that the even class is
+# "second" (overriding the default), or we can preemptively set the *first*
+# class to be the event.
 Smarket.test_predictions |> 
   mset_classifier(truth = Direction, estimate = .pred_class, 
-                  # Tell the function that the positive class is "Up"
                   event_level = "second")
 # Overall, not amazing...
 
