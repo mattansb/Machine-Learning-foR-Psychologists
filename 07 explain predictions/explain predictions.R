@@ -58,7 +58,7 @@ knn_fit <- workflow(preprocessor = rec, spec = knn_spec) |>
 # https://lime.data-imaginist.com
 # https://koalaverse.github.io/vip
 # https://modeloriented.github.io/DALEX
-
+# https://modeloriented.github.io/DALEX/reference/model_profile.html
 
 
 # The steps:
@@ -90,15 +90,15 @@ sv_waterfall(sv, row_id = 10, max_display = Inf)
 
 
 # Or
-sv_force(sv, row_id = 10, max_display = Inf)
-# Note that this doesn't give us any counterfactual information - we don't know
-# that if he was in a different Division his salary would have been lower - just
-# that the model chose to give him a higher prediction because he's in division
-# W.
-#
-# For counterfactual information, you might want to learn about "partial
-# dependence plots". 
-# See https://modeloriented.github.io/DALEX/reference/model_profile.html
+sv_force(sv, row_id = 10, max_display = 10)
+# Note that SHAP analysis DOES NOT give us any counterfactual information - we
+# don't know that if he was in a different Division his salary would have been
+# lower - just that the model chose to give him a higher prediction because he's
+# in division W.
+# In other words - we are explaining the model's predictions, but we are not
+# explaining the salary! There is not causal information here, we are NOT in
+# "explaining mode", we are still in "prediction mode"!
+
 
 
 ## Variable importance ----------------------
@@ -119,7 +119,6 @@ sv_dependence(sv, v = "Division", color_var = NULL)
 
 
 
-
 sv_dependence(sv, v = "Hits", color_var = NULL)
 # Looking at Hits, we can see an almost linear trend (note the KNN is
 # none-parametric!)
@@ -129,10 +128,53 @@ sv_dependence(sv, v = "Hits", color_var = NULL) +
   geom_smooth(se = FALSE)
 
 
+# By default, `sv_dependence` colors the dots according to a variable it has
+# automagically deemed to have the strongest interaction with the focal
+# predictor. Setting `color_var = NULL` removes this. But we can also set this
+# manually, if we wanted.
 
+ 
 
 # We can also look at a bivariate plot:
 sv_dependence2D(sv, x = "Hits", y = "HmRun")
+
+
+
+
+
+
+
+# For more advance plots, we can use this handy little function I cooked up:
+# This function takes a shapviz object and converts it to a data frame that can
+# be manipulated / plotted with ggplot.
+extract_agg_shaps <- function(x, variables, ...) {
+  UseMethod("extract_agg_shaps")
+}
+
+extract_agg_shaps.shapviz <- function(x, variables, ...) {
+  out <- x[["X"]][,variables, drop = FALSE]
+  out[[".shap"]] <- rowSums(x[["S"]][,variables, drop = FALSE])
+  out
+}
+
+extract_agg_shaps.mshapviz <- function(x, variables, ...) {
+  lapply(x, extract_agg_shaps, variables = variables) |> 
+    dplyr::bind_rows(.id = ".class")
+}
+
+
+extract_agg_shaps(sv, variables = c("Hits", "HmRun", "Division")) |> 
+  # SHAP values are saved in the ".shap" column. 
+  ggplot(aes(Hits, .shap, color = Division)) + 
+  facet_grid(cols = vars(HmRun = cut_number(HmRun, 3)), 
+             labeller = label_both) + 
+  geom_point() + 
+  geom_smooth(se = FALSE, method = "gam")
+
+
+
+
+
 
 
 
@@ -227,6 +269,8 @@ sv_dependence(sv, v = "bill_length_mm", color_var = NULL) &
   geom_smooth(se = FALSE)
 # As far as bill length goes, it seems like smaller bills predict Adelie, larger
 # for Chinstrap, with Gentoo somewhere in the middle!
+# (We need to use `&` instead of `+` because for classification, we get a
+# patchwork plot.)
 
 
 
@@ -238,39 +282,13 @@ sv_dependence2D(sv, x = "bill_length_mm", y = "body_mass_g")
 
 
 
-
-
-
-
-
-
-# We can also make custom plots:
-# This function takes a shapviz object and converts it to a data frame that can
-# be manipulated / plotted with ggplot.
-extract_agg_shaps <- function(x, variables, ...) {
-  UseMethod("extract_agg_shaps")
-}
-
-extract_agg_shaps.shapviz <- function(x, variables, ...) {
-  out <- x[["X"]][,variables, drop = FALSE]
-  out[[".shap"]] <- rowSums(x[["S"]][,variables, drop = FALSE])
-  out
-}
-
-extract_agg_shaps.mshapviz <- function(x, variables, ...) {
-  lapply(x, extract_agg_shaps, variables = variables) |> 
-    dplyr::bind_rows(.id = ".class")
-}
-
-
+# Some custom plots:
 extract_agg_shaps(sv, variables = c("bill_length_mm", "body_mass_g", "sex")) |> 
   # SHAP values are saved in the ".shap" column. For classification, the class
   # is saved in the ".class" column.
   ggplot(aes(bill_length_mm, .shap, color = sex)) + 
   facet_grid(cols = vars(.class),
-             rows = vars(cut_interval(body_mass_g, 2))) + 
+             rows = vars(cut_number(body_mass_g, 2))) + 
   geom_point() + 
   geom_smooth(se = FALSE, method = "gam")
-
-
 
