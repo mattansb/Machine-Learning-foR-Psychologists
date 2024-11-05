@@ -1,51 +1,51 @@
 ---
-output: github_document
+format: gfm
+execute:
+  echo: false
+  message: false
+  warning: false
 ---
-
-```{r setup, include=FALSE}
-library(knitr)
-
-opts_chunk$set(echo = TRUE)
-```
 
 # Machine Learning foR Psychologists
 
 [![](https://img.shields.io/badge/Open%20Educational%20Resources-Compatable-brightgreen)](https://creativecommons.org/about/program-areas/education-oer/)
-[![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)  
+[![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue)](http://cran.r-project.org/)
 
 <sub>*Last updated `r Sys.Date()`.*</sub>
+
+> This is an older version of the ML4Psych course (taught until 2024) that used the `caret` pacakge. The new `tidymodels` version can be found [here](https://github.com/mattansb/Machine-Learning-foR-Psychologists).
 
 This Github repo contains all lesson files for *Machine Learning in R*. The goal is to impart students with the basic tools to construct, evaluate and compare various **machine learning models, using [`caret`](https://topepo.github.io/caret/)**. (Materials developed with Yael Bar-Shachar.)
 
 These topics were taught in the graduate-level course ***Machine Learning for Psychologists*** (Psych Dep., Ben-Gurion University of the Negev; Psych Dep., Tel-Aviv University). This course assumes basic competence in R (importing, regression modeling, plotting, etc.), along the lines of [*Practical Applications in R for Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psychologists).
 
-**Notes:**  
+**Notes:**
 
-- This repo contains only materials relating to *Practical Applications in R*, and does not contain any theoretical or introductory materials.  
+- This repo contains only materials relating to *Practical Applications in R*, and does not contain any theoretical or introductory materials.
 - Please note that some code does not work *on purpose*, to force students to learn to debug.
 
 ## Setup
 
-```{r, echo=FALSE}
+```{r}
 extract_pkgs <- function(fl) {
   if (length(fl) == 1) {
-    txt <- read.delim(fl, header = FALSE)[[1]] |> 
+    txt <- read.delim(fl, header = FALSE)[[1]] |>
       paste0(collapse = "\n")
-    
+
     pkg_lib <- stringr::str_extract_all(txt, pattern = "(?<=library\\().{1,}(?=\\))")
-    
+
     pkg_req <- stringr::str_extract_all(txt, pattern = "(?<=require\\().{1,}(?=\\))")
-    
+
     pkg_name <- stringr::str_extract_all(txt, pattern = "[a-z|A-Z|0-9]{1,}(?=\\:\\:)")
-    
+
     pkgs <- c(pkg_lib, pkg_req, pkg_name)
-    
+
   } else if (length(fl) > 1) {
     pkgs <- sapply(fl, extract_pkgs)
   }
-  
-  
+
+
   pkgs |>
     unlist(recursive = TRUE) |>
     unique()
@@ -53,16 +53,16 @@ extract_pkgs <- function(fl) {
 
 make_pkg_table <- function(pkgs) {
   pkgs <- pkgs[sapply(pkgs, function(x) length(x) > 0)]
-  
+
   ps <- sapply(pkgs, function(x){
     paste0(
       glue::glue("[`{x}`](https://CRAN.R-project.org/package={x})"),
       collapse = ", "
     )
   })
-  
+
   glue::glue("|[{folder}](/{folder})|{ps}|\n\n",
-             folder = names(pkgs)) |> 
+             folder = names(pkgs)) |>
     c("|Lesson|Packages|\n|----|----|\n", i2 = _) |> # header
     paste0(collapse = "")
 }
@@ -75,7 +75,7 @@ You will need:
 2. [RStudio IDE](https://www.rstudio.com/products/rstudio/download/) (optional, but recommended).
 3. The following packages, listed by lesson:
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r}
 r_list <- list.files(pattern = ".(R|r)$", recursive = TRUE, full.names = TRUE)
 r_list <- r_list[!stringr::str_detect(r_list, pattern = "(SOLUTION|logo)")]
 r_list <- r_list[stringr::str_detect(r_list, pattern = "^./[0-9]")]
@@ -93,10 +93,10 @@ print_pkgs <- make_pkg_table(pkgs)
 
 You can install all the packages used by running:
 
-```{r echo=FALSE, comment = "", warning=FALSE}
+```{r comment = ""}
 
-pkgs <- pkgs |> 
-  unlist(recursive = TRUE) |> 
+pkgs <- pkgs |>
+  unlist(recursive = TRUE) |>
   unique() |> sort()
 
 cat("# in alphabetical order:")
@@ -112,6 +112,8 @@ cat("install.packages(pkgs, dependencies = TRUE)")
 The package versions used here:
 ```{r, echo=FALSE}
 packinfo <- installed.packages(fields = c("Package", "Version"))
+
+# pkgs[!pkgs %in% rownames(packinfo)]
 
 get_src <- function(pkg) {
   pd <- packageDescription(pkg)
@@ -135,4 +137,3 @@ v_info <- paste0(glue::glue(" - `{pkgs}` {V} (*{src}*)"), collapse = "\n")
 `r v_info`
 
 </details>
-
