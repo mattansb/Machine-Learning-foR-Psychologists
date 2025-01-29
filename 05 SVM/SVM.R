@@ -53,9 +53,15 @@ folds <- vfold_cv(OJ.train, v = 5)
 
 ## Tune ------------------------
 
-# We will fit the support vector classifier for a given
-# value of the cost parameter. Here, we directly try more then one value and
-# find the best fit with CV!
+# We will fit the support vector classifier by tuning the C hyperparameter.
+# For annoying reasons, we actually tune a "cost" parameter - 
+#               WHICH IS INVERSLY RELATED TO C!
+# It really should be called a "penalty", since it allows us to specify the
+# penalty of a violation to the margin, such that:
+#   Small cost -> wide margins and many support vectors.
+#   Large cost -> narrow margins and few support vectors.
+#
+# Here, we directly try more then one value and find the best fit with CV!
 svmlin_spec <- svm_linear("classification", engine = "kernlab", 
                           cost = tune())
 
@@ -67,10 +73,9 @@ translate(svmlin_spec)
 
 svmlin_wf <- workflow(preprocessor = rec, spec = svmlin_spec)
 
-svmlin_grid <- grid_regular(cost(), levels = 20)
-# A cost argument allows us to specify the cost of a violation to the margin:
-# small cost -> wide margins and many support vectors violate the margin.
-# large cost -> narrow margins and few support vectors violate the margin.
+# Tune the cost between being very low and very large:
+(svmlin_grid <- grid_regular(cost(), levels = 20))
+
 
 svmlin_tune <- tune_grid(svmlin_wf, 
                          resamples = folds, 
