@@ -79,9 +79,10 @@ svmlin_tune <- tune_grid(svmlin_wf,
 
 autoplot(svmlin_tune)
 
-collect_metrics(svmlin_tune, type = "wide")
+collect_metrics(svmlin_tune) |> 
+  filter(.metric == "f_meas")
 
-(svmlin_const <- select_by_one_std_err(svmlin_tune, desc(cost), metric = "f_meas"))
+(svmlin_const <- select_best(svmlin_tune, metric = "f_meas"))
 
 ## The final model ------------------------------------------------------
 
@@ -92,8 +93,8 @@ svmlin_fit <- fit(finalize_workflow(svmlin_wf, svmlin_const),
 
 # We can explore the model but extracting the underlying model object:
 (svmlin_eng <- extract_fit_engine(svmlin_fit))
-# training error is 0.170561 (for the cost 32)
-# Number of Support Vectors : 358! 
+# training error is 0.17 (for the cost 0.13)
+# Number of Support Vectors : 374! 
 
 
 # Here we demonstrated the use of this function on a two-dimensional example so
@@ -102,7 +103,7 @@ X_train <- bake(extract_recipe(svmlin_fit), new_data = OJ.train,
                 all_predictors())
 
 plot(svmlin_eng, data = X_train)
-# Full circles\triangles = support vectors (365 obs.)
+# Full circles\triangles = support vectors (624 obs.)
 # Hollow circles\triangles = the remaining observations 
 
 
@@ -145,7 +146,7 @@ svmpoly_tune <- tune_grid(svmpoly_wf,
                           grid = svmlin_grid, # reuse cost grid
                           metrics = oj_metrics)
 
-(svmpoly_params <- select_by_one_std_err(svmpoly_tune, desc(cost), metric = "f_meas"))
+(svmpoly_params <- select_best(svmpoly_tune, metric = "f_meas"))
 
 
 
@@ -155,8 +156,8 @@ svmpoly_fit <- fit(finalize_workflow(svmpoly_wf, svmpoly_params),
 
 
 (svmpoly_eng <- extract_fit_engine(svmpoly_fit))
-# best training error is 0.179907 (for the cost 0.005)
-# Number of Support Vectors : 470! 
+# best training error is 0.17 (for the cost 0.045)
+# Number of Support Vectors : 359! 
 plot(svmpoly_eng, data = X_train)
 
 
@@ -175,7 +176,7 @@ plot(svmpoly_eng, data = X_train)
 
 
 svmrad_spec <- svm_rbf("classification", engine = "kernlab", 
-                       cost = 32, # we get it...
+                       cost = 0.1, # we get it...
                        rbf_sigma = 2)
 # rbf_sigma is the sigma parameter for the radial basis kernel, which controls
 # the smoothness of the decision boundary.
@@ -189,10 +190,9 @@ svmrad_fit <- fit(svmrad_wf, data = OJ.train)
 
 
 (svmrad_eng <- extract_fit_engine(svmrad_fit))
-# best training error is 0.172897 (for the cost 0.026)
-# Number of Support Vectors : 588! 
+# best training error is 0.17 (for the cost 0.1)
+# Number of Support Vectors : 469! 
 plot(svmrad_eng, data = X_train)
-# Yuck...
 
 
 ## Compare models ----------------------------------------------------------
@@ -253,9 +253,28 @@ penguins.test |> conf_mat(species, pred_lin)
 penguins.test |> accuracy(species, pred_lin)
 # penguins.test |> sens(species, pred_lin, estimator = "macro_weighted")
 
+pred_grid <- expand.grid(
+  bill_length_mm = seq(30, 60, len = 101),
+  body_mass_g = seq(2500, 6100, len = 101)
+) |> 
+  augment(x = svmlin_fit2)
+
 # Is this surprising? Not really, considering our predictors..
-ggplot(penguins.test, aes(bill_length_mm, body_mass_g)) +
-  geom_point(aes(color = species))
+ggplot(pred_grid, aes(bill_length_mm, body_mass_g)) +
+  geom_raster(aes(alpha = .pred_Chinstrap, fill = "Chinstrap")) +
+  geom_raster(aes(alpha = .pred_Adelie, fill = "Adelie")) +
+  geom_raster(aes(alpha = .pred_Gentoo, fill = .pred_class)) + 
+  geom_point(aes(fill = species), 
+             data = penguins.test,
+             color = "black", shape = 21, size = 3, 
+             show.legend = FALSE) +
+  scale_alpha_continuous(name = expression(P(Species[c])), 
+                         limits = c(0, 1), range = c(0, 1)) +
+  labs(
+    fill = "Species"
+  )
+
+
 
 
 # SVR --------------------------------------------------------------------
@@ -307,10 +326,13 @@ penguins.test |>
 
 ggplot(penguins.test, aes(bill_length_mm, body_mass_g, color = species)) + 
   geom_point() + 
-  stat_smooth(aes(linetype = "linear reg"), 
+  stat_smooth(aes(linetype = "OLS"), 
               method = "lm", se = FALSE, 
               geom = "line") + 
-  geom_line(aes(y = .pred, linetype = "linear SVR"))
+  geom_line(aes(y = .pred, linetype = "SVR")) + 
+  labs(
+    linetype = "model"
+  )
 
 
 # Exercise ---------------------------------------------------------------
