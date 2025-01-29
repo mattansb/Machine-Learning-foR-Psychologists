@@ -25,6 +25,7 @@ These topics were taught in the graduate-level course ***Machine Learning for Ps
 
 ```{r}
 #| echo: false
+
 extract_pkgs <- function(fl) {
   if (length(fl) == 1) {
     txt <- read.delim(fl, header = FALSE)[[1]] |>
@@ -72,7 +73,11 @@ You will need:
 2. [RStudio IDE](https://www.rstudio.com/products/rstudio/download/) (optional, but recommended).
 3. The following packages, listed by lesson:
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+
 r_list <- list.files(pattern = ".(R|r)$", recursive = TRUE, full.names = TRUE)
 r_list <- r_list[!stringr::str_detect(r_list, pattern = "(SOLUTION|logo)")]
 r_list <- r_list[stringr::str_detect(r_list, pattern = "^./[0-9]")]
@@ -111,7 +116,8 @@ cat("install.packages(pkgs, dependencies = TRUE)")
 <summary><i>Package Versions</i></summary>
 The package versions used here:
 ```{r}
-# | echo: false
+#| echo: false
+
 packinfo <- installed.packages(fields = c("Package", "Version"))
 
 get_src <- function(pkg) {
