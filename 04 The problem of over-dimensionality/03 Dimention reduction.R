@@ -94,7 +94,7 @@ pcr_fit <- fit(
 # By doing this we can get the coefficient on the data.
 
 # We need to manually pre-process the training set:
-rec.prepped <- prep(rec) # use the original recipe (no PCA)
+rec.prepped <- prep(rec, training = Hitters.train) # original recipe (no PCA)
 Hitters.train_baked <- bake(rec.prepped, new_data = Hitters.train)
 
 pcr_fit2 <- pls::pcr(Salary ~ .,
@@ -156,6 +156,9 @@ pls_fit <- fit(
 ## use pls::plsr -------------------------------
 # By doing this we can get the coefficient on the data.
 
+Hitters.train_baked <- bake(extract_recipe(pls_fit), 
+                            new_data = Hitters.train)
+
 pls_fit2 <- pls::plsr(Salary ~ ., 
                       ncomp = best_pls$num_comp,
                       data = Hitters.train_baked)
@@ -208,7 +211,8 @@ knn_tuned <- tune_grid(
 autoplot(knn_tuned)
 
 
-(best_knn <- select_by_one_std_err(knn_tuned, num_comp, desc(neighbors), metric = "rmse"))
+(best_knn <- select_by_one_std_err(knn_tuned, num_comp, desc(neighbors), 
+                                   metric = "rmse"))
 # Note this is a different value than
 rbind(best_pcr, best_pls)
 
