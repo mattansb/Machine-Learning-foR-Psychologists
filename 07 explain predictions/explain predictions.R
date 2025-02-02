@@ -55,10 +55,13 @@ knn_fit <- workflow(preprocessor = rec, spec = knn_spec) |>
 # https://proceedings.mlr.press/v119/kumar20e.html
 #
 # Alternatives:
-# https://lime.data-imaginist.com
-# https://koalaverse.github.io/vip
-# https://modeloriented.github.io/DALEX
-# https://modeloriented.github.io/DALEX/reference/model_profile.html
+# - Local Interpretable Model-agnostic Explanations (LIME): 
+#   https://lime.data-imaginist.com
+# - Partial Dependence Plots (PDP):
+#   https://modeloriented.github.io/DALEX
+#   https://modeloriented.github.io/DALEX/reference/model_profile.html
+
+
 
 
 # The steps:
