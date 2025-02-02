@@ -1,9 +1,10 @@
+
 library(tidymodels)
 # library(randomForest)
 
 # We've already seen how to find variable importance metrics (e.g., with the
-# {vip} pacakge). But alone, these methods do not usually provide any measure of
-# uncertinty in the importance metric.
+# {vip} package). But alone, these methods do not usually provide any measure of
+# uncertainty in the importance metric.
 # Once again, we can use re-sampling for this!
 
 

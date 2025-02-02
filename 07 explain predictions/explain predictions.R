@@ -71,6 +71,11 @@ shaps <- kernelshap(knn_fit,
                     # The training data. Note that if the training set it very
                     # large (N>500) you can use a subset of the data.
                     bg_X = Hitters.train)
+# This took about 5 minutes on my computer, but depending on the model and the
+# data it can easily take hours.
+
+shaps <- readRDS("knn_shaps.rds")
+
 
 # 3. Explore the explanations:
 sv <- shapviz(shaps)
@@ -130,8 +135,8 @@ sv_dependence(sv, v = "Hits", color_var = NULL) +
 
 # By default, `sv_dependence` colors the dots according to a variable it has
 # automagically deemed to have the strongest interaction with the focal
-# predictor. Setting `color_var = NULL` removes this. But we can also set this
-# manually, if we wanted.
+# predictor. Setting `color_var = NULL` removes this (recommended). But we can
+# also set this manually, if we wanted.
 
  
 
@@ -154,6 +159,11 @@ extract_agg_shaps <- function(x, variables, ...) {
 extract_agg_shaps.shapviz <- function(x, variables, ...) {
   out <- x[["X"]][,variables, drop = FALSE]
   out[[".shap"]] <- rowSums(x[["S"]][,variables, drop = FALSE])
+  if (!is.null(rownames(out))) {
+    out <- tibble::rownames_to_column(out, var = ".row")
+  } else {
+    out <- tibble::rowid_to_column(out, var = ".row")
+  }
   out
 }
 
