@@ -6,11 +6,6 @@ library(recipes)
 library(Rtsne)
 library(factoextra) # https://rpkgs.datanovia.com/factoextra/index.html
 
-# recall the difference between clustering and PCA:
-# - PCA looks to find a low-dimensional representation of the obs. that accounts
-#   for a good fraction of their variance.
-# - clustering looks to find homogeneous subgroups among the observations.
-
 # Learn more at:
 # https://tidyclust.tidymodels.org/index.html
 
@@ -87,7 +82,7 @@ p_tSNE
 
 # The function kmeans() performs K-means clustering. 
 km <- kmeans(USArrests_z, # Features to guide clustering
-             centers = 3, # K
+             centers = 4, # K
              nstart = 20) # how many random starting centers
 # NOTE: If nstart > 1, then K-means clustering will be performed using multiple
 # random assignments in Step 1 of the Algorithm, and kmeans() will report only
@@ -221,37 +216,20 @@ p_tSNE + aes(color = factor(hc_cut.k4))
 
 # Select only the 25 first columns corresponding to the items on the BIG-5
 # scales:
-data("bfi", package = "psychTools")
+data("oils", package = "modeldata")
+?modeldata::oils
 
-bfi <- bfi |> 
-  mutate(
-    gender = factor(gender, labels = c("Male", "Female")),
-    education = factor(education, labels = c("HS", "finished HS", "some college", "college graduate", "graduate degree"))
-  ) |>
-  drop_na(1:25)
-
-head(bfi)
-
-bfi_scales <- bfi |> 
-  select(1:25)
 
 
 ## A. Clustering
-# 1. Cluster people into groups based on these data
+# 0. Build a t-SNE plot based on all columns (minus "class").
+#   - Color the point by class
+# 1. Cluster oils into groups based on these data
 #   - use hclust
 #   - decide on a distance metric
 #   - choose a linkage method
 #   - plot the dendrogram - and choose the number of clusters
 #   - plot the clusters on a t-SNE plot.
-# 2. Validate the clusters - are they related to gender? age? education?
+# 2. Validate the clusters - how do they map onto "class"?
 #   - Answer visually.
 
-## B. PCA
-# What is the minimal number of components that can be used to represent 85% of
-# the variance in the bfi scale?
-
-## C. EFA (bonus)
-# 1. Validate the big-5: look at a scree-plot to see if the data suggests 5
-#   factors or more or less.
-# 2. Conduct an EFA.
-# 3. Look at the loadings - do they make sense?
