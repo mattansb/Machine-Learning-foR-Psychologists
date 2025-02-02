@@ -1,4 +1,4 @@
-### Model Selection ###
+
 
 library(tidymodels)
 # library(glmnet)
@@ -22,9 +22,10 @@ rec <- recipe(Salary ~ ., data = Hitters.train) |>
   step_dummy(all_factor_predictors(), one_hot = TRUE) |> 
   # Let's add an interaction here:
   step_interact(~HmRun:starts_with("League")) |> 
+  # IMPORTANT! scale the variables as part of the pre-processing
   step_center(all_numeric_predictors()) |> 
   step_scale(all_numeric_predictors())
-# IMPORTANT! scale the variable pre-fitting
+
 
 
 
