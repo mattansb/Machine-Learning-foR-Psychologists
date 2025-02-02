@@ -54,15 +54,16 @@ rec <- recipe(Purchase ~ .,
 
 OJ.tree_spec <- decision_tree(
   mode = "classification", engine = "rpart",
+  # Control tree depth
   cost_complexity = 0,
-  min_n = 2,
-  tree_depth = 30 # Max values is 30
+  tree_depth = 30, # Max values is 30
+  min_n = 5 # Default is 2
 )
-# All the hyperparameters control the complexity of the tree:
+# All the hyperparameters control the complexity and depth of the tree:
 # - cost_complexity (cp) is the complexity parameter. If set to 0, no pruning is
 #   done.
-# - min_n is the minimum number of observations in a node that can be split
 # - tree_depth is the maximum number of splits ALONG EACH BRANCH.
+# - min_n is the minimum number of observations in a node that can be split
 
 ?details_decision_tree_rpart
 translate(OJ.tree_spec)
@@ -87,8 +88,8 @@ extract_fit_engine(OJ.tree_fit) |> rpart.plot()
 pruned.OJ.tree_spec <- decision_tree(
   mode = "classification", engine = "rpart",
   cost_complexity = tune(),
-  min_n = 2,
-  tree_depth = 30
+  tree_depth = 30,
+  min_n = 5
 )
 
 pruned.OJ.tree_wf <- workflow(preprocessor = rec, spec = pruned.OJ.tree_spec)
@@ -97,7 +98,7 @@ pruned.OJ.tree_wf <- workflow(preprocessor = rec, spec = pruned.OJ.tree_spec)
 # For finding the best size for the tree using CV change the possible cp
 # values for complexity parameters in the tune grid.
 pruned.OJ.tree_grid <- grid_regular(
-  cost_complexity(range = c(-5, -1)),
+  cost_complexity(range = c(-5, 0)),
 
   levels = 30
 )
@@ -116,8 +117,8 @@ pruned.OJ.tree_tuner <- tune_grid(pruned.OJ.tree_wf,
 
 autoplot(pruned.OJ.tree_tuner) +
   scale_x_continuous(
-    transform = scales::transform_log(),
-    breaks = scales::breaks_log(n = 10),
+    transform = scales::transform_log10(),
+    breaks = scales::breaks_log(base = 10),
     labels = scales::label_number()
   )
 # See the drop in performance when cp gets too big.
@@ -238,6 +239,7 @@ OJ_resamps_metrics <- bind_rows(
   ) |>
   ungroup()
 
+
 ggplot(OJ_resamps_metrics, aes(Model, .estimate)) +
   facet_wrap(~.metric, scales = "free") +
   geom_boxplot(width = 0.5) +
@@ -293,7 +295,7 @@ rec <- recipe(medv ~ rm + age + lstat,
 Boston.tree_spec <- decision_tree(
   mode = "regression", engine = "rpart",
   cost_complexity = tune(),
-  min_n = 2,
+  min_n = 5,
   tree_depth = 30
 )
 
@@ -302,7 +304,7 @@ Boston.tree_wf <- workflow(preprocessor = rec, spec = Boston.tree_spec)
 
 
 Boston.tree_grid <- grid_regular(
-  cost_complexity(range = c(-5, -1)),
+  cost_complexity(range = c(-5, 0)),
 
   levels = 20
 )
@@ -311,7 +313,12 @@ Boston.tree_tuned <- tune_grid(Boston.tree_wf,
                                resamples = Boston.folds,
                                grid = Boston.tree_grid)
 
-autoplot(Boston.tree_tuned)
+autoplot(Boston.tree_tuned) + 
+  scale_x_continuous(
+    transform = scales::transform_log10(),
+    breaks = scales::breaks_log(base = 10),
+    labels = scales::label_number()
+  )
 
 
 # Fit the final model:
@@ -367,3 +374,4 @@ ggplot(Boston.test_predictions, aes(.pred, medv)) +
   geom_abline() +
   geom_point() +
   coord_obs_pred()
+
