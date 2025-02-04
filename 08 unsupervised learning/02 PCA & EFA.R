@@ -125,7 +125,9 @@ efa4_fit <- fa(Harman74, nfactors = 4,
 
 efa4_fit 
 # Read about the outputs here: https://m-clark.github.io/posts/2020-04-10-psych-explained/
-#
+# Fit measures:
+efa4_fit[c("RMSEA", "TLI")]
+
 # A better output:
 model_parameters(efa4_fit, sort = TRUE, threshold = 0.45)
 # These give the pattern matrix
