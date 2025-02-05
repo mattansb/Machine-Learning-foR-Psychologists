@@ -211,6 +211,11 @@ plot(USArrests, col = hc_cut.k4,
 p_tSNE + aes(color = factor(hc_cut.k4))
 
 
+# Model based clustering -----------------------------------
+# 
+# See the {mclust} package
+# https://mclust-org.github.io/mclust/
+
 
 # Exercise ----------------------------------------------------------------
 
