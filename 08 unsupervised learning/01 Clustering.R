@@ -51,8 +51,9 @@ head(USArrests_z)
 # so don't forget to set a seed:
 set.seed(42)
 
-USArrests_z_tSNE <- Rtsne(USArrests_z, perplexity = 5,
-                          pca = FALSE, normalize = FALSE)
+USArrests_z_tSNE <- Rtsne(USArrests_z, perplexity = 5)
+# Default perplexity is 30, but this value is too large for our small dataset.
+
 
 p_tSNE <- data.frame(USArrests_z_tSNE$Y) |> 
   ggplot(aes(X1, X2)) + 
