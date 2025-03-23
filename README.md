@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2025-02-02.*</sub>
+<sub>*Last updated 2025-03-23.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
@@ -48,7 +48,7 @@ You will need:
 | [04 The problem of over-dimensionality](/04%20The%20problem%20of%20over-dimensionality) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`leaps`](https://CRAN.R-project.org/package=leaps), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`stats`](https://CRAN.R-project.org/package=stats), [`MASS`](https://CRAN.R-project.org/package=MASS), [`insight`](https://CRAN.R-project.org/package=insight), [`glmnet`](https://CRAN.R-project.org/package=glmnet), [`tidyr`](https://CRAN.R-project.org/package=tidyr), [`tibble`](https://CRAN.R-project.org/package=tibble), [`ggplot2`](https://CRAN.R-project.org/package=ggplot2), [`vip`](https://CRAN.R-project.org/package=vip), [`kknn`](https://CRAN.R-project.org/package=kknn), [`plsmod`](https://CRAN.R-project.org/package=plsmod), [`pls`](https://CRAN.R-project.org/package=pls), [`BiocManager`](https://CRAN.R-project.org/package=BiocManager) |
 | [05 SVM](/05%20SVM) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`kernlab`](https://CRAN.R-project.org/package=kernlab), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`palmerpenguins`](https://CRAN.R-project.org/package=palmerpenguins) |
 | [06 Trees](/06%20Trees) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`rpart`](https://CRAN.R-project.org/package=rpart), [`rpart.plot`](https://CRAN.R-project.org/package=rpart.plot), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`scales`](https://CRAN.R-project.org/package=scales), [`vip`](https://CRAN.R-project.org/package=vip), [`MASS`](https://CRAN.R-project.org/package=MASS), [`baguette`](https://CRAN.R-project.org/package=baguette), [`randomForest`](https://CRAN.R-project.org/package=randomForest), [`xgboost`](https://CRAN.R-project.org/package=xgboost) |
-| [07 explain predictions](/07%20explain%20predictions) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`kknn`](https://CRAN.R-project.org/package=kknn), [`randomForest`](https://CRAN.R-project.org/package=randomForest), [`kernelshap`](https://CRAN.R-project.org/package=kernelshap), [`shapviz`](https://CRAN.R-project.org/package=shapviz), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`tibble`](https://CRAN.R-project.org/package=tibble), [`dplyr`](https://CRAN.R-project.org/package=dplyr), [`palmerpenguins`](https://CRAN.R-project.org/package=palmerpenguins), [`vip`](https://CRAN.R-project.org/package=vip), [`forcats`](https://CRAN.R-project.org/package=forcats) |
+| [07 explain predictions](/07%20explain%20predictions) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`kknn`](https://CRAN.R-project.org/package=kknn), [`randomForest`](https://CRAN.R-project.org/package=randomForest), [`DALEX`](https://CRAN.R-project.org/package=DALEX), [`DALEXtra`](https://CRAN.R-project.org/package=DALEXtra), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`palmerpenguins`](https://CRAN.R-project.org/package=palmerpenguins), [`vip`](https://CRAN.R-project.org/package=vip), [`forcats`](https://CRAN.R-project.org/package=forcats) |
 | [08 unsupervised learning](/08%20unsupervised%20learning) | [`tidyverse`](https://CRAN.R-project.org/package=tidyverse), [`recipes`](https://CRAN.R-project.org/package=recipes), [`Rtsne`](https://CRAN.R-project.org/package=Rtsne), [`factoextra`](https://CRAN.R-project.org/package=factoextra), [`ggrepel`](https://CRAN.R-project.org/package=ggrepel), [`modeldata`](https://CRAN.R-project.org/package=modeldata), [`psych`](https://CRAN.R-project.org/package=psych), [`parameters`](https://CRAN.R-project.org/package=parameters), [`performance`](https://CRAN.R-project.org/package=performance), [`dplyr`](https://CRAN.R-project.org/package=dplyr), [`tidyr`](https://CRAN.R-project.org/package=tidyr), [`datasets`](https://CRAN.R-project.org/package=datasets), [`GPArotation`](https://CRAN.R-project.org/package=GPArotation), [`psychTools`](https://CRAN.R-project.org/package=psychTools) |
 
 You can install all the packages used by running:
@@ -56,14 +56,14 @@ You can install all the packages used by running:
     # in alphabetical order:
 
     pkgs <- c(
-      "baguette", "BiocManager", "datasets", "dplyr", "factoextra",
-      "finetune", "forcats", "ggplot2", "ggrepel", "glmnet", "glue",
-      "GPArotation", "insight", "ISLR", "kernelshap", "kernlab", "kknn",
-      "leaps", "MASS", "modeldata", "palmerpenguins", "parameters",
+      "baguette", "BiocManager", "DALEX", "DALEXtra", "datasets",
+      "dplyr", "factoextra", "finetune", "forcats", "ggplot2", "ggrepel",
+      "glmnet", "glue", "GPArotation", "insight", "ISLR", "kernlab",
+      "kknn", "leaps", "MASS", "modeldata", "palmerpenguins", "parameters",
       "patchwork", "performance", "pls", "plsmod", "probably", "psych",
       "psychTools", "randomForest", "recipes", "rpart", "rpart.plot",
-      "Rtsne", "scales", "shapviz", "stats", "tailor", "themis", "tibble",
-      "tidymodels", "tidyr", "tidyverse", "tune", "vip", "xgboost"
+      "Rtsne", "scales", "stats", "tailor", "themis", "tibble", "tidymodels",
+      "tidyr", "tidyverse", "tune", "vip", "xgboost"
     )
 
     install.packages(pkgs, dependencies = TRUE)
@@ -77,6 +77,8 @@ The package versions used here:
 
 - `baguette` 1.1.0 (*CRAN*)
 - `BiocManager` 1.30.25 (*CRAN*)
+- `DALEX` 2.4.3 (*CRAN*)
+- `DALEXtra` 2.3.0 (*CRAN*)
 - `datasets` 4.4.1 (*Dev*)
 - `dplyr` 1.1.4 (*CRAN*)
 - `factoextra` 1.0.7 (*CRAN*)
@@ -89,7 +91,6 @@ The package versions used here:
 - `GPArotation` 2024.3-1 (*CRAN*)
 - `insight` 1.0.1 (*CRAN*)
 - `ISLR` 1.4 (*CRAN*)
-- `kernelshap` 0.7.0 (*CRAN*)
 - `kernlab` 0.9-33 (*CRAN*)
 - `kknn` 1.3.1 (*CRAN*)
 - `leaps` 3.2 (*CRAN*)
@@ -110,7 +111,6 @@ The package versions used here:
 - `rpart.plot` 3.1.2 (*CRAN*)
 - `Rtsne` 0.17 (*CRAN*)
 - `scales` 1.3.0 (*CRAN*)
-- `shapviz` 0.9.7 (*CRAN*)
 - `stats` 4.4.1 (*Dev*)
 - `tailor` 0.0.0.9001 (*Github: tidymodels/tailor*)
 - `themis` 1.0.3 (*CRAN*)
