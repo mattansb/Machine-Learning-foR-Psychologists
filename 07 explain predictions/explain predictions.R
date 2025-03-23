@@ -3,11 +3,14 @@ library(tidymodels)
 # library(kknn)
 # library(randomForest)
 
-library(kernelshap)
-library(shapviz)
+library(DALEX)
+library(DALEXtra)
+
 
 
 # Regression ------------------------------------------------------------------
+
+## Fit a model ---------------------------------------------
 # Let's fit a regression model!
 
 data("Hitters", package = "ISLR")
@@ -25,7 +28,7 @@ rec <- recipe(Salary ~ .,
   step_naomit(Salary) |> 
   step_dummy(all_factor_predictors()) |> 
   step_normalize(all_numeric_predictors())
-  
+
 
 knn_spec <- nearest_neighbor(
   mode = "regression", engine = "kknn", 
@@ -36,20 +39,35 @@ knn_fit <- workflow(preprocessor = rec, spec = knn_spec) |>
   fit(data = Hitters.train)
 
 
-## Build SHAP explainer ------------------------------
-# We will be using SHAP to explain the predictions of the model. SHAP are model
-# agnostic - this mean that we can use them to explain any model, not just the
-# ones that have a closed form solution (like linear regression). SHAP is a
-# method that# tries to estimate what each predictor contributes to each
+## Explain the model -----------------------------------------------
+# All the methods we'll be using are model agnostic - that means that they work
+# for ANY model that can take ANY data and generate a prediction.
+# See:
+# https://www.tmwr.org/explain
+# https://ema.drwhy.ai/
+
+
+
+# We first need to setup an explainer:
+knn_xplnr <- explain_tidymodels(knn_fit, label = "KNN (K=5)",
+                                data = select(Hitters.train, -Salary),
+                                y = Hitters.train$Salary)
+
+
+
+
+
+
+
+### Explain a single prediction ------------------------------
+# We will be using SHAP to explain the predictions of the model. SHAP is a
+# method that tries to estimate what each predictor contributes to each
 # prediction - accounting for whatever interactions or conditional effects it
 # might have. The ideas are based on game theory - really interesting stuff.
 # Lots of math.
 #
 # SHAP thus tries to answer the Q: 
-#   "if X wasn't in the model at all, how would Y be affected?"
-# 
-# https://modeloriented.github.io/kernelshap
-# https://modeloriented.github.io/shapviz
+#   "if X wasn't in the model at all, how would the predicted Y be affected?"
 #
 # Limitations:
 # https://proceedings.mlr.press/v119/kumar20e.html
@@ -57,50 +75,29 @@ knn_fit <- workflow(preprocessor = rec, spec = knn_spec) |>
 # Alternatives:
 # - Local Interpretable Model-agnostic Explanations (LIME): 
 #   https://lime.data-imaginist.com
-# - Partial Dependence Plots (PDP):
-#   https://modeloriented.github.io/DALEX
-#   https://modeloriented.github.io/DALEX/reference/model_profile.html
 
 
-
-
-# The steps:
-# 1. Train the explainer with the model and the training data (X_bg)
-# 2. Use the explainer to explain predictions.
-shaps <- kernelshap(knn_fit, 
-                    # The test set, whose predictions we're trying to explain.
-                    # Only include the predictors!
-                    X = Hitters.test |> select(-Salary), 
-                    # The training data. Note that if the training set it very
-                    # large (N>500) you can use a subset of the data.
-                    bg_X = Hitters.train)
-# This took about 5 minutes on my computer, but depending on the model and the
-# data it can easily take hours.
-
-shaps <- readRDS("knn_shaps.rds")
-
-
-# 3. Explore the explanations:
-sv <- shapviz(shaps)
-# We're using {shapvis} to visualize the SHAP results
-
-
-
-## Explain a single observation -------------
-# We can also look at single predictions. For example, if we want to 
-# see why Bob Horner get a prediction of 1117 (*1000 = 1,117,000$)
+# For example, if we want to see why Bob Horner get a prediction of 
+# 1117 (*1000 = 1,117,000$)
 predict(knn_fit, new_data = Hitters.test["-Bob Horner",])
-which(rownames(Hitters.test) == "-Bob Horner")
+
+
 # We can look at his SHAP values:
+shap_bob <- predict_parts(knn_xplnr,
+                          new_observation = Hitters.test["-Bob Horner",],
+                          type = "shap")
+plot(shap_bob)
+# - The sum of all contributions is the values predicted over the baseline - the
+#   null average prediction.
+# - The box plots represent the distributions of contributions.
+#   See: https://ema.drwhy.ai/shapley.html
 
-sv_waterfall(sv, row_id = 10)
-sv_waterfall(sv, row_id = 10, max_display = Inf)
+plot(shap_bob, max_features = Inf) # get more features
+plot(shap_bob, show_boxplots = FALSE) # show only mean SHAP values
 
 
-# Or
-sv_force(sv, row_id = 10, max_display = 10)
 # Note that SHAP analysis DOES NOT give us any counterfactual information - we
-# don't know that if he was in a different Division his salary would have been
+# don't know that if Bob was in a different Division his salary would have been
 # lower - just that the model chose to give him a higher prediction because he's
 # in division W.
 # In other words - we are explaining the model's predictions, but we are not
@@ -109,92 +106,88 @@ sv_force(sv, row_id = 10, max_display = 10)
 
 
 
-## Variable importance ----------------------
-
-sv_importance(sv, show_numbers = TRUE)
-# By averaging the *absolute* SHAP values, we can see which variables contribute 
-# more, overall, relative to the others. 
-# This gives a global view of the model.
 
 
 
-## Explain a variables contribution ---------
+### Variable importance ----------------------
+# We've already seen model-based variable importance methods, available through
+# the {vip} package. But there are also model-agnostic methods, such as
+# Permutation-based variable importance. See:
+# https://ema.drwhy.ai/featureImportance.html
 
-sv_dependence(sv, v = "Division", color_var = NULL)
-# Each point is an observation in the test set.
-# We can see that being in Division W tends to produce predictions of a lower
-# salary compared to being in Division E.
+# This method assesses a feature's contribution to a model's predictive accuracy
+# by randomly shuffling a predictor's values - breaking its relationship with
+# the outcome. The model's performance is then evaluated on this new permuted
+# data.
+# If the variable has no contribution, permuting it will have litle to no effect
+# on the model's performance, while variables with larger contributions will
+# lead to larger and larger decrease in performance (e.g., larger RMSEs for
+# regression).
+# This process is repeated multiple times, and the average performance drop is
+# used as the importance score, providing a robust measure of each variable's
+# contribution.
 
 
+# permutation?
+vi_perm <- model_parts(knn_xplnr, B = 10, 
+                       variables = NULL) # specify to only compute for some
+plot(vi_perm, bar_width = 5)
+# - The vertical line is the baseline RMSE
+# - The horizontal bars are the increase in RMSE
+# - Box plots are distribution of loss across permutations
 
-sv_dependence(sv, v = "Hits", color_var = NULL)
-# Looking at Hits, we can see an almost linear trend (note the KNN is
-# none-parametric!)
-
-sv_dependence(sv, v = "Hits", color_var = NULL) + 
-  # we can even add a smooth visualize the trend.
-  geom_smooth(se = FALSE)
-
-
-# By default, `sv_dependence` colors the dots according to a variable it has
-# automagically deemed to have the strongest interaction with the focal
-# predictor. Setting `color_var = NULL` removes this (recommended). But we can
-# also set this manually, if we wanted.
-
- 
-
-# We can also look at a bivariate plot:
-sv_dependence2D(sv, x = "Hits", y = "HmRun")
+plot(vi_perm, bar_width = 5,
+     max_vars = Inf, show_boxplots = FALSE)
 
 
 
 
 
 
+### Understand a variables contribution ---------
 
-# For more advance plots, we can use this handy little function I cooked up:
-# This function takes a shapviz object and converts it to a data frame that can
-# be manipulated / plotted with ggplot.
-extract_agg_shaps <- function(x, variables, ...) {
-  UseMethod("extract_agg_shaps")
-}
-
-extract_agg_shaps.shapviz <- function(x, variables, ...) {
-  out <- x[["X"]][,variables, drop = FALSE]
-  out[[".shap"]] <- rowSums(x[["S"]][,variables, drop = FALSE])
-  if (!is.null(rownames(out))) {
-    out <- tibble::rownames_to_column(out, var = ".row")
-  } else {
-    out <- tibble::rowid_to_column(out, var = ".row")
-  }
-  out
-}
-
-extract_agg_shaps.mshapviz <- function(x, variables, ...) {
-  lapply(x, extract_agg_shaps, variables = variables) |> 
-    dplyr::bind_rows(.id = ".class")
-}
+# Partial dependence plots (PDP) visualize the *marginal* effect of one or more
+# features on the predicted outcome. That is, how the prediction is affected by
+# changing the value of variable X while all other *are held constant*
+# (_ceteris-paribus_). See:
+#
+# https://ema.drwhy.ai/partialDependenceProfiles.html
 
 
-extract_agg_shaps(sv, variables = c("Hits", "HmRun", "Division")) |> 
-  # SHAP values are saved in the ".shap" column. 
-  ggplot(aes(Hits, .shap, color = Division)) + 
-  facet_grid(cols = vars(HmRun = cut_number(HmRun, 3)), 
-             labeller = label_both) + 
-  geom_point() + 
-  geom_smooth(se = FALSE, method = "gam")
+pdp_hits <- model_profile(knn_xplnr, variables = "Hits", 
+                          # default is to plot results of 100 randomly sampled
+                          # observations.
+                          N = NULL)
+plot(pdp_hits) # average
+plot(pdp_hits, geom = "profiles") # each line is a single outcome
+plot(pdp_hits, geom = "points", variables = "Hits")
+# Note that this is a KNN model - it has no structure, and yet, this plot is
+# fairly easy to understand!
+
+
+pdp_league <- model_profile(knn_xplnr, variables = "League", type = "partial")
+plot(pdp_league) # average
+plot(pdp_league, geom = "points", variables = "League")
 
 
 
+pdp_walks.division <- model_profile(knn_xplnr, variables = "Walks",
+                                    groups = "Division")
+plot(pdp_walks.division)
 
 
 
-
-
+# There are two main problem of pd plots:
+# - If there are highly correlated predictors, "holding" one of them fixed will 
+#   give misleading plots.
+# - These plots do not account for possible interactions - they only give the
+#   marginal predictions.
 
 
 
 # Classification ------------------------------------------------------------
+
+## Fit a model -------------------------------------
 # Let's fit a classification model!
 
 
@@ -226,82 +219,61 @@ rf_fit <- workflow(preprocessor = rec, spec = rf_spec) |>
 
 
 
-
-## Build SHAP explainer ------------------------------
-# It's basically the same - but we have an explainer for each class!
+## Explain the model -----------------------------------------------
 
 
-shaps <- kernelshap(rf_fit, 
-                    X = penguins.test, 
-                    
-                    # Only include the predictors! Here is an alternative way to
-                    # do this:
-                    bg_X = penguins.train,
-                    feature_names = c("bill_length_mm", "bill_depth_mm",
-                                      "flipper_length_mm", "body_mass_g", "sex"),
-                    
-                    # We want to explain the predicted probabilities, se we need
-                    # to set `type = "prob"`. (It the model was non
-                    # probabilistic we would omit this argument.)
-                    type = "prob")
-# We need to tell the model to predict probabilities
+rf_xplnr <- explain_tidymodels(rf_fit, label = "Random Forest",
+                               data = select(penguins.train, -species),
+                               y = penguins.train$species)
 
 
-# 3. Explore the explanations:
-sv <- shapviz(shaps)
-
-
-
-
-## Explain a single observation -------------
+### Explain a single prediction ------------------------------
 # Why does the model think that obs 61 has a high chance of being a Gentoo?
 predict(rf_fit, new_data = penguins.test[61,], type = "prob")
+
+
 # We can look at his SHAP values:
-
-sv_waterfall(sv, row_id = 61)
-# We can also ask for a single class but subsetting the shapviz:
-# (This is true for all the following functions as well)
-sv_waterfall(sv$.pred_Gentoo, row_id = 61) 
-
-
-# Or
-sv_force(sv, row_id = 61)
-
-
-## Variable importance ----------------------
-
-sv_importance(sv, show_numbers = TRUE)
-# We can see that for different classes, different features are important.
+shap_61 <- predict_parts(rf_xplnr,
+                         new_observation = penguins.test[61,],
+                         type = "shap")
+plot(shap_61)
+# We get the SHAP values for each class!
 
 
 
-## Explain a variables contribution ---------
+
+### Variable importance ----------------------
+
+# Since we're using a random forest model, we can get model-based variable
+# importance:
+extract_fit_engine(rf_fit) |> 
+  vip::vi_model() |> 
+  vip::vip(num_features = 100)
 
 
-sv_dependence(sv, v = "bill_length_mm", color_var = NULL) &
-  geom_smooth(se = FALSE)
+# But we can still use the permutation method (or a multiclass model, the loss
+# function is a measure of entropy):
+vi_perm <- model_parts(rf_xplnr)
+plot(vi_perm, max_vars = Inf)
+# This matches the plot above very well!
+# What's going on with year / island?
+
+
+
+
+
+### Understand a variables contribution ---------
+
+model_profile(rf_xplnr, variables = c("bill_length_mm", "body_mass_g")) |> 
+  plot() + 
+  coord_cartesian(ylim = c(0, 1))
 # As far as bill length goes, it seems like smaller bills predict Adelie, larger
 # for Chinstrap, with Gentoo somewhere in the middle!
-# (We need to use `&` instead of `+` because for classification, we get a
-# patchwork plot.)
 
 
-
-sv_dependence2D(sv, x = "bill_length_mm", y = "body_mass_g")
-# What do you make of this plot?
-
-
+# Let's see if this makes sense...
+ggplot(penguins.train, aes(bill_length_mm, body_mass_g, color = species)) + 
+  geom_point()
 
 
-
-
-# Some custom plots:
-extract_agg_shaps(sv, variables = c("bill_length_mm", "body_mass_g", "sex")) |> 
-  # SHAP values are saved in the ".shap" column. For classification, the class
-  # is saved in the ".class" column.
-  ggplot(aes(bill_length_mm, .shap, color = sex)) + 
-  facet_grid(cols = vars(.class),
-             rows = vars(cut_number(body_mass_g, 2))) + 
-  geom_point() + 
-  geom_smooth(se = FALSE, method = "gam")
 
