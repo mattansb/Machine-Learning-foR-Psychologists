@@ -70,9 +70,9 @@ translate(knn_spec)
 
 ## Define outcome + predictors + preprocessing --------------------
 
-# Since KNN identifies neigbors of observations according to their **distance**,
-# the scale of the variables matters: large scale -> larger distance between the
-# observations on that X.
+# Since KNN identifies neighbors of observations according to their
+# **distance**, the scale of the variables matters: large scale -> larger
+# distance between the observations on that X.
 # So we need to re-scale all variables. And we also need to dummy code our
 # factor (origin).
 # 
@@ -95,7 +95,7 @@ rec <- recipe(mpg ~ origin + weight + horsepower,
   # us.
   step_YeoJohnson(horsepower) |> 
   step_normalize(all_numeric())
-# Note that the order of steps matters - where we put step_dummy() determines if
+# Note that the ORDER OF STEPS - where we put step_dummy() determines if
 # the dummies will be centered and scaled!
 rec
 
