@@ -15,7 +15,7 @@ levels(Caravan$Purchase)
 
 # Data Splitting
 set.seed(1234)
-splits <- initial_split(Caravan, prop = 0.7)
+splits <- initial_split(Caravan, prop = 0.7, strata = Purchase)
 Caravan.train <- training(splits)
 Caravan.test <- testing(splits)
 
@@ -24,10 +24,16 @@ Caravan.test <- testing(splits)
 table(Caravan.train$Purchase) |> proportions()
 # As we can see, the classes are very unbalanced. 
 
+# Note we used a stratified split, so that both the train and test set have
+# about the ~same distribution of classes. This is particularly important with
+# imbalanced data.
+table(Caravan.test$Purchase) |> proportions()
+
+
 
 # The worst model ---------------------------------------------------------
-# This means that, technically, we can achieve high accuracy by simply
-# predicting "No"....
+# The data imbalance means that, technically, we can achieve high accuracy by
+# simply predicting "No"....
 
 Caravan.test$.pred_class.BAD <- factor("No", levels = c("Yes", "No"))
 Caravan.test$.pred_Yes.BAD <- 0
@@ -38,6 +44,7 @@ Caravan.test |> conf_mat(truth = Purchase, estimate = .pred_class.BAD)
 # But as we can see, we have no specificity!
 mset_class <- metric_set(accuracy, specificity, sensitivity)
 Caravan.test |> mset_class(truth = Purchase, estimate = .pred_class.BAD)
+
 
 
 # Training with Imbalance Data --------------------------------------------
@@ -71,7 +78,8 @@ knn_fit <- fit(knn_wf, data = Caravan.train)
 # hybrid methods:
 #   techniques such as SMOTE and ROSE down-sample the majority class and
 #   synthesize new data points in the minority class.
-#
+# See https://themis.tidymodels.org/
+
 # We will use up- and down-sampling:
 
 rec_up <- rec |> themis::step_upsample(Purchase)

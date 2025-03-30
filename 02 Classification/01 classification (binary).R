@@ -50,7 +50,7 @@ logit_spec <- logistic_reg(mode = "classification", engine = "glm")
 
 # We can see the under the hood, stats::glm() is used:
 translate(logit_spec)
-
+?details_logistic_reg_glm
 
 
 
@@ -120,5 +120,5 @@ Smarket.test_predictions |>
   roc_auc(truth = Direction, .pred_Up, event_level = "second")
 
 
-# Can we use KNN to get better predictions?
+
 

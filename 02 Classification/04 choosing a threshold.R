@@ -1,7 +1,7 @@
 
 library(tidymodels)
-# library(kknn)
 library(tailor)
+# library(kknn)
 
 # The Data & Problem --------------------------------------------------------
 
