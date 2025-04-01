@@ -85,11 +85,12 @@ knn_fit <- fit(knn_wf, data = Caravan.train)
 rec_up <- rec |> themis::step_upsample(Purchase)
 rec_down <- rec |> themis::step_downsample(Purchase)
 
-knn_wf.up <- knn_wf |> update_recipe(rec_up)
-knn_wf.down <- knn_wf |> update_recipe(rec_down)
-
-knn_fit.up <- fit(knn_wf.up, data = Caravan.train)
-knn_fit.down <- fit(knn_wf.down, data = Caravan.train)
+knn_fit.up <- knn_wf |> 
+  update_recipe(rec_up) |> 
+  fit(data = Caravan.train)
+knn_fit.down <- knn_wf |>
+  update_recipe(rec_down) |> 
+  fit(data = Caravan.train)
 
 # Comparing Results -------------------------------------------------------
 
