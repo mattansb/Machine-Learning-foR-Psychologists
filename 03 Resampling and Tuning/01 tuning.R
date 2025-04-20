@@ -85,7 +85,7 @@ knn_wf
 # Define the resampling method (10-fold CV)
 cv_folds <- vfold_cv(Smarket.train, v = 10)
 cv_folds
-# In each "set" we have 788 obs. for training, and 87 obs. for validation.
+# In each "set" we have ~788 obs. for training, and ~87 obs. for validation.
 
 # See more methods:
 # https://rsample.tidymodels.org/reference/index.html
@@ -102,7 +102,7 @@ cv_folds
 # For each fold we will compute the out-of-sample performance using the
 # following metrics:
 
-mset_class <- metric_set(roc_auc, f_meas, kap)
+mset_class <- metric_set(sensitivity, specificity, f_meas, roc_auc, kap)
 mset_class
 
 
@@ -138,7 +138,7 @@ knn_grid <- grid_regular(
 knn_tuned <- tune_grid(
   knn_wf, # the model to re-fit
   resamples = cv_folds,
-  # grid = knn_grid,
+  grid = knn_grid,
   metrics = mset_class
 )
 
@@ -186,11 +186,8 @@ Smarket.test_predictions |>
   conf_mat(truth = Direction, estimate = .pred_class)
 
 
-
-mset_classifier <- metric_set(sensitivity, specificity, f_meas, roc_auc)
-
 Smarket.test_predictions |> 
-  mset_classifier(truth = Direction, estimate = .pred_class, .pred_Up)
+  mset_class(truth = Direction, estimate = .pred_class, .pred_Up)
 # Overall, not amazing...
 
 
