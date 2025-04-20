@@ -54,7 +54,7 @@ Auto.test <- testing(splits) # Extract the test set
 
 
 knn_spec <- nearest_neighbor(
-  mode = "regression", engine = "kknn", 
+  mode = "regression", engine = "kknn",
   neighbors = 5
 )
 
@@ -75,7 +75,7 @@ translate(knn_spec)
 # distance between the observations on that X.
 # So we need to re-scale all variables. And we also need to dummy code our
 # factor (origin).
-# 
+#
 # You can see the _required_ preprocessing steps in the model spec details:
 ?details_nearest_neighbor_kknn
 # ?details_{spec}_{engine}
@@ -85,27 +85,27 @@ translate(knn_spec)
 # here's one.
 
 rec <- recipe(mpg ~ origin + weight + horsepower,
-              data = Auto.train) |> 
-  step_dummy(origin) |> 
+              data = Auto.train) |>
+  step_dummy(origin) |>
   # The Yeo–Johnson transformation (a generalization of the Box-Cox
   # transformation) can be used to make highly skewed variables resemble a more
   # normal-like distribution, typically improving the performance of the model.
   # https://en.wikipedia.org/wiki/Power_transform#Yeo%E2%80%93Johnson_transformation
   # It requires the "training" of a Lambda parameter, which {recipes} finds for
   # us.
-  step_YeoJohnson(horsepower) |> 
+  step_YeoJohnson(horsepower) |>
   step_normalize(all_numeric())
 # Note that the ORDER OF STEPS - where we put step_dummy() determines if
 # the dummies will be centered and scaled!
 rec
 
 
-(ggplot(Auto.train, aes(horsepower)) + 
-    geom_density() + 
-    labs(title = "Raw")) + 
-  (bake(prep(rec), new_data = NULL) |> 
-     ggplot(aes(horsepower)) + 
-     geom_density() + 
+(ggplot(Auto.train, aes(horsepower)) +
+    geom_density() +
+    labs(title = "Raw")) +
+  (bake(prep(rec), new_data = NULL) |>
+     ggplot(aes(horsepower)) +
+     geom_density() +
      labs(title = "Standardized Yeo–Johnson"))
 
 
@@ -135,11 +135,11 @@ head(Auto.test_predictions)
 # In either case, the test set is preprocessed according to the recipe, and
 # predictions are then made.
 
-ggplot(Auto.test_predictions, aes(.pred, mpg)) + 
-  geom_abline() + 
-  geom_point() + 
-  coord_obs_pred() + 
-  labs(x = expression("Estimated:"~hat(mpg)), 
+ggplot(Auto.test_predictions, aes(.pred, mpg)) +
+  geom_abline() +
+  geom_point() +
+  coord_obs_pred() +
+  labs(x = expression("Estimated:"~hat(mpg)),
        y = "Truth: mpg")
 # What happened here?? Got back and fix it...
 
@@ -159,9 +159,9 @@ augment(knn_fit, new_data = Auto.train) |> mset_reg(mpg, .pred)
 # 1. Define a recipe for a new KNN model
 #   Add the required steps for KNN.
 rec2 <- recipe(mpg ~ ., # all predictors,
-               data = train.data) |>
+               data = Auto.train) |>
   # Remove the {name} predictor
-  step_rm(name) 
+  step_rm(name)
 
 
 # 2. Fit a KNN model with k=5
@@ -172,5 +172,3 @@ rec2 <- recipe(mpg ~ ., # all predictors,
 
 
 # 4. Repeat steps 2 and 3 with k=10. What can we expect to happen?
-
-
