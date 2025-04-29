@@ -19,37 +19,40 @@ Auto$cylinders <- factor(Auto$cylinders)
 Auto$origin <- factor(Auto$origin)
 
 ## Data splitting ----------------------------------------
-# We will be using data a little differently here:
+# We will be using data a little differently here since we will be doing 3 things along the way:
+# 1. Tune hyper parameters
+# 2. Compare models (and select between them)
+# 3. Test the final model
+# We want a "clean" dataset for each type of work that is independant from the
+# data used in previous steps.
 
-set.seed(111)
-# we want a bit more data for the test set than usual
-splits <- initial_split(Auto, prop = 0.6)
-Auto.train <- training(splits)
-Auto.test <- testing(splits)
+# So let's split the data in 3 parts:
+# 35% for tuning, 35% for comparing, and the remaining (30%) for testing:
+p <- c(0.35, 0.35)
 
-# Split train data for tuning:
-cv_tune <- vfold_cv(Auto.train, v = 5)
+n <- nrow(Auto)
+idx <- sample.int(n)
+k_start <- floor(n * c(0, cumsum(p))) + 1
+k_end <- floor(n * c(cumsum(p), 1))
 
-# Split test data for comparing:
-cv_comp <- vfold_cv(Auto.test, v = 10)
-# We will use these folds for all the models - then we can compare the models'
-# preformance on a fold-wise basis!
+Auto.tune <- Auto[sort(idx[k_start[1]:k_end[1]]),]
+Auto.compare <- Auto[sort(idx[k_start[2]:k_end[2]]),]
+Auto.test <- Auto[sort(idx[k_start[3]:k_end[3]]),]
 
 # As you can see, these splits require a lot of data.
-# In smaller samples we might use loo-cv for comparing models, or using the same
-# splits for tuning as for comparing (but be mindful that this is double-dipping
-# that might lead to overfitting).
+# In smaller samples we might use loo-cv for comparing models, or collapse
+# decision nodes.
 
 
-# These are the metrics we're interested in:
-mset_reg <- metric_set(rsq, mae)
+
+
 
 ## Get resampled results --------------------------------------------------
 
 ### Model 1: Linear regression --------------------------------------------
 
 rec1 <- recipe(mpg ~ horsepower + weight,
-               data = Auto.train)
+               data = Auto.compare)
 
 linreg_spec <- linear_reg(mode = "regression", engine = "lm")
 
@@ -57,14 +60,25 @@ linreg1_wf <- workflow(preprocessor = rec1, spec = linreg_spec)
 
 # (No tuning needed.)
 
+
+# Split comparison data (why?):
+cv_compare <- vfold_cv(Auto.compare, v = 10)
+# We will use these folds for ALL the models - then we can compare the models'
+# performance on a fold-wise basis!
+
+# These are the metrics we're interested in:
+mset_reg <- metric_set(rsq, mae)
+
+
 # We will use the fit_resamples() function. This function doesn't actually
 # return a fitted model - it just computes a set of performance metrics across
 # the resamples.
 linreg1_oos <- fit_resamples(
   linreg1_wf,
-  resamples = cv_comp,
+  resamples = cv_compare,
   metrics = mset_reg
 )
+
 
 
 # get a summary of the metrics across resamples:
@@ -77,10 +91,12 @@ collect_metrics(linreg1_oos, summarize = FALSE, type = "wide")
 
 
 
+
+
 ### Model 2: Linear regression --------------------------------------------
 
 rec2 <- recipe(mpg ~ .,
-               data = Auto.train) |>
+               data = Auto.compare) |>
   step_rm(name) |>
   step_novel(cylinders, origin) |>
   step_dummy(all_nominal_predictors()) |>
@@ -90,11 +106,17 @@ rec2 <- recipe(mpg ~ .,
 
 linreg2_wf <- workflow(preprocessor = rec2, spec = linreg_spec)
 
+
+
 linreg2_oos <- fit_resamples(
   linreg2_wf,
-  resamples = cv_comp, # We are using the SAME resamples!
+  resamples = cv_compare, # We are using the SAME resamples!
   metrics = mset_reg
 )
+
+
+
+
 
 
 ### Model 3: KNN --------------------------------------------
@@ -111,6 +133,9 @@ wf_knn <- workflow(preprocessor = rec3, spec = knn_spec)
 
 
 #### Tune the model --------------------------
+
+# Split tuning data for tuning(!):
+cv_tune <- vfold_cv(Auto.tune, v = 5)
 
 knn_grid <- grid_regular(
   neighbors(range = c(10, 100)),
@@ -130,6 +155,7 @@ autoplot(knn_tuner)
 
 (k_1SE <- select_by_one_std_err(knn_tuner, desc(neighbors), metric = "mae"))
 
+
 #### Fit the final model -----------------------
 
 wf_knn <- finalize_workflow(wf_knn, k_1SE)
@@ -137,8 +163,8 @@ wf_knn
 
 knn_oos <- fit_resamples(
   wf_knn,
-  # Note we're using the test-split samples
-  resamples = cv_comp,
+  # Note we're using the same splits!
+  resamples = cv_compare,
   metrics = mset_reg
 )
 
@@ -187,7 +213,7 @@ cv_results |>
 
 ### Contrast ----------------
 
-cv_compare_lin2.knn <- cv_results |>
+cv_compareare_lin2.knn <- cv_results |>
   pivot_wider(names_from = model, values_from = .estimate) |>
   group_by(.metric) |>
   mutate(
@@ -203,7 +229,7 @@ cv_compare_lin2.knn <- cv_results |>
     ub = mean_diff + 1.96 * se_diff
   )
 
-cv_compare_lin2.knn |>
+cv_compareare_lin2.knn |>
   # Format results:
   mutate(across(everything(), format)) |>
   glue::glue_data(
@@ -214,9 +240,14 @@ cv_compare_lin2.knn |>
 
 
 
+
 # Investigating prediction errors ----------------------------------------------------------
 # It can often be interesting to see not only which model is better, but also
 # where different models fail.
+
+# Let's train the selected model(s?) on tune+compare datasets
+Auto.train <- Auto[sort(idx[k_start[1]:k_end[2]]),]
+nrow(Auto.train)
 
 # Note we're using the train data
 linreg2_fit <- fit(linreg1_wf, data = Auto.train)
@@ -248,8 +279,12 @@ linreg2_predictions |>
 
 ggplot(mapping = aes(mpg - .pred)) +
   geom_vline(xintercept = 0) +
-  geom_density(aes(color = "Linear Reg\n(simple)"), data = linreg2_predictions) +
-  geom_density(aes(color = "KNN"), data = knn_predictions) +
+  geom_density(aes(fill = "Linear Reg\n(simple)"), 
+               color = NA, alpha = 0.6,
+               data = linreg2_predictions) +
+  geom_density(aes(fill = "KNN"), 
+               color = NA, alpha = 0.6,
+               data = knn_predictions) +
   labs(x = expression(mpg-hat(mpg)))
 # It seems that the simple linear model gives more negative errors (tends to
 # overestimate mpg).
@@ -257,3 +292,5 @@ ggplot(mapping = aes(mpg - .pred)) +
 
 # For classification problems, we can also compare errors with
 ?mcnemar.test()
+
+

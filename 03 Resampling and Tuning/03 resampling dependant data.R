@@ -37,6 +37,12 @@ hr.testX <- testing(splits)
 # training set:
 any(hr.testX$country %in% hr.trainX$country)
 
+hotel_rates |> 
+  mutate(Row = 1:n()) |> 
+  left_join(tidy(splits), by = "Row") |> 
+  ggplot(aes(country, fill = Data)) +
+  geom_bar(position = position_fill()) +
+  scale_fill_viridis_d()
 
 
 
@@ -51,6 +57,12 @@ hr.test <- testing(splits)
 # Non of the countries in the test set appear in the training set!
 any(hr.test$country %in% hr.train$country)
 
+hotel_rates |> 
+  mutate(Row = 1:n()) |> 
+  left_join(tidy(splits), by = "Row") |> 
+  ggplot(aes(country, fill = Data)) +
+  geom_bar(position = position_fill()) +
+  scale_fill_viridis_d()
 
 
 

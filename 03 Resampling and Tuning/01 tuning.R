@@ -5,9 +5,6 @@ library(tidymodels)
 
 # The data and problem ----------------------------------------------------
 
-# Previously, we've used {tidymodels} for a regression problem. Today we are looking
-# at classification.
-
 # Smarket dataset contains daily percentage returns for the S&P 500 stock index
 # between 2001 and 2005 (1,250 days).
 data(Smarket, package = "ISLR")
@@ -122,7 +119,7 @@ help.search("^tune_", package = c("tune", "finetune")) # See more options here
 knn_grid <- expand_grid(neighbors = c(5, 10, 50, 200))
 # Or
 knn_grid <- grid_regular(
-  neighbors(range = c(1, 200)), 
+  neighbors(range = c(5, 200)), 
   levels = 4
 )
 
@@ -160,6 +157,7 @@ best_knn
 
 # Or use the one-SE rule
 select_by_one_std_err(knn_tuned, desc(neighbors), metric = "roc_auc")
+select_by_one_std_err(knn_tuned, desc(neighbors), metric = "specificity")
 
 # Finalize workflow
 knn_final_wf <- finalize_workflow(knn_wf, best_knn)
