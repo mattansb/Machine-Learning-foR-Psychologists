@@ -165,23 +165,31 @@ plot(pdp_hits, geom = "points", variables = "Hits")
 # fairly easy to understand!
 
 
-pdp_league <- model_profile(knn_xplnr, variables = "League", type = "partial")
+pdp_league <- model_profile(knn_xplnr, variables = "League")
 plot(pdp_league) # average
 plot(pdp_league, geom = "points", variables = "League")
 
 
-
+# These plots can also show interactions:
 pdp_walks.division <- model_profile(knn_xplnr, variables = "Walks",
-                                    groups = "Division")
+                                    groups = "Hits")
 plot(pdp_walks.division)
 
 
+# For continuous moderators in a PDP we need the {marginaleffects} package:
+marginaleffects::plot_predictions(
+  knn_fit, 
+  by = c("Walks", "Years"),
+  newdata = marginaleffects::datagrid(
+    Walks = unique,
+    Years = \(v) as.integer(mean(v) + c(-1, 0, 1) * sd(v)),
+    
+    grid_type = "counterfactual",
+    newdata = Hitters.train
+  )
+)
 
-# There are two main problem of pd plots:
-# - If there are highly correlated predictors, "holding" one of them fixed will 
-#   give misleading plots.
-# - These plots do not account for possible interactions - they only give the
-#   marginal predictions.
+
 
 
 
@@ -275,5 +283,20 @@ model_profile(rf_xplnr, variables = c("bill_length_mm", "body_mass_g")) |>
 ggplot(penguins.train, aes(bill_length_mm, body_mass_g, color = species)) + 
   geom_point()
 
+
+
+
+marginaleffects::plot_predictions(
+  rf_fit, type = "prob",
+  by = c("body_mass_g", "group", "bill_length_mm"),
+  newdata = marginaleffects::datagrid(
+    body_mass_g = unique,
+    bill_length_mm = \(v) range(v, na.rm = TRUE),
+    
+    grid_type = "counterfactual",
+    newdata = penguins.train
+  )
+) + 
+  coord_cartesian(ylim = c(0, 1))
 
 
