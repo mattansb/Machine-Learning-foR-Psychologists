@@ -77,14 +77,20 @@ ridge_tuned <- tune_grid(
 
 # Let's choose a range
 # for lambda values.
-autoplot(ridge_tuned)
+autoplot(ridge_tuned) + 
+  scale_x_continuous(transform = scales::transform_log(),
+                     breaks = scales::breaks_log(n = 10),
+                     labels = scales::label_number(big.mark = ",")) + 
+  theme(axis.text.x = element_text(angle = 20))
 
 (best_ridge <- select_best(ridge_tuned, metric = "rmse"))
 
 
 ## The final model ------------------------------------------------------
 
-ridge_fit <- fit(finalize_workflow(ridge_wf, best_ridge),  data = Hitters.train)
+ridge_fit <- ridge_wf |> 
+  finalize_workflow(parameters = best_ridge) |> 
+  fit(data = Hitters.train)
 
 
 # We can extract the model's coefficients according to lambda:
@@ -116,16 +122,15 @@ plot_glmnet_coef <- function(mod, s = 0, show_intercept = FALSE) {
     ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 30)) + 
     ggplot2::coord_cartesian(ylim = range(b[,-1])) + 
     ggplot2::labs(y = "Coef", x = NULL) + 
-    ggplot2::ggtitle(bquote(labda==.(s)))
+    ggplot2::ggtitle(bquote(lambda==.(s)))
 }
 
-plot_glmnet_coef(ridge_eng)
-
-# the different models produced by different lambdas! and the parameters gets
-# smaller as lambda rises:
+# Parameters get smaller as lambda rises:
 plot_glmnet_coef(ridge_eng)
 plot_glmnet_coef(ridge_eng, s = 1000)
 plot_glmnet_coef(ridge_eng, s = 10000)
+
+plot_glmnet_coef(ridge_eng, s = best_ridge$penalty) # some coefs are exactly 0!
 
 # We can also plot the coefficients with the sign of the coefficients using the
 # {vip} package:
@@ -188,7 +193,11 @@ lasso_tuned <- tune_grid(
 
 # Let's choose a range
 # for lambda values.
-autoplot(lasso_tuned)
+autoplot(lasso_tuned) + 
+  scale_x_continuous(transform = scales::transform_log(),
+                     breaks = scales::breaks_log(n = 10),
+                     labels = scales::label_number(big.mark = ",")) + 
+  theme(axis.text.x = element_text(angle = 20))
 
 (best_lasso <- select_best(lasso_tuned, metric = "rmse"))
 
@@ -196,13 +205,15 @@ autoplot(lasso_tuned)
 
 ## The final model ------------------------------------------------------
 
-lasso_fit <- fit(finalize_workflow(lasso_wf, best_lasso), 
-                 data = Hitters.train)
+lasso_fit <- lasso_wf |> 
+  finalize_workflow(parameters = best_lasso) |> 
+  fit(data = Hitters.train)
 
 
 # We can see that depending on the choice of tuning parameter, more coefficients
 # will be EXACTLY equal to zero:
 lasso_eng <- extract_fit_engine(lasso_fit)
+
 plot_glmnet_coef(lasso_eng)
 plot_glmnet_coef(lasso_eng, s = 10)
 plot_glmnet_coef(lasso_eng, s = 100)
@@ -252,7 +263,11 @@ enet_tuned <- tune_grid(
 
 # Let's choose a range
 # for lambda values.
-autoplot(enet_tuned)
+autoplot(enet_tuned) + 
+  scale_x_continuous(transform = scales::transform_log(),
+                     breaks = scales::breaks_log(n = 10),
+                     labels = scales::label_number(big.mark = ",")) + 
+  theme(axis.text.x = element_text(angle = 20))
 
 (best_enet <- select_best(enet_tuned, metric = "rmse"))
 
@@ -260,8 +275,9 @@ autoplot(enet_tuned)
 ## The final model --------------------------------------------
 
 
-enet_fit <- fit(finalize_workflow(enet_wf, best_enet), 
-                data = Hitters.train)
+enet_fit <- enet_wf |> 
+  finalize_workflow(parameters = best_enet) |> 
+  fit(data = Hitters.train)
 
 
 
@@ -302,7 +318,7 @@ head(College)
 # Notes for the last 3 methods, you should use the same lambda values - make
 # sure they are broad enough to capture a desired RMSE minima. You can do this
 # by plotting RMSE vs lambda and see if there is a "valley". 
-# Use 5-folds CV to ture alpha/almbda.
+# Use 5-folds CV to tune alpha/lambda.
 
 # 3) Compare:
 # - Did the method diverged from each other in their performance on test data

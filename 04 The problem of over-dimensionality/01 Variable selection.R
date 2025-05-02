@@ -66,12 +66,18 @@ names(reg.summary)
 reg.summary_df <- data.frame(nv = 1:19, reg.summary[2:6]) |> 
   pivot_longer(cols = -nv, 
                names_to = "Index", 
-               values_to = "value")
+               values_to = "value") |> 
+  group_by(Index) |> 
+  mutate(
+    is_best = 
+      value == ifelse(Index %in% c("rsq", "adjr2"), max(value), min(value))
+  )
 
 ggplot(reg.summary_df, aes(nv, value)) +
   facet_wrap(~Index, scales = "free", ncol = 3) +
   geom_line() +
-  geom_point() +
+  geom_point(aes(shape = is_best), size = 3, fill = "red") +
+  scale_shape_manual("Best?", values = c(20, 23)) + 
   scale_x_continuous(breaks = 1:19, minor_breaks = NULL)
 # For instance, we see that R2 increases from 32% for 1-variable model, to
 # almost 55%, for 19-variables model. As expected, the R2 increases

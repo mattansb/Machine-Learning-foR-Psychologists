@@ -48,7 +48,9 @@ rec
 # - threshold: what proportion of variance should be saved?
 # * Note that the predictors should be all be re-scaled _prior_ to the PCA step.
 pcr_rec <- rec |> 
-  step_pca(all_numeric_predictors(), num_comp = tune())
+  step_pca(all_numeric_predictors(), num_comp = tune(), 
+           
+           id = "pp-PCA") # name this whatever you want
 # We will tune the PCA step!
 
 
@@ -82,12 +84,12 @@ autoplot(pcr_tuned)
 
 (best_pcr <- select_best(pcr_tuned, metric = "rmse"))
 
+
 ## The final model --------------------
 
-pcr_fit <- fit(
-  finalize_workflow(linreg_wf, best_pcr),
-  data = Hitters.train
-)
+pcr_fit <- linreg_wf |> 
+  finalize_workflow(parameters = best_pcr) |> 
+  fit(data = Hitters.train)
 
 
 ## use pls::pcr -------------------------------
@@ -147,10 +149,9 @@ autoplot(pls_tuned)
 
 ## The final model --------------------
 
-pls_fit <- fit(
-  finalize_workflow(pls_wf, best_pls),
-  data = Hitters.train
-)
+pls_fit <- pls_wf |> 
+  finalize_workflow(parameters = best_pls) |> 
+  fit(data = Hitters.train)
 
 
 ## use pls::plsr -------------------------------
