@@ -206,10 +206,10 @@ Smarket.test_predictions |>
 #     https://yardstick.tidymodels.org/reference/index.html
 #   C. Use the following resampling methods:
 #     1. With 50 bootstrap samples
-(bootstrap_samps <- bootstraps(Smarket.train, times = 50)) 
+(bootstrap_samps <- bootstraps(Smarket, times = 50)) 
 # (Note that the validation set is not always of the same size!)
 #     2. 10 repeated 5-fold CV:
-(cv_repeated_folds <- vfold_cv(Smarket.train, v = 5, repeats = 10))
+(cv_repeated_folds <- vfold_cv(Smarket, v = 5, repeats = 10))
 #   D. Select K using best / one-SE rule.
 #     How did the resampling methods differ in their results?
 
