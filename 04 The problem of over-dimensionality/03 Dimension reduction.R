@@ -212,8 +212,8 @@ knn_tuned <- tune_grid(
 autoplot(knn_tuned)
 
 
-(best_knn <- select_by_one_std_err(knn_tuned, num_comp, desc(neighbors), 
-                                   metric = "rmse"))
+(onese_knn <- select_by_one_std_err(knn_tuned, num_comp, desc(neighbors), 
+                                    metric = "rmse"))
 # Note this is a different value than
 rbind(best_pcr, best_pls)
 
@@ -221,7 +221,7 @@ rbind(best_pcr, best_pls)
 ## The final model --------------------
 
 knn_fit <- fit(
-  finalize_workflow(knn_wf, best_knn),
+  finalize_workflow(knn_wf, onese_knn),
   data = Hitters.train
 )
 

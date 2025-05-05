@@ -134,10 +134,11 @@ plot_glmnet_coef(ridge_eng, s = best_ridge$penalty) # some coefs are exactly 0!
 
 # We can also plot the coefficients with the sign of the coefficients using the
 # {vip} package:
-vip::vip(ridge_eng, method = "model", lambda = 10000, 
+vip::vip(ridge_eng, method = "model", lambda = best_ridge$penalty, 
          num_features = 100,
          mapping = aes(fill = Sign)) + 
   theme(legend.position = "bottom")
+
 
 
 # We can see that the Ridge penalty shrink all coefficients, but doesn't set any
@@ -253,6 +254,8 @@ enet_grid <- grid_regular(
   levels = c(15, 11)
 )
 
+head(enet_grid)
+
 # Tune the model
 enet_tuned <- tune_grid(
   enet_wf,
@@ -270,7 +273,7 @@ autoplot(enet_tuned) +
   theme(axis.text.x = element_text(angle = 20))
 
 (best_enet <- select_best(enet_tuned, metric = "rmse"))
-
+# What about the one SE rule?
 
 ## The final model --------------------------------------------
 
@@ -279,7 +282,8 @@ enet_fit <- enet_wf |>
   finalize_workflow(parameters = best_enet) |> 
   fit(data = Hitters.train)
 
-
+extract_fit_engine(enet_fit) |> 
+  plot_glmnet_coef(s = best_enet$penalty)
 
 
 # Compare performance ---------------------------------------------------------
