@@ -48,10 +48,8 @@ rec
 # - threshold: what proportion of variance should be saved?
 # * Note that the predictors should be all be re-scaled _prior_ to the PCA step.
 pcr_rec <- rec |> 
-  step_pca(all_numeric_predictors(), num_comp = tune(), 
-           
-           id = "pp-PCA") # name this whatever you want
-# We will tune the PCA step!
+  # We will tune the PCA step!
+  step_pca(all_numeric_predictors(), num_comp = tune())
 
 
 
@@ -91,19 +89,46 @@ pcr_fit <- linreg_wf |>
   finalize_workflow(parameters = best_pcr) |> 
   fit(data = Hitters.train)
 
+# These are the coefficients of the PCs
+extract_fit_engine(pcr_fit) |> coef()
 
-## use pls::pcr -------------------------------
-# By doing this we can get the coefficient on the data.
+# With a little help we can obtain the coefficients of the original features:
+extract_pcr_coef <- function(x, which = c("coef", "vcov")) {
+  stopifnot(
+    "x is not a workflow" = 
+      inherits(x, "workflow"),
+    "the model spec is not linear_reg" = 
+      inherits(x_spec <- extract_spec_parsnip(x), c("linear_reg", "logistic_reg")),
+    "last step in recipe is not step_pca" = 
+      inherits(x_step_pca <- tail(extract_recipe(x)$steps, 1)[[1]], "step_pca")
+  )
+  
+  which <- match.arg(which)
+  
+  x_prcomp <- x_step_pca$res
+  rotation <- x_prcomp$rotation
+  # we only want the first k of these:
+  loadings_pcr <- rotation[,1:x_step_pca$num_comp]
+  
+  # get the coefficients and standard errors on the PC scales:
+  pcr_eng <- extract_fit_engine(pcr_fit)
+  b <- coef(pcr_eng)
+  V <- vcov(pcr_eng)
+  
+  if (which == "coef") {
+    # These are the coefficients on the original scale
+    drop(b[-1] %*% t(loadings_pcr))  
+  } else {
+    # These are the standard errors
+    loadings_pcr %*% V[-1, -1] %*% t(loadings_pcr) 
+  }
+}
 
-# We need to manually pre-process the training set:
-rec.prepped <- prep(rec, training = Hitters.train) # original recipe (no PCA)
-Hitters.train_baked <- bake(rec.prepped, new_data = Hitters.train)
+extract_pcr_coef(pcr_fit)
+# Note the features were all scaled, so these values are partially standardized
+# coefficients (they're not scaled with respect to y, only to X).
 
-pcr_fit2 <- pls::pcr(Salary ~ .,
-                     ncomp = best_pcr$num_comp,
-                     data = Hitters.train_baked)
 
-coef(pcr_fit2)
 
 
 
@@ -141,8 +166,8 @@ pls_tuned <- tune_grid(
   # Default metrics: rsq, rmse
 )
 
-autoplot(pls_tuned)
 
+autoplot(pls_tuned)
 
 (best_pls <- select_best(pls_tuned, metric = "rmse"))
 
@@ -153,31 +178,37 @@ pls_fit <- pls_wf |>
   finalize_workflow(parameters = best_pls) |> 
   fit(data = Hitters.train)
 
+# Here too we need a little help
+extract_pls_coef <- function(x) {
+  stopifnot(
+    "x is not a workflow" = 
+      inherits(x, "workflow"),
+    "the model spec is not linear_reg" = 
+      inherits(x_eng <- extract_fit_engine(x), "mixo_spls")
+  )
+  
+  sd_y <- attr(x_eng$Y, "scaled:scale")
+  
+  pr <- predict(x_eng, newdata = x_eng$X[1,,drop = FALSE])
+  
+  B.hat <- pr$B.hat
+  B.hat[,,dim(B.hat)[3]] * sd_y  
+}
 
-## use pls::plsr -------------------------------
-# By doing this we can get the coefficient on the data.
-
-Hitters.train_baked <- bake(extract_recipe(pls_fit), 
-                            new_data = Hitters.train)
-
-pls_fit2 <- pls::plsr(Salary ~ ., 
-                      ncomp = best_pls$num_comp,
-                      data = Hitters.train_baked)
-
-coef(pls_fit2)
+extract_pls_coef(pls_fit)
 
 
 ## Compare ---------------------------
 
 
-cbind(PCR = coef(pcr_fit2),
-      PLS = coef(pls_fit2))
-
+cbind(PCR = extract_pcr_coef(pcr_fit),
+      PLS = extract_pls_coef(pls_fit))
 
 
 augment(pcr_fit, new_data = Hitters.test) |> rsq(Salary, .pred)
 augment(pls_fit, new_data = Hitters.test) |> rsq(Salary, .pred)
 # In this case pcr out performed pls.
+
 
 
 
