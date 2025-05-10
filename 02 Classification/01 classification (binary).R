@@ -115,6 +115,24 @@ Smarket.test_predictions |>
   roc_curve(truth = Direction, .pred_Up, event_level = "second") |> 
   autoplot()
 
+# Or at the Specificity-Sensitivity trade-off:
+Smarket.test_predictions |> 
+  roc_curve(truth = Direction, .pred_Up, event_level = "second") |> 
+  ggplot(aes(.threshold)) + 
+  geom_line(aes(y = specificity, color = "Specificity"), linewidth = 1) + 
+  geom_line(aes(y = sensitivity, color = "Sensitivity"), linewidth = 1) + 
+  theme_classic() + 
+  coord_cartesian(
+    xlim = c(0, 1),
+    ylim = c(0, 1)
+  ) + 
+  labs(
+    color = NULL,
+    y = "Probability",
+    x = "Threshold"
+  )
+# We hope to see these are not just be mirror images of each other...
+
 # And indeed...
 Smarket.test_predictions |> 
   roc_auc(truth = Direction, .pred_Up, event_level = "second")
