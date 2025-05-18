@@ -34,7 +34,7 @@ ggplot(OJ.train, aes(PriceDiff, LoyalCH, color = Purchase)) +
 rec <- recipe(Purchase ~ PriceDiff + LoyalCH, 
               data = OJ.train) |> 
   step_normalize(all_numeric_predictors())
-# The decision boundary maximizes the distance to the nearest data points from
+# The decision boundary maximizes the DISTANCE to the nearest data points from
 # different classes. Hence, the distance between data points affects the
 # decision boundary SVM chooses. In other words, training an SVM over the scaled
 # and non-scaled data leads to the generation of different models.
@@ -91,8 +91,9 @@ collect_metrics(svmlin_tune) |>
 
 ## The final model ------------------------------------------------------
 
-svmlin_fit <- fit(finalize_workflow(svmlin_wf, svmlin_const), 
-                  data = OJ.train)
+svmlin_fit <- svmlin_wf |> 
+  finalize_workflow(svmlin_const) |> 
+  fit(data = OJ.train)
 
 
 
@@ -108,7 +109,7 @@ X_train <- bake(extract_recipe(svmlin_fit), new_data = OJ.train,
                 all_predictors())
 
 plot(svmlin_eng, data = X_train)
-# Full circles\triangles = support vectors (624 obs.)
+# Full circles\triangles = support vectors (374 obs.)
 # Hollow circles\triangles = the remaining observations 
 
 
@@ -135,11 +136,17 @@ svmlin_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
 
 ## Polynomial ------------------------------------
 
-svmpoly_spec <- svm_poly("classification", engine = "kernlab", 
-                         cost = tune(), degree = 3, scale_factor = 1)
-# Here we also add the degree argument to specify a degree for the polynomial
-# kernel (e.g., for quadratic: degree = 2). Assuming the predictors have been
-# standardized (which they should be), "scale_factor" can be set to 1.
+svmpoly_spec <- svm_poly(
+  mode = "classification", engine = "kernlab", 
+  
+  cost = tune(), 
+  degree = 3, 
+  scale_factor = 1
+)
+# Here we also add two new arguments (that can be tuned):
+# - degree: specifies the polynomial degree (e.g., quadratic: degree = 2).
+# - scale_factor: can be used to re-scale the data, but it is better to 
+#   pre-standardized the data and set this to 1.
 
 translate(svmpoly_spec)
 
@@ -155,8 +162,9 @@ svmpoly_tune <- tune_grid(svmpoly_wf,
 
 
 
-svmpoly_fit <- fit(finalize_workflow(svmpoly_wf, svmpoly_params), 
-                   data = OJ.train)
+svmpoly_fit <- svmpoly_wf |> 
+  finalize_workflow(svmpoly_params) |> 
+  fit(data = OJ.train)
 
 
 
@@ -345,7 +353,7 @@ ggplot(penguins.test, aes(bill_length_mm, body_mass_g, color = species)) +
 # 1. Take one of the datasets used here (OJ / penguins) and predict the outcome
 #   with 4 variables of your choice.
 # 2. Use two method (linear, poly, radial) and compare their performance using
-#   CV model comparison.
+#   CV model comparison (see "03 Resampling and Tuning/02 model selection.R").
 
 
 
