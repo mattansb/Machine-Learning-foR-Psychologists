@@ -42,10 +42,11 @@ rec <- recipe(medv ~ .,
 # average across all the predictions (for regression) or take the majority
 # vote\calculated probability (for classification)
 
+library(baguette)
 
 bag_spec <- bag_tree(mode = "regression", engine = "rpart") |>
   # There hyperparameters here similar to those of decision trees, that control
-  # the complexity of the tree, but we keep those at their maximal defaults!
+  # the complexity of the tree, but we can keep those at their maximal defaults!
   #
   # But we do have a special argument - the number of trees. Default is 11 -
   # let's set it higher (only cost is computational!)
@@ -122,17 +123,18 @@ rf_wf <- workflow(preprocessor = rec, spec = rf_spec)
 
 ## Tune --------------------------------------
 
-# A good default for mtry:
+# A reasonable default for mtry:
 # - p/3 variables for regression trees,
 # - sqrt(p) for classification trees.
-# We can also use CV to choose among different mtry. We have 13 predictors, so
-# lets try: mtry=4, (closest p/3) and also mtry=2,7,10 for fun, as well as 13
-# (i.e. bagging)
+# Source:
+?randomForest::randomForest
+# But we should tune mtry! Let's try the following values (note that we only
+# have 13 predictors, so mtry=13 is equivalent to bagging).
 
 
 # Building the grid ourselves
 rf_grid <- expand_grid(
-  mtry = c(2, 4, 7, 10, 13)
+  mtry = c(1, 2, 4, 7, 10, 13)
 )
 
 rf_tuner <- tune_grid(rf_wf,
@@ -142,20 +144,18 @@ rf_tuner <- tune_grid(rf_wf,
 
 autoplot(rf_tuner)
 
-collect_metrics(rf_tuner) |> filter(.metric == "mae")
-# The best is mtry=7, but is seems like 4 is less than 1 std. error away...
-
-rf_wf <- rf_wf |>
-  finalize_workflow(parameters = select_by_one_std_err(rf_tuner, mtry, metric = "mae"))
-rf_wf # mtry = 4
-
-
+select_best(rf_tuner, metric = "mae")
+select_by_one_std_err(rf_tuner, mtry, metric = "mae")
 
 # Fit the final model:
-rf_fit <- fit(rf_wf, data = Boston.train)
+rf_fit <- rf_wf |>
+  finalize_workflow(parameters = select_by_one_std_err(rf_tuner, mtry, metric = "mae")) |> 
+  fit(data = Boston.train)
+rf_fit # mtry = 4
+
 
 # We'll use this later for comparisons
-rf_resamps <- fit_resamples(rf_wf,
+rf_resamps <- fit_resamples(rf_fit,
                             resamples = Bostin.comp_splits,
                             metrics = mset_reg)
 
@@ -170,7 +170,6 @@ plot(rf_eng) # See how the error decreased with re-sampling (# of trees)
 # Again, we can plot a VIP for the importance of variables *across* all trees.
 # This time we will again use the {vip} package:
 vip::vip(rf_eng, method = "model", num_features = 13)
-# lstat was "given a chance" - and it outshone rm!
 
 
 
@@ -207,7 +206,7 @@ boost_spec <- boost_tree(
   # lower learn_rate should come with higher trees
 
   ## Randomness
-  mtry = 13, # Just like mtry in rf
+  mtry = 4, # Just like mtry in rf
   sample_size = 1 # [0, 1] proportion of random data to use in each tree
 )
 
@@ -245,9 +244,15 @@ Boston.test_bag.pred <- augment(bag_fit, Boston.test)
 Boston.test_rf.pred <- augment(rf_fit, Boston.test)
 Boston.test_boost.pred <- augment(boost_fit, Boston.test)
 
-Boston.test_bag.pred |> mset_reg(medv, .pred)
-Boston.test_rf.pred |> mset_reg(medv, .pred)
-Boston.test_boost.pred |> mset_reg(medv, .pred)
+bind_rows(
+  "bagging" = Boston.test_bag.pred,
+  "rf" = Boston.test_rf.pred,
+  "boosting" = Boston.test_boost.pred, 
+  
+  .id = "Model"
+) |> 
+  group_by(Model) |> 
+  mset_reg(medv, .pred)
 
 
 ## Compare with resampling --------------------------------
@@ -271,20 +276,22 @@ ensemble_metrics |>
                             "mae" ~ Model[which.min(.estimate)],
                             "rsq" ~ Model[which.max(.estimate)])
   ) |>
-  ggplot(aes(Model, .estimate)) +
+  ggplot(aes(Model, .estimate, color = Model)) +
   facet_wrap(facets = vars(.metric), scales = "free") +
-  geom_boxplot(width = 0.5) +
+  stat_summary(size = 1, 
+               position = position_nudge(0.1), 
+               show.legend = FALSE) + 
   geom_point() +
   geom_line(aes(group = id, color = best_model))
-# bagging and rf are better than boosting in this case.
+# bagging and rf look to be better than boosting in this case.
 # But can we say which is better?
 
 
 ensemble_metrics |>
-  filter(Model != "boosting", .metric == "mae") |>
+  filter(Model != "rf", .metric == "mae") |>
   pivot_wider(names_from = "Model", values_from = ".estimate") |>
   mutate(
-    diff = bagging - rf
+    diff = bagging - boosting
   ) |>
   summarise(
     mean_diff = mean(diff),

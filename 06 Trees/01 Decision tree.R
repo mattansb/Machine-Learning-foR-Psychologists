@@ -69,12 +69,13 @@ OJ.tree_spec <- decision_tree(
 translate(OJ.tree_spec)
 
 OJ.tree_wf <- workflow(preprocessor = rec, spec = OJ.tree_spec)
+
 OJ.tree_fit <- fit(OJ.tree_wf, data = OJ.train)
 
 
 # One of the most attractive properties of trees is that they can be graphically
 # displayed:
-extract_fit_engine(OJ.tree_fit) |> rpart.plot()
+extract_fit_engine(OJ.tree_fit) |> rpart.plot(uniform = TRUE)
 # The color of the nodes indicates the class prediction at that node, and it's
 # saturation indicates how "pure" it is.
 # It is quite hard to understand this tree - we need to prune it!
@@ -118,7 +119,7 @@ pruned.OJ.tree_tuner <- tune_grid(pruned.OJ.tree_wf,
 autoplot(pruned.OJ.tree_tuner) +
   scale_x_continuous(
     transform = scales::transform_log10(),
-    breaks = scales::breaks_log(base = 10),
+    breaks = scales::breaks_log(base = 10, n = 10),
     labels = scales::label_number()
   )
 # See the drop in performance when cp gets too big.
@@ -133,8 +134,9 @@ autoplot(pruned.OJ.tree_tuner) +
 
 
 # Fit the final model:
-pruned.OJ.tree_wf <- finalize_workflow(pruned.OJ.tree_wf, pruned.OJ.tree_params)
-pruned.OJ.tree_fit <- fit(pruned.OJ.tree_wf, data = OJ.train)
+pruned.OJ.tree_fit <- pruned.OJ.tree_wf |> 
+  finalize_workflow(parameters = pruned.OJ.tree_params) |> 
+  fit(data = OJ.train)
 
 
 
@@ -222,7 +224,7 @@ bind_rows(
 OJ.tree_resamps <- fit_resamples(OJ.tree_wf,
                                  resamples = OJ.comp_splits,
                                  metrics = OJ_metrics)
-pruned.OJ.tree_resamps <- fit_resamples(pruned.OJ.tree_wf,
+pruned.OJ.tree_resamps <- fit_resamples(pruned.OJ.tree_fit,
                                         resamples = OJ.comp_splits,
                                         metrics = OJ_metrics)
 
@@ -235,16 +237,17 @@ OJ_resamps_metrics <- bind_rows(
 ) |>
   group_by(id, .metric) |>
   mutate(
-    pruned_better = .estimate[Model=="pruned"] > .estimate[Model=="tree"]
+    best_is = Model[which.max(.estimate)]
   ) |>
   ungroup()
 
 
-ggplot(OJ_resamps_metrics, aes(Model, .estimate)) +
+ggplot(OJ_resamps_metrics, aes(Model, .estimate, color = Model)) +
   facet_wrap(~.metric, scales = "free") +
-  geom_boxplot(width = 0.5) +
-  geom_line(aes(group = id, color = pruned_better)) +
-  geom_point()
+  geom_line(aes(group = id, color = best_is)) +
+  geom_point() + 
+  stat_summary(aes(fill = Model), geom = "point", 
+               size = 3, shape = 21, color = "black")
 # We can see that the pruned tree was better across most folds/metrics!
 
 
@@ -260,14 +263,10 @@ data(Boston, package = "MASS")
 glimpse(Boston)
 
 
-# Split the data:
-set.seed(1)
-splits <- initial_split(Boston, prop = 0.8)
-Boston.train <- training(splits)
-Boston.test <- testing(splits)
+# We won't be splitting the data into test/train for this example.
 
-# Split again for CV
-Boston.folds <- vfold_cv(Boston.train, v = 10) # Make 10-folds for CV
+# Split for CV (tune)
+Boston.folds <- vfold_cv(Boston, v = 10) # Make 10-folds for CV
 
 
 
@@ -280,8 +279,8 @@ Boston.folds <- vfold_cv(Boston.train, v = 10) # Make 10-folds for CV
 # age = average age of houses;
 # lstat = percent of households with low socioeconomic status.
 
-rec <- recipe(medv ~ rm + age + lstat,
-              data = Boston.train)
+rec <- recipe(medv ~ .,
+              data = Boston)
 
 
 
@@ -324,7 +323,7 @@ autoplot(Boston.tree_tuned) +
 # Fit the final model:
 Boston.tree_fit <- Boston.tree_wf |>
   finalize_workflow(parameters = select_best(Boston.tree_tuned, metric = "rmse")) |>
-  fit(data = Boston.train)
+  fit(data = Boston)
 
 
 
@@ -361,17 +360,5 @@ rpart.plot(Boston.tree_eng,
 # plot (VIP):
 vip::vip(Boston.tree_eng, method = "model")
 # The most important splits occur along the "rm" predictor.
-
-
-## Test set performance ----------------------------------------------------
-
-Boston.test_predictions <- augment(Boston.tree_fit, new_data = Boston.test)
-
-
-Boston.test_predictions |> rsq(medv, .pred)
-
-ggplot(Boston.test_predictions, aes(.pred, medv)) +
-  geom_abline() +
-  geom_point() +
-  coord_obs_pred()
+# Note that not all 13 predictors appear.
 
