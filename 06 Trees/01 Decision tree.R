@@ -33,7 +33,7 @@ OJ.comp_splits <- vfold_cv(OJ.test, v = 10) # Make 10-folds for CV
 
 # We will use these metric:
 # (For some reason, recall of MM is more important than sensitivity/precision.)
-f2_meas <- metric_tweak("f2_meas", f_meas, beta = 2, event_level = "second")
+f2_meas <- metric_tweak("f2_meas", f_meas, beta = 2)
 OJ_metrics <- metric_set(bal_accuracy, f2_meas, roc_auc)
 
 
@@ -57,7 +57,7 @@ OJ.tree_spec <- decision_tree(
   # Control tree depth
   cost_complexity = 0,
   tree_depth = 30, # Max values is 30
-  min_n = 5 # Default is 2
+  min_n = 1 # Default is 2
 )
 # All the hyperparameters control the complexity and depth of the tree:
 # - cost_complexity (cp) is the complexity parameter. If set to 0, no pruning is
@@ -90,7 +90,7 @@ pruned.OJ.tree_spec <- decision_tree(
   mode = "classification", engine = "rpart",
   cost_complexity = tune(),
   tree_depth = 30,
-  min_n = 5
+  min_n = 1
 )
 
 pruned.OJ.tree_wf <- workflow(preprocessor = rec, spec = pruned.OJ.tree_spec)

@@ -195,9 +195,9 @@ vip::vip(rf_eng, method = "model", num_features = 13)
 boost_spec <- boost_tree(
   mode = "regression", engine = "xgboost",
 
-  ## Complexity
+  ## Complexity (of each tree)
   tree_depth = 1, # [1, Inf] limits the depth of each tree
-  min_n = 5, # [1, Inf] don't split if you get less obs in a node
+  min_n = 1, # [1, Inf] don't split if you get less obs in a node
   loss_reduction = 0, # [0, Inf] node splitting regularization
 
   ## Gradient
@@ -288,10 +288,10 @@ ensemble_metrics |>
 
 
 ensemble_metrics |>
-  filter(Model != "rf", .metric == "mae") |>
+  filter(Model != "boosting", .metric == "mae") |>
   pivot_wider(names_from = "Model", values_from = ".estimate") |>
   mutate(
-    diff = bagging - boosting
+    diff = rf - bagging
   ) |>
   summarise(
     mean_diff = mean(diff),
