@@ -56,8 +56,8 @@ OJ.tree_spec <- decision_tree(
   mode = "classification", engine = "rpart",
   # Control tree depth
   cost_complexity = 0,
-  tree_depth = 30, # Max values is 30
-  min_n = 1 # Default is 2
+  tree_depth = 30, # Max values is 30 (default)
+  min_n = 5 # Default is 2
 )
 # All the hyperparameters control the complexity and depth of the tree:
 # - cost_complexity (cp) is the complexity parameter. If set to 0, no pruning is
@@ -90,7 +90,7 @@ pruned.OJ.tree_spec <- decision_tree(
   mode = "classification", engine = "rpart",
   cost_complexity = tune(),
   tree_depth = 30,
-  min_n = 1
+  min_n = 5
 )
 
 pruned.OJ.tree_wf <- workflow(preprocessor = rec, spec = pruned.OJ.tree_spec)
@@ -294,8 +294,8 @@ rec <- recipe(medv ~ .,
 Boston.tree_spec <- decision_tree(
   mode = "regression", engine = "rpart",
   cost_complexity = tune(),
-  min_n = 5,
-  tree_depth = 30
+  tree_depth = 30,
+  min_n = 5
 )
 
 

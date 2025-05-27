@@ -44,10 +44,15 @@ rec <- recipe(medv ~ .,
 
 library(baguette)
 
-bag_spec <- bag_tree(mode = "regression", engine = "rpart") |>
+bag_spec <- bag_tree(
+  mode = "regression", engine = "rpart",
   # There hyperparameters here similar to those of decision trees, that control
-  # the complexity of the tree, but we can keep those at their maximal defaults!
-  #
+  # the complexity of the tree, but we can keep those at their default
+  # (~maximal) values!
+  cost_complexity = 0,
+  tree_depth = 30, 
+  min_n = 2
+) |>
   # But we do have a special argument - the number of trees. Default is 11 -
   # let's set it higher (only cost is computational!)
   set_args(times = 100)
@@ -80,11 +85,14 @@ bag_eng <- extract_fit_engine(bag_fit)
 # impurity that results from splits over that variable, averaged over all trees.
 # (In the case of regression trees, the node impurity is measured by the
 # training RSS, and for classification trees by the deviance.)
-bag_eng$imp$term <- factor(bag_eng$imp$term, levels = bag_eng$imp$term)
-
-ggplot(bag_eng$imp, aes(value, term)) +
+var_imp(bag_eng) |> 
+  mutate(
+    term = forcats::fct_reorder(term, value)
+  ) |>
+  ggplot(aes(value, term)) +
   geom_col() +
-  scale_y_discrete(limits = rev)
+  geom_errorbar(aes(xmin = value - std.error, xmax = value + std.error),
+                width = 0.2)
 # The results indicate that across all of the trees considered in the random
 # forest, the wealth level of the community (lstat) and the house size (rm) are
 # by far the two most important variables.
@@ -112,6 +120,7 @@ ggplot(bag_eng$imp, aes(value, term)) +
 rf_spec <- rand_forest(
   mode = "regression", engine = "randomForest",
   mtry = tune(),
+  min_n = 2,
   trees = 100
 )
 
@@ -197,7 +206,7 @@ boost_spec <- boost_tree(
 
   ## Complexity (of each tree)
   tree_depth = 1, # [1, Inf] limits the depth of each tree
-  min_n = 1, # [1, Inf] don't split if you get less obs in a node
+  min_n = 2, # [1, Inf] don't split if you get less obs in a node
   loss_reduction = 0, # [0, Inf] node splitting regularization
 
   ## Gradient
