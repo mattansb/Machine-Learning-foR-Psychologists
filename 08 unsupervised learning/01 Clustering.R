@@ -1,6 +1,7 @@
 ### Tutorial 6- Clustering  ###
 
 library(tidyverse)
+library(patchwork)
 library(recipes)
 
 library(Rtsne)
@@ -26,7 +27,7 @@ summary(USArrests)
 #
 # We should re-scale them.
 
-# We can also use recipe:
+# We can use recipe:
 rec <- recipe( ~ ., data = USArrests) |>
   step_normalize(all_numeric_predictors())
 
@@ -110,6 +111,10 @@ p_tSNE + aes(color = factor(km$cluster))
 # factoextra lib.
 
 
+# Let's save these results for later:
+dta_clust <- tibble(
+  state.name, state.abb, kmeans = factor(km$cluster[state.name])
+)
 
 
 
@@ -148,6 +153,12 @@ fviz_nbclust(
 
 
 
+## PAM ---------------------------
+
+# A similar algorithm to k-mean is PAM (Partitioning Around Medoids), which can
+# be considered a robust alternative to k-mean:
+# cluster::pam(USArrests_z, k = 4)
+
 
 
 
@@ -167,6 +178,15 @@ fviz_nbclust(
 
 USArrests_d_euc <- get_dist(USArrests_z, method = "euclidean")
 USArrests_d_cor <- get_dist(USArrests_z, method = "pearson")
+
+# We can also use a type of unsupervised random forest to get a distance matrix:
+# https://gradientdescending.com/unsupervised-random-forest-example/
+# rf <- randomForest::randomForest(x = USArrests,
+#                                  mtry = sqrt(ncol(USArrests)), ntree = 1000, 
+#                                  proximity = TRUE)
+# USArrests_d_rf <- as.dist(1 - rf$proximity)
+
+
 
 # Which should we use?
 
@@ -190,10 +210,12 @@ plot(hc.complete)
 # We can also use:
 fviz_dend(hc.complete) 
 
-fviz_dend(hc.complete, h = 1) +
-  geom_hline(yintercept = 1)
+fviz_dend(hc.complete, h = 1)
 
 fviz_dend(hc.complete, k = 4)
+
+# See also:
+# cluster::bannerplot(hc.complete)
 
 
 ## Cut the tree! -----------------------------------
@@ -212,10 +234,47 @@ plot(USArrests, col = hc_cut.k4,
 p_tSNE + aes(color = factor(hc_cut.k4))
 
 
+# Save the results:
+dta_clust$hclust_k4 <- factor(hc_cut.k4[state.name])
+
+# Note that:
+table(dta_clust$hclust_k4, dta_clust$kmeans) # Do the methods agree?
+
+
+
 # Model based clustering -----------------------------------
 # 
 # See the {mclust} package
 # https://mclust-org.github.io/mclust/
+
+
+# External Validation? -------------------------------------------------
+# Are these clusters useful?
+# So far we've seen how the clusters map *back onto* the variables that went
+# into the clustering - but these results are trivial. The question is can these
+# clusters be used to tell us something new about other variables?
+
+# Let's compare them to some data about the states:
+states_info <- read.csv("states_info.csv") |> 
+  left_join(dta_clust, by = c("state.abb", "state.name"))
+head(states_info)
+
+
+# Are the clusters related to voting Trump in 2024?
+p_trump <- 
+  ggplot(states_info, aes(trump2024, kmeans, fill = kmeans)) + 
+  geom_vline(xintercept = 0.5) + 
+  geom_violin() + 
+  scale_x_continuous("% voted for Trump", limits = c(0, 1))
+
+
+# Are the clusters related to number of casinos?
+p_casino <- 
+  ggplot(states_info, aes(n_casinos, kmeans, fill = kmeans)) + 
+  geom_violin()
+
+p_trump + p_casino + plot_layout(guides = "collect")
+
 
 
 # Exercise ----------------------------------------------------------------
