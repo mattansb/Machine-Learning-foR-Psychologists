@@ -49,9 +49,9 @@ knn_fit <- workflow(preprocessor = rec, spec = knn_spec) |>
 
 
 # We first need to setup an explainer:
-knn_xplnr <- explain_tidymodels(knn_fit, label = "KNN (K=5)",
-                                data = select(Hitters.train, -Salary),
-                                y = Hitters.train$Salary)
+knn_xplnr <- explain(knn_fit, label = "KNN (K=5)",
+                     data = select(Hitters.train, -Salary),
+                     y = Hitters.train$Salary)
 
 
 
@@ -129,7 +129,8 @@ plot(shap_bob, show_boxplots = FALSE) # show only mean SHAP values
 
 
 # permutation?
-vi_perm <- model_parts(knn_xplnr, B = 10, 
+vi_perm <- model_parts(knn_xplnr, 
+                       B = 10, # Number of permutations
                        variables = NULL) # specify to only compute for some
 plot(vi_perm, bar_width = 5)
 # - The vertical line is the baseline RMSE
@@ -171,9 +172,9 @@ plot(pdp_league, geom = "points", variables = "League")
 
 
 # These plots can also show interactions:
-pdp_walks.division <- model_profile(knn_xplnr, variables = "Walks",
-                                    groups = "Hits")
-plot(pdp_walks.division)
+pdp_walks.league <- model_profile(knn_xplnr, variables = "Walks",
+                                  groups = "League")
+plot(pdp_walks.league)
 
 
 # For continuous moderators in a PDP we need the {marginaleffects} package:
@@ -230,9 +231,9 @@ rf_fit <- workflow(preprocessor = rec, spec = rf_spec) |>
 ## Explain the model -----------------------------------------------
 
 
-rf_xplnr <- explain_tidymodels(rf_fit, label = "Random Forest",
-                               data = select(penguins.train, -species),
-                               y = penguins.train$species)
+rf_xplnr <- explain(rf_fit, label = "Random Forest",
+                    data = select(penguins.train, -species),
+                    y = penguins.train$species)
 
 
 ### Explain a single prediction ------------------------------
