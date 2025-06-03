@@ -3,8 +3,11 @@ library(tidymodels)
 # library(kknn)
 # library(randomForest)
 
+library(patchwork)
+
 library(DALEX)
 library(DALEXtra)
+library(marginaleffects)
 
 
 
@@ -50,7 +53,10 @@ knn_fit <- workflow(preprocessor = rec, spec = knn_spec) |>
 
 # We first need to setup an explainer:
 knn_xplnr <- explain(knn_fit, label = "KNN (K=5)",
+                     # Pass the data that will be used to explain
+                     # WITHOUT the outcome variable...
                      data = select(Hitters.train, -Salary),
+                     # ... which is passed separately
                      y = Hitters.train$Salary)
 
 
@@ -60,35 +66,30 @@ knn_xplnr <- explain(knn_fit, label = "KNN (K=5)",
 
 
 ### Explain a single prediction ------------------------------
-# We will be using SHAP to explain the predictions of the model. SHAP is a
-# method that tries to estimate what each predictor contributes to each
-# prediction - accounting for whatever interactions or conditional effects it
-# might have. The ideas are based on game theory - really interesting stuff.
-# Lots of math.
-#
-# SHAP thus tries to answer the Q: 
-#   "if X wasn't in the model at all, how would the predicted Y be affected?"
-#
-# Limitations:
-# https://proceedings.mlr.press/v119/kumar20e.html
-#
-# Alternatives:
-# - Local Interpretable Model-agnostic Explanations (LIME): 
-#   https://lime.data-imaginist.com
-
-
-# For example, if we want to see why Bob Horner get a prediction of 
-# 1117 (*1000 = 1,117,000$)
+# Models make predictions. For example, we can see that our model predicts Bob
+# Horner will have a salary of 1117 (*1000 = 1,117,000$)
 predict(knn_fit, new_data = Hitters.test["-Bob Horner",])
 
+# But why?
+# What is it about Bob that leads our model to make such a prediction?
 
-# We can look at his SHAP values:
+
+
+# We will be using SHAP (SHapley Additive exPlanations) to try and answer this
+# question SHAP is a method that tries to estimate what each predictor
+# contributes to each single prediction - accounting for whatever interactions
+# or conditional effects it might have. The ideas are based on game theory -
+# really interesting stuff. Lots of math.
+#
+# In essence, SHAP tries to attribute a predictions deviation from the mean
+# prediction to the various predictors.
+
 shap_bob <- predict_parts(knn_xplnr,
                           new_observation = Hitters.test["-Bob Horner",],
                           type = "shap")
+
 plot(shap_bob)
-# - The sum of all contributions is the values predicted over the baseline - the
-#   null average prediction.
+# - The contributions sum to the predicted values over the baseline (mean).
 # - The box plots represent the distributions of contributions.
 #   See: https://ema.drwhy.ai/shapley.html
 
@@ -96,14 +97,36 @@ plot(shap_bob, max_features = Inf) # get more features
 plot(shap_bob, show_boxplots = FALSE) # show only mean SHAP values
 
 
+
+# Note that predictions can be attributed differently between predictors 
+# across different predictions. Let's compare Bob to Willie:
+shap_willie <- predict_parts(knn_xplnr,
+                             new_observation = Hitters.test["-Willie Wilson",],
+                             type = "shap")
+
+plot(shap_bob, max_features = Inf, show_boxplots = FALSE) + 
+  plot(shap_willie, max_features = Inf, show_boxplots = FALSE)
+
+
+
+
+
 # Note that SHAP analysis DOES NOT give us any counterfactual information - we
 # don't know that if Bob was in a different Division his salary would have been
-# lower - just that the model chose to give him a higher prediction because he's
+# higher - just that the model chose to give him a lower prediction because he's
 # in division W.
 # In other words - we are explaining the model's predictions, but we are not
-# explaining the salary! There is not causal information here, we are NOT in
+# explaining the salary! There is no causal information here, we are NOT in
 # "explaining mode", we are still in "prediction mode"!
 
+
+
+# Alternatives:
+# - Local Interpretable Model-agnostic Explanations (LIME): 
+#   https://lime.data-imaginist.com
+#   https://ema.drwhy.ai/LIME.html
+#   These are useful for models with many (hundreds-thousands+) predictors
+# - And more https://ema.drwhy.ai/InstanceLevelExploration.html
 
 
 
@@ -119,16 +142,15 @@ plot(shap_bob, show_boxplots = FALSE) # show only mean SHAP values
 # by randomly shuffling a predictor's values - breaking its relationship with
 # the outcome. The model's performance is then evaluated on this new permuted
 # data.
-# If the variable has no contribution, permuting it will have litle to no effect
-# on the model's performance, while variables with larger contributions will
-# lead to larger and larger decrease in performance (e.g., larger RMSEs for
+# If the variable has no contribution, permuting it will have little to no
+# effect on the model's performance, while variables with larger contributions
+# will lead to larger and larger decrease in performance (e.g., larger RMSEs for
 # regression).
 # This process is repeated multiple times, and the average performance drop is
 # used as the importance score, providing a robust measure of each variable's
 # contribution.
 
 
-# permutation?
 vi_perm <- model_parts(knn_xplnr, 
                        B = 10, # Number of permutations
                        variables = NULL) # specify to only compute for some
@@ -153,6 +175,7 @@ plot(vi_perm, bar_width = 5,
 # (_ceteris-paribus_). See:
 #
 # https://ema.drwhy.ai/partialDependenceProfiles.html
+# https://marginaleffects.com/chapters/ml.html
 
 
 pdp_hits <- model_profile(knn_xplnr, variables = "Hits", 
@@ -160,41 +183,72 @@ pdp_hits <- model_profile(knn_xplnr, variables = "Hits",
                           # observations.
                           N = NULL)
 plot(pdp_hits) # average
-plot(pdp_hits, geom = "profiles") # each line is a single outcome
-plot(pdp_hits, geom = "points", variables = "Hits")
 # Note that this is a KNN model - it has no structure, and yet, this plot is
 # fairly easy to understand!
+plot(pdp_hits, geom = "profiles") # each line is a single outcome
+plot(pdp_hits, geom = "points", variables = "Hits")
 
 
-pdp_league <- model_profile(knn_xplnr, variables = "League")
-plot(pdp_league) # average
-plot(pdp_league, geom = "points", variables = "League")
 
 
-# These plots can also show interactions:
-pdp_walks.league <- model_profile(knn_xplnr, variables = "Walks",
-                                  groups = "League")
-plot(pdp_walks.league)
 
 
-# For continuous moderators in a PDP we need the {marginaleffects} package:
-marginaleffects::plot_predictions(
-  knn_fit, 
-  by = c("Walks", "Years"),
-  newdata = marginaleffects::datagrid(
-    Walks = unique,
-    Years = \(v) as.integer(mean(v) + c(-1, 0, 1) * sd(v)),
-    
-    grid_type = "counterfactual",
-    newdata = Hitters.train
-  )
-)
+# If you're not inserted in individual profiles, the {marginaleffects} package
+# can also be used:
+plot_predictions(knn_fit, by = "Hits", 
+                 # Define a counterfactual datagrid:
+                 newdata = datagrid(
+                   newdata = Hitters.train, 
+                   grid_type = "counterfactual",
+                   
+                   Hits = unique
+                 ))
+
+
+
+plot_predictions(knn_fit, by = "League", 
+                 # Define a counterfactual datagrid:
+                 newdata = datagrid(
+                   newdata = Hitters.train, 
+                   grid_type = "counterfactual",
+                   
+                   League = levels
+                 ))
+# Note that we don't have standard errors or confidence intervals.
+# Just pure predictions - so these must be taken with a grain of salt.
+
+
+
+plot_predictions(knn_fit, by = c("Walks", "League"), 
+                 # Define a counterfactual datagrid:
+                 newdata = datagrid(
+                   newdata = Hitters.train, 
+                   grid_type = "counterfactual",
+                   
+                   Walks = unique,
+                   League = levels
+                 ))
+
+
+plot_predictions(knn_fit, by = c("Walks", "Years"),
+                 # Define a counterfactual datagrid:
+                 newdata = datagrid(
+                   newdata = Hitters.train,
+                   grid_type = "counterfactual",
+                   
+                   Walks = unique,
+                   Years = \(v) as.integer(mean(v) + c(-1, 0, 1) * sd(v))
+                 ))
+
 
 
 
 
 
 # Classification ------------------------------------------------------------
+# Let's apply all these methods to a (multi-class, probabilistic) classification
+# model.
+
 
 ## Fit a model -------------------------------------
 # Let's fit a classification model!
@@ -223,7 +277,8 @@ rf_spec <- rand_forest(
   min_n = 5
 )
 
-rf_fit <- workflow(preprocessor = rec, spec = rf_spec) |> 
+rf_fit <- 
+  workflow(preprocessor = rec, spec = rf_spec) |> 
   fit(data = penguins.train)
 
 
@@ -239,6 +294,7 @@ rf_xplnr <- explain(rf_fit, label = "Random Forest",
 ### Explain a single prediction ------------------------------
 # Why does the model think that obs 61 has a high chance of being a Gentoo?
 predict(rf_fit, new_data = penguins.test[61,], type = "prob")
+
 
 
 # We can look at his SHAP values:
@@ -262,7 +318,7 @@ extract_fit_engine(rf_fit) |>
 
 # But we can still use the permutation method (or a multiclass model, the loss
 # function is a measure of entropy):
-vi_perm <- model_parts(rf_xplnr)
+vi_perm <- model_parts(rf_xplnr, B = 10, variables = NULL)
 plot(vi_perm, max_vars = Inf)
 # This matches the plot above very well!
 # What's going on with year / island?
@@ -285,17 +341,16 @@ ggplot(penguins.train, aes(bill_length_mm, body_mass_g, color = species)) +
   geom_point()
 
 
-
-
-marginaleffects::plot_predictions(
+plot_predictions(
   rf_fit, type = "prob",
-  by = c("body_mass_g", "group", "bill_length_mm"),
-  newdata = marginaleffects::datagrid(
-    body_mass_g = unique,
-    bill_length_mm = \(v) range(v, na.rm = TRUE),
-    
+  by = c("body_mass_g", "bill_length_mm", "group"), # group = class
+  # Define a counterfactual datagrid:
+  newdata = datagrid(
+    newdata = penguins.train,
     grid_type = "counterfactual",
-    newdata = penguins.train
+    
+    body_mass_g = unique,
+    bill_length_mm = \(v) range(v, na.rm = TRUE)
   )
 ) + 
   coord_cartesian(ylim = c(0, 1))
