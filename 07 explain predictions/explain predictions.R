@@ -30,6 +30,7 @@ rec <- recipe(Salary ~ .,
               data = Hitters.train) |> 
   step_naomit(Salary) |> 
   step_dummy(all_factor_predictors()) |> 
+  step_interact(~PutOuts:Walks) |> 
   step_normalize(all_numeric_predictors())
 
 
@@ -70,8 +71,10 @@ knn_xplnr <- explain(knn_fit, label = "KNN (K=5)",
 # Horner will have a salary of 1117 (*1000 = 1,117,000$)
 predict(knn_fit, new_data = Hitters.test["-Bob Horner",])
 
+
 # But why?
 # What is it about Bob that leads our model to make such a prediction?
+mean(Hitters.train$Salary, na.rm = TRUE)
 
 
 
@@ -178,7 +181,7 @@ plot(vi_perm, bar_width = 5,
 # https://marginaleffects.com/chapters/ml.html
 
 
-pdp_hits <- model_profile(knn_xplnr, variables = "Hits", 
+pdp_hits <- model_profile(knn_xplnr, variables = "Years", 
                           # default is to plot results of 100 randomly sampled
                           # observations.
                           N = NULL)
@@ -186,7 +189,7 @@ plot(pdp_hits) # average
 # Note that this is a KNN model - it has no structure, and yet, this plot is
 # fairly easy to understand!
 plot(pdp_hits, geom = "profiles") # each line is a single outcome
-plot(pdp_hits, geom = "points", variables = "Hits")
+plot(pdp_hits, geom = "points", variables = "Years")
 
 
 
@@ -195,38 +198,38 @@ plot(pdp_hits, geom = "points", variables = "Hits")
 
 # If you're not inserted in individual profiles, the {marginaleffects} package
 # can also be used:
-plot_predictions(knn_fit, by = "Hits", 
+plot_predictions(knn_fit, by = "Years", 
                  # Define a counterfactual datagrid:
                  newdata = datagrid(
                    newdata = Hitters.train, 
                    grid_type = "counterfactual",
                    
-                   Hits = unique
+                   Years = unique
                  ))
 
 
 
-plot_predictions(knn_fit, by = "League", 
+plot_predictions(knn_fit, by = "Division", 
                  # Define a counterfactual datagrid:
                  newdata = datagrid(
                    newdata = Hitters.train, 
                    grid_type = "counterfactual",
                    
-                   League = levels
+                   Division = levels
                  ))
 # Note that we don't have standard errors or confidence intervals.
 # Just pure predictions - so these must be taken with a grain of salt.
 
 
 
-plot_predictions(knn_fit, by = c("Walks", "League"), 
+plot_predictions(knn_fit, by = c("Years", "Division"), 
                  # Define a counterfactual datagrid:
                  newdata = datagrid(
                    newdata = Hitters.train, 
                    grid_type = "counterfactual",
                    
-                   Walks = unique,
-                   League = levels
+                   Years = unique,
+                   Division = levels
                  ))
 
 
