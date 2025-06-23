@@ -147,7 +147,7 @@ biplot(efa4_fit, choose = c(1,2), pch = ".", cuts = 0.45)
 
 # We can now use the factor scores just as we would any variable:
 data_scores <- predict(efa4_fit, data = Harman74) |> data.frame()
-colnames(data_scores) <- c("Verbal","Visual","Math","Je Ne Sais Quoi") # name the factors
+colnames(data_scores) <- c("Verbal", "Visual", "Math", "Je Ne Sais Quoi") # name the factors
 head(data_scores)
 
 

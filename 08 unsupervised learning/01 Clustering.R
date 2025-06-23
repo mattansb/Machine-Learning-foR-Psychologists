@@ -123,10 +123,10 @@ dta_clust <- tibble(
 
 ## Elbow method: drop in within-cluster variance:
 fviz_nbclust(
-  USArrests, FUNcluster = kmeans, 
+  USArrests_z, FUNcluster = kmeans, 
   method = "wss", k.max = 20
 ) +
-  geom_vline(xintercept = 3, linetype = 2) +
+  geom_vline(xintercept = 4, linetype = 2) +
   labs(subtitle = "Elbow method")
 # Note that, the elbow method is sometimes ambiguous.
 
@@ -139,7 +139,7 @@ fviz_nbclust(
 # each object lies within its cluster. A high average silhouette width indicates
 # a good clustering.
 fviz_nbclust(
-  USArrests, FUNcluster = kmeans, 
+  USArrests_z, FUNcluster = kmeans, 
   method = "silhouette", k.max = 20
 ) +
   labs(subtitle = "Silhouette method")
@@ -238,7 +238,8 @@ p_tSNE + aes(color = factor(hc_cut.k4))
 dta_clust$hclust_k4 <- factor(hc_cut.k4[state.name])
 
 # Note that:
-table(dta_clust$hclust_k4, dta_clust$kmeans) # Do the methods agree?
+table("H-Clust" = dta_clust$hclust_k4, 
+      "K-mean" = dta_clust$kmeans) # Do the methods agree?
 
 
 
