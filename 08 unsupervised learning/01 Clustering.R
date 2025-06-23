@@ -1,15 +1,14 @@
 ### Tutorial 6- Clustering  ###
 
 library(tidyverse)
-library(Rtsne)
-library(factoextra) # https://rpkgs.datanovia.com/factoextra/index.html
+library(patchwork)
 library(recipes)
 
-# recall the difference between clustering and PCA:
-# - PCA looks to find a low-dimensional representation of the obs. that accounts
-#   for a good fraction of their variance.
-# - clustering looks to find homogeneous subgroups among the observations.
+library(Rtsne)
+library(factoextra) # https://rpkgs.datanovia.com/factoextra/index.html
 
+# Learn more at:
+# https://tidyclust.tidymodels.org/index.html
 
 
 # The Data ---------------------------------------
@@ -23,14 +22,12 @@ data(USArrests)
 
 ## Prep -------------------
 
-datawizard::describe_distribution(USArrests) 
+summary(USArrests)
 # variables are on very different scales.
 #
 # We should re-scale them.
 
-USArrests_z <- datawizard::standardize(USArrests)
-
-# We can also use recipe:
+# We can use recipe:
 rec <- recipe( ~ ., data = USArrests) |>
   step_normalize(all_numeric_predictors())
 
@@ -55,8 +52,9 @@ head(USArrests_z)
 # so don't forget to set a seed:
 set.seed(42)
 
-USArrests_z_tSNE <- Rtsne(USArrests_z, perplexity = 5,
-                          pca = FALSE, normalize = FALSE)
+USArrests_z_tSNE <- Rtsne(USArrests_z, perplexity = 5)
+# Default perplexity is 30, but this value is too large for our small dataset.
+
 
 p_tSNE <- data.frame(USArrests_z_tSNE$Y) |> 
   ggplot(aes(X1, X2)) + 
@@ -86,7 +84,7 @@ p_tSNE
 
 # The function kmeans() performs K-means clustering. 
 km <- kmeans(USArrests_z, # Features to guide clustering
-             centers = 3, # K
+             centers = 4, # K
              nstart = 20) # how many random starting centers
 # NOTE: If nstart > 1, then K-means clustering will be performed using multiple
 # random assignments in Step 1 of the Algorithm, and kmeans() will report only
@@ -113,6 +111,10 @@ p_tSNE + aes(color = factor(km$cluster))
 # factoextra lib.
 
 
+# Let's save these results for later:
+dta_clust <- tibble(
+  state.name, state.abb, kmeans = factor(km$cluster[state.name])
+)
 
 
 
@@ -121,10 +123,10 @@ p_tSNE + aes(color = factor(km$cluster))
 
 ## Elbow method: drop in within-cluster variance:
 fviz_nbclust(
-  USArrests, FUNcluster = kmeans, 
+  USArrests_z, FUNcluster = kmeans, 
   method = "wss", k.max = 20
 ) +
-  geom_vline(xintercept = 3, linetype = 2) +
+  geom_vline(xintercept = 4, linetype = 2) +
   labs(subtitle = "Elbow method")
 # Note that, the elbow method is sometimes ambiguous.
 
@@ -137,7 +139,7 @@ fviz_nbclust(
 # each object lies within its cluster. A high average silhouette width indicates
 # a good clustering.
 fviz_nbclust(
-  USArrests, FUNcluster = kmeans, 
+  USArrests_z, FUNcluster = kmeans, 
   method = "silhouette", k.max = 20
 ) +
   labs(subtitle = "Silhouette method")
@@ -150,6 +152,12 @@ fviz_nbclust(
 
 
 
+
+## PAM ---------------------------
+
+# A similar algorithm to k-mean is PAM (Partitioning Around Medoids), which can
+# be considered a robust alternative to k-mean:
+# cluster::pam(USArrests_z, k = 4)
 
 
 
@@ -170,6 +178,15 @@ fviz_nbclust(
 
 USArrests_d_euc <- get_dist(USArrests_z, method = "euclidean")
 USArrests_d_cor <- get_dist(USArrests_z, method = "pearson")
+
+# We can also use a type of unsupervised random forest to get a distance matrix:
+# https://gradientdescending.com/unsupervised-random-forest-example/
+# rf <- randomForest::randomForest(x = USArrests,
+#                                  mtry = sqrt(ncol(USArrests)), ntree = 1000, 
+#                                  proximity = TRUE)
+# USArrests_d_rf <- as.dist(1 - rf$proximity)
+
+
 
 # Which should we use?
 
@@ -193,10 +210,12 @@ plot(hc.complete)
 # We can also use:
 fviz_dend(hc.complete) 
 
-fviz_dend(hc.complete, h = 1) +
-  geom_hline(yintercept = 1)
+fviz_dend(hc.complete, h = 1)
 
 fviz_dend(hc.complete, k = 4)
+
+# See also:
+# cluster::bannerplot(hc.complete)
 
 
 ## Cut the tree! -----------------------------------
@@ -215,42 +234,68 @@ plot(USArrests, col = hc_cut.k4,
 p_tSNE + aes(color = factor(hc_cut.k4))
 
 
+# Save the results:
+dta_clust$hclust_k4 <- factor(hc_cut.k4[state.name])
+
+# Note that:
+table("H-Clust" = dta_clust$hclust_k4, 
+      "K-mean" = dta_clust$kmeans) # Do the methods agree?
+
+
+
+# Model based clustering -----------------------------------
+# 
+# See the {mclust} package
+# https://mclust-org.github.io/mclust/
+
+
+# External Validation? -------------------------------------------------
+# Are these clusters useful?
+# So far we've seen how the clusters map *back onto* the variables that went
+# into the clustering - but these results are trivial. The question is can these
+# clusters be used to tell us something new about other variables?
+
+# Let's compare them to some data about the states:
+states_info <- read.csv("states_info.csv") |> 
+  left_join(dta_clust, by = c("state.abb", "state.name"))
+head(states_info)
+
+
+# Are the clusters related to voting Trump in 2024?
+p_trump <- 
+  ggplot(states_info, aes(trump2024, kmeans, fill = kmeans)) + 
+  geom_vline(xintercept = 0.5) + 
+  geom_violin() + 
+  scale_x_continuous("% voted for Trump", limits = c(0, 1))
+
+
+# Are the clusters related to number of casinos?
+p_casino <- 
+  ggplot(states_info, aes(n_casinos, kmeans, fill = kmeans)) + 
+  geom_violin()
+
+p_trump + p_casino + plot_layout(guides = "collect")
+
+
 
 # Exercise ----------------------------------------------------------------
 
 # Select only the 25 first columns corresponding to the items on the BIG-5
 # scales:
-data("bfi", package = "psychTools")
+data("oils", package = "modeldata")
+?modeldata::oils
 
-bfi <- bfi |> 
-  mutate(
-    gender = factor(gender, labels = c("Male", "Female")),
-    education = factor(education, labels = c("HS", "finished HS", "some college", "college graduate", "graduate degree"))
-  ) |>
-  drop_na(1:25)
-
-head(bfi)
-
-bfi_scales <- bfi |> 
-  select(1:25)
 
 
 ## A. Clustering
-# 1. Cluster people into groups based on these data
+# 0. Build a t-SNE plot based on all columns (minus "class").
+#   - Color the point by class
+# 1. Cluster oils into groups based on these data
 #   - use hclust
 #   - decide on a distance metric
 #   - choose a linkage method
 #   - plot the dendrogram - and choose the number of clusters
 #   - plot the clusters on a t-SNE plot.
-# 2. Validate the clusters - are they related to gender? age? education?
+# 2. Validate the clusters - how do they map onto "class"?
 #   - Answer visually.
 
-## B. PCA
-# What is the minimal number of components that can be used to represent 85% of
-# the variance in the bfi scale?
-
-## C. EFA (bonus)
-# 1. Validate the big-5: look at a scree-plot to see if the data suggests 5
-#   factors or more or less.
-# 2. Conduct an EFA.
-# 3. Look at the loadings - do they make sense?
