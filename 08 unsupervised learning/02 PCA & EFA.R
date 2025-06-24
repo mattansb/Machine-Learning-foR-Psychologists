@@ -220,5 +220,5 @@ bfi_scales <- bfi_tidy |>
 ## B. EFA:
 # 1. Validate the big-5: look at a scree-plot to see if the data suggests 5
 #   factors or more or less.
-# 2. Conduct an efa4_fit.
+# 2. Conduct an EFA
 # 3. Look at the loadings - do they make sense?

@@ -280,14 +280,9 @@ p_trump + p_casino + plot_layout(guides = "collect")
 
 # Exercise ----------------------------------------------------------------
 
-# Select only the 25 first columns corresponding to the items on the BIG-5
-# scales:
 data("oils", package = "modeldata")
 ?modeldata::oils
 
-
-
-## A. Clustering
 # 0. Build a t-SNE plot based on all columns (minus "class").
 #   - Color the point by class
 # 1. Cluster oils into groups based on these data
