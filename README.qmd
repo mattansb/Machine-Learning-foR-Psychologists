@@ -84,8 +84,11 @@ You will need:
 3. The following packages/modules, listed by lesson:
 
 ```{r}
-r_files <- list.files(pattern = "^\\d{2}.*\\.R$", recursive = TRUE, full.names = TRUE)
-py_files <- list.files(pattern = "^\\d{2}.*\\.py$", recursive = TRUE, full.names = TRUE)
+r_files <- list.files(pattern = ".R$", recursive = TRUE, full.names = TRUE)
+py_files <- list.files(pattern = ".py$", recursive = TRUE, full.names = TRUE)
+
+r_files <- r_files[str_detect(r_files, "^\\./\\d{2}")]
+py_files <- py_files[str_detect(py_files, "^\\./\\d{2}")]
 
 r_lesson_names <- str_extract(r_files, pattern = "(?<=(/)).{1,}(?=(/))")
 py_lesson_names <- str_extract(py_files, pattern = "(?<=(/)).{1,}(?=(/))")

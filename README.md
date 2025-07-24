@@ -52,7 +52,9 @@ You will need:
 | [02 Classification](/02%20Classification) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `palmerpenguins`, `themis`, `patchwork`, `probably`, `tailor`, `modeldata` |  |
 | [03 Resampling and Tuning](/03%20Resampling%20and%20Tuning) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |  |
 | [04 The problem of over-dimensionality](/04%20The%20problem%20of%20over-dimensionality) | `tidymodels`, `leaps`, `ISLR`, `stats`, `MASS`, `insight`, `glmnet`, `tidyr`, `scales`, `tibble`, `ggplot2`, `vip`, `kknn`, `BiocManager`, `mixOmics`, `plsmod` |  |
+| [05 SVM](/05%20SVM) | `tidymodels`, `kernlab`, `ISLR`, `palmerpenguins` |  |
 | [06 Trees](/06%20Trees) | `tidymodels`, `rpart`, `rpart.plot`, `ISLR`, `scales`, `vip`, `MASS`, `tidymodels`, `baguette`, `randomForest`, `xgboost`, `MASS`, `forcats`, `vip` |  |
+| [07 explain predictions](/07%20explain%20predictions) | `tidymodels`, `kknn`, `randomForest`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `palmerpenguins`, `vip` |  |
 | [08 unsupervised learning](/08%20unsupervised%20learning) | `tidyverse`, `patchwork`, `recipes`, `Rtsne`, `factoextra`, `ggrepel`, `cluster`, `randomForest`, `modeldata`, `psych`, `parameters`, `performance`, `datasets`, `GPArotation`, `dplyr`, `tidyr`, `psychTools` |  |
 
 <details>
@@ -68,6 +70,8 @@ You can install all the R packages used by running:
       c(
 
         "cran::BiocManager" # 1.30.25
+        "cran::DALEX" # 2.4.3
+        "cran::DALEXtra" # 2.3.0
         "cran::GPArotation" # 2024.3-1
         "cran::ISLR" # 1.4
         "cran::MASS" # 7.3-60.2
@@ -83,8 +87,10 @@ You can install all the R packages used by running:
         "cran::glmnet" # 4.1-8
         "cran::glue" # 1.8.0
         "cran::insight" # 1.3.1
+        "cran::kernlab" # 0.9-33
         "cran::kknn" # 1.3.1
         "cran::leaps" # 3.2
+        "github::vincentarelbundock/marginaleffects" # 0.26.0.3
         "bioc::mixOmics" # 6.30.0
         "cran::modeldata" # 1.4.0
         "cran::palmerpenguins" # 0.1.1
