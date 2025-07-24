@@ -4,16 +4,17 @@
 
 [![](https://img.shields.io/badge/Open%20Educational%20Resources-Compatable-brightgreen.png)](https://creativecommons.org/about/program-areas/education-oer/)
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
-[![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
+![](https://img.shields.io/badge/Languages-R_&_Python-blue.png)
 
 <sub>*Last updated 2025-07-25.*</sub>
 
-This Github repo contains all lesson files for *Machine Learning in R*.
-The goal is to impart students with the basic tools to construct,
-evaluate and compare various **machine learning models, using
-[`tidymodels`](https://www.tidymodels.org/)**. (Prior to 2025, this
-course was based on the `caret` package - this version can still be
-found
+This Github repo contains all lesson files for *Machine Learning*. The
+goal is to impart students with the basic tools to construct, evaluate
+and compare various **machine learning models, using
+[`tidymodels`](https://www.tidymodels.org/)** in R, or
+**[`sklearn`](https://scikit-learn.org/stable/)** in Python. (Prior to
+2025, this course was based on the `caret` package - this version can
+still be found
 [here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).)
 
 These topics were taught in the graduate-level course ***Machine
@@ -27,7 +28,8 @@ Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psyc
 **Notes:**
 
 - This repo contains only materials relating to *Practical Applications
-  in R*, and does not contain any theoretical or introductory materials.
+  in R/Python*, and does not contain any theoretical or introductory
+  materials.
 - Please note that some code does not work *on purpose*, to force
   students to learn to debug.
 
@@ -35,11 +37,14 @@ Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psyc
 
 You will need:
 
-1.  A fresh installation of [**`R`**](https://cran.r-project.org/)
-    (preferably version 4.4.1 or above).
+1.  A fresh installation of [**R**](https://cran.r-project.org/)
+    (preferably version 4.4.1 or above), *or*  
+    A fresh installation of
+    [**Python**](https://www.python.org/downloads/) (preferably version
+    3.13 or above).
 2.  [Positron IDE](https://positron.posit.co/download.html) (optional,
     but recommended).
-3.  The following packages, listed by lesson:
+3.  The following packages/modules, listed by lesson:
 
 | Lesson | R Packages | Python Modules |
 |:---|:---|:---|
