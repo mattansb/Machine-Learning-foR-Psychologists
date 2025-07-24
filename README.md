@@ -135,7 +135,7 @@ You can install all the Python modules used by saving a
     patsy>=1.0.1
     scipy>=1.16.0
     seaborn>=0.13.2
-    sklearn>=NA
+    sklearn
     statsmodels>=0.14.5
 
 And then running

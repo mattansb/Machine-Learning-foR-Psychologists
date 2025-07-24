@@ -184,7 +184,7 @@ reticulate::use_python("C:/Users/user/AppData/Local/Programs/Python/Python313/py
 
 imp <- reticulate::import("importlib.metadata")
 
-py_version <- possibly(imp$version, otherwise = NA)
+py_version <- possibly(imp$version, otherwise = "")
 
 py_mdls <- py_mdls |>
   unlist(recursive = TRUE) |>
@@ -196,7 +196,7 @@ py_mdl_info <- tibble(
 ) |> 
   arrange(module)
 
-cat(glue_data(py_mdl_info, "{module}>={version}") |> glue_collapse(sep = "\n"))
+cat(glue_data(py_mdl_info, "{module}{ifelse(nzchar(py_mdl_info$version), '>=', '')}{version}") |> glue_collapse(sep = "\n"))
 ```
 And then running 
 
