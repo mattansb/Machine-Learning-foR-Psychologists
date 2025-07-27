@@ -38,7 +38,7 @@ Caravan.test$.pred_Yes.BAD <- 0
 Caravan.test |> conf_mat(truth = Purchase, estimate = .pred_class.BAD)
 
 
-# But as we can see, we have no specificity!
+# But as we can see, we have no sensitivity!
 mset_class <- metric_set(accuracy, specificity, sensitivity)
 Caravan.test |> mset_class(truth = Purchase, estimate = .pred_class.BAD)
 
