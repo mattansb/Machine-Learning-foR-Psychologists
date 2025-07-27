@@ -3,8 +3,8 @@ library(tidymodels)
 
 # The data and problem ----------------------------------------------------
 
-# Previously, we've used {tidymodels} for a regression problem. Today we are looking
-# at classification.
+# Previously, we've used {tidymodels} for a regression problem. Today we are
+# looking at classification.
 
 # Smarket dataset contains daily percentage returns for the S&P 500 stock index
 # between 2001 and 2005 (1,250 days).
@@ -97,7 +97,8 @@ Smarket.test_predictions |>
   )
 # Overall, not amazing...
 
-# Since this is a probabilistic model, we can also look at the ROC curve and AUC:
+# Since this is a probabilistic model, we can also look at the ROC curve and
+# AUC:
 Smarket.test_predictions |>
   roc_curve(truth = Direction, .pred_Up, event_level = "second") |>
   autoplot()

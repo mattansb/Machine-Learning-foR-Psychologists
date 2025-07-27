@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -6,7 +5,7 @@ import seaborn as sns
 
 import patsy
 import statsmodels.formula.api as smf
-from scipy.stats import zscore
+from scipy.stats import zscore  # noqa
 
 from ISLP import load_data
 
@@ -30,7 +29,7 @@ Auto.info()
 #     Model year (modulo 100)
 # - origin
 #     Origin of car (1. American, 2. European, 3. Japanese)
-Auto['origin'] = pd.Categorical(Auto['origin'])
+Auto["origin"] = pd.Categorical(Auto["origin"])
 
 Auto.head()
 # We're interested in predicting gas consumption: MPG (miles per gallon).
@@ -52,11 +51,11 @@ Auto.head()
 # replicate the results
 np.random.seed(1111)
 
-i = np.random.choice(Auto.shape[0],
-                     size=int(0.7 * Auto.shape[0]),
-                     replace=False)
+i = np.random.choice(
+    Auto.shape[0], size=int(0.7 * Auto.shape[0]), replace=False
+)
 Auto_train = Auto.iloc[i]
-Auto_test = Auto.iloc[[ix for ix in range(len(Auto)) if ix not in i]] # ew
+Auto_test = Auto.iloc[[ix for ix in range(len(Auto)) if ix not in i]]  # ew
 
 
 ## 2) Specify the model and Preprocessing ---------------------------
@@ -65,7 +64,7 @@ Auto_test = Auto.iloc[[ix for ix in range(len(Auto)) if ix not in i]] # ew
 # ii. How will the predictors be used to predict the outcome?
 
 # In statsmodels.formula.api, step i is typically done with a formula:
-f = 'mpg ~ origin + zscore(weight) * horsepower'
+f = "mpg ~ origin + zscore(weight) * horsepower"
 
 # Outcome: mpg
 # Predictors: origin, weight, horsepower
@@ -75,7 +74,7 @@ f = 'mpg ~ origin + zscore(weight) * horsepower'
 # - adding an interaction between (standardized) weight and horsepower
 
 # We can see that all this happens by using the patsy.dmatrices() method:
-y_mf, X_mf = patsy.dmatrices(f, Auto_train, return_type='dataframe')
+y_mf, X_mf = patsy.dmatrices(f, Auto_train, return_type="dataframe")
 X_mf.head()
 
 
@@ -91,8 +90,9 @@ help(smf.ols)
 # finding the coefficients that minimize the sum of squared errors.
 
 # We combine the formula, and data and the fitting function as defined above:
-model = smf.ols('mpg ~ origin + zscore(weight) * horsepower', data=Auto_train).fit()
-
+model = smf.ols(
+    "mpg ~ origin + zscore(weight) * horsepower", data=Auto_train
+).fit()
 
 
 ## 4) Evaluate the model ------------------------------------------
@@ -103,13 +103,17 @@ model = smf.ols('mpg ~ origin + zscore(weight) * horsepower', data=Auto_train).f
 Auto_test.mpg_pred = model.predict(Auto_test)
 
 
-
 # Plot estimated values vs truth
 plt.figure()
 sns.scatterplot(x=Auto_test.mpg_pred, y=Auto_test.mpg)
-plt.plot([Auto_test.mpg.min(), Auto_test.mpg.max()],
-         [Auto_test.mpg.min(), Auto_test.mpg.max()],
-         color='red', linestyle='--', lw=2, label='Identity Line')
+plt.plot(
+    [Auto_test.mpg.min(), Auto_test.mpg.max()],
+    [Auto_test.mpg.min(), Auto_test.mpg.max()],
+    color="red",
+    linestyle="--",
+    lw=2,
+    label="Identity Line",
+)
 plt.xlabel("Estimated: $\hat{mpg}$")
 plt.ylabel("Truth: mpg")
 plt.show()
@@ -117,15 +121,14 @@ plt.show()
 
 # How we assess model performance?
 # For regression problems- R-squared, MSE, RMSE, MAE...
-r2_model = np.corrcoef(Auto_test.mpg, Auto_test.mpg_pred)[0,1]**2
-rmse_model = np.sqrt(np.mean((Auto_test.mpg - Auto_test.mpg_pred)**2))
+r2_model = np.corrcoef(Auto_test.mpg, Auto_test.mpg_pred)[0, 1] ** 2
+rmse_model = np.sqrt(np.mean((Auto_test.mpg - Auto_test.mpg_pred) ** 2))
 
 print(f"R-squared: {r2_model:.3f}")
 print(f"RMSE: {rmse_model:.3f}")
 
 
 # Let's do this again, with {Scikit-learn}.
-
 
 
 # (Linear) Regression with {scikit-learn} -------------------------------------
@@ -136,7 +139,9 @@ print(f"RMSE: {rmse_model:.3f}")
 # Let's load the functions and methods we need:
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import (
-    StandardScaler, OneHotEncoder, FunctionTransformer
+    StandardScaler,
+    OneHotEncoder,
+    FunctionTransformer,
 )
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -150,13 +155,11 @@ from sklearn.metrics import r2_score, root_mean_squared_error
 ## 1) Split the data ----------------------------------------------
 
 # Let's first list our outcome and predictors:
-outcome = 'mpg'
-features = ['weight', 'origin', 'horsepower']
+outcome = "mpg"
+features = ["weight", "origin", "horsepower"]
 
 X_train, X_test, y_train, y_test = train_test_split(
-    Auto[features], Auto[outcome],
-    train_size=0.7,
-    random_state=1111
+    Auto[features], Auto[outcome], train_size=0.7, random_state=1111
 )
 X_train.shape
 X_test.shape
@@ -173,26 +176,27 @@ X_test.shape
 ct = ColumnTransformer(
     transformers=[
         # - origin is a factor, so we'll produce dummy coding
-        ('dummy', OneHotEncoder(drop='first', sparse_output=False), ['origin']),
+        ("dummy", OneHotEncoder(drop="first", sparse_output=False), ["origin"]),
         # - weight is standardized
-        ('z', StandardScaler(), ['weight'])
+        ("z", StandardScaler(), ["weight"]),
     ],
-    remainder='passthrough'
-    ).set_output(transform="pandas")
+    remainder="passthrough",
+).set_output(transform="pandas")
+
 
 def f_interact(x):
-    '''
+    """
     This function takes a data frame, then adds a column
     that is the product of and remainder__horsepower
-    '''
-    x['int'] = x['z__weight'] * x['remainder__horsepower']
+    """
+    x["int"] = x["z__weight"] * x["remainder__horsepower"]
     return x
 
+
 # CHAIN them all together:
-preprocessor = Pipeline(steps=[
-    ("coltrans", ct),
-    ("int", FunctionTransformer(f_interact))
-])
+preprocessor = Pipeline(
+    steps=[("coltrans", ct), ("int", FunctionTransformer(f_interact))]
+)
 
 # This is quite verbose compared to the formula interface, but will come in
 # handy with more complicated preprocessing steps.
@@ -220,14 +224,11 @@ reg = LinearRegression(fit_intercept=True)
 
 # Finally, we can combine the preprocessor and the model type to a pipeline -
 # together they tell us how data *should* be used to fit a model.
-linreg_pipe = Pipeline(steps=[
-    ('preprocessor', preprocessor),
-    ('regressor', reg)
-])
+linreg_pipe = Pipeline(
+    steps=[("preprocessor", preprocessor), ("regressor", reg)]
+)
 
 linreg_pipe
-
-
 
 
 ## 3) Fitting the model -------------------------------------------
@@ -236,18 +237,18 @@ linreg_pipe
 linreg_pipe.fit(X_train, y_train)
 
 # We can extract the underlying model object:
-regressor = linreg_pipe.named_steps['regressor']
+regressor = linreg_pipe.named_steps["regressor"]
 
-pd.DataFrame({
-    "statsmodels": model.params,
-    "sklearn": np.concatenate(
-        (regressor.intercept_.reshape(1,1),
-         regressor.coef_.reshape(1,5)),
-        axis=1
-    ).flatten()
-})
+pd.DataFrame(
+    {
+        "statsmodels": model.params,
+        "sklearn": np.concatenate(
+            (regressor.intercept_.reshape(1, 1), regressor.coef_.reshape(1, 5)),
+            axis=1,
+        ).flatten(),
+    }
+)
 # (Why aren't these exactly the same? How is this related to bias or variance?)
-
 
 
 ### 4) Evaluate the model ------------------------------------------
@@ -260,13 +261,17 @@ y_pred = linreg_pipe.predict(X_test)
 # Plot estimated values vs truth
 plt.figure()
 sns.scatterplot(x=y_pred, y=y_test)
-plt.plot([y_test.min(), y_test.max()],
-         [y_test.min(), y_test.max()],
-         color='red', linestyle='--', lw=2, label='Identity Line')
+plt.plot(
+    [y_test.min(), y_test.max()],
+    [y_test.min(), y_test.max()],
+    color="red",
+    linestyle="--",
+    lw=2,
+    label="Identity Line",
+)
 plt.xlabel("Estimated: $\hat{mpg}$")
 plt.ylabel("Truth: mpg")
 plt.show()
-
 
 
 # Assess model performance using R-squared and RMSE:
