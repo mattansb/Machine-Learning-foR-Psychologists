@@ -170,8 +170,13 @@ X_test.shape
 ### i. Preprocessing ---------------------------------
 
 # We will create a few preprocessors using ColumnTransformer() and Pipeline().
-# Note the steps in Pipeline() are run *sequentially* while transformers in
-# ColumnTransformer() do NOT.
+# - ColumnTransformer() builds a set of instructions for how to treat specific
+#   columns. These instructions - transformers - are run in parrallel, and each
+#   can be trained with a fit() method and then be applied with a transform()
+#   method.
+# - Pipeline() builds a set of step that will be applied to data *sequentially*
+#   to data. Each step is trained with a fit() method and the applied with a
+#   transform method().
 
 ct = ColumnTransformer(
     transformers=[
