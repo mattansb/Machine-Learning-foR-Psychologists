@@ -15,6 +15,8 @@ levels(ad_data$Class)
 # (No need to relevel the factor - the *first* class is the event class.)
 
 # Data Splitting -
+# We will need an additional validation set here - we'll learn about these next
+# time!
 set.seed(1234)
 splits <- initial_validation_split(ad_data, prop = c(0.6, 0.2), strata = Class)
 Alz.train <- training(splits)
