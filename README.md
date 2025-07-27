@@ -4,18 +4,14 @@
 
 [![](https://img.shields.io/badge/Open%20Educational%20Resources-Compatable-brightgreen.png)](https://creativecommons.org/about/program-areas/education-oer/)
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
-![](https://img.shields.io/badge/Languages-R_&_Python-blue.png)
+[![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2025-07-25.*</sub>
+<sub>*Last updated 2025-07-27.*</sub>
 
-This Github repo contains all lesson files for *Machine Learning*. The
-goal is to impart students with the basic tools to construct, evaluate
-and compare various **machine learning models, using
-[`tidymodels`](https://www.tidymodels.org/)** in R, or
-**[`sklearn`](https://scikit-learn.org/stable/)** in Python. (Prior to
-2025, this course was based on the `caret` package - this version can
-still be found
-[here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).)
+This Github repo contains all lesson files for *Machine Learning in R*.
+The goal is to impart students with the basic tools to construct,
+evaluate and compare various **machine learning models, using
+[`tidymodels`](https://www.tidymodels.org/)**.
 
 These topics were taught in the graduate-level course ***Machine
 Learning for Psychologists*** (Psych Dep., Ben-Gurion University of the
@@ -38,24 +34,22 @@ Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psyc
 You will need:
 
 1.  A fresh installation of [**R**](https://cran.r-project.org/)
-    (preferably version 4.4.1 or above), *or*  
-    A fresh installation of
-    [**Python**](https://www.python.org/downloads/) (preferably version
-    3.13 or above).
-2.  [Positron IDE](https://positron.posit.co/download.html) (optional,
-    but recommended).
-3.  The following packages/modules, listed by lesson:
+    (preferably version 4.4.1 or above)
+2.  [RStudio](httpshttps://posit.co/download/rstudio-desktop/) *or*
+    [Positron](https://positron.posit.co/download.html) (optional, but
+    recommended).
+3.  The following packages, listed by lesson:
 
-| Lesson | R Packages | Python Modules |
-|:---|:---|:---|
-| [01 Intro with Regression](/01%20Intro%20with%20Regression) | `ISLR`, `tidymodels`, `stats`, `patchwork`, `kknn` | `numpy`, `pandas`, `matplotlib`, `seaborn`, `patsy`, `statsmodels`, `scipy`, `ISLP`, `sklearn` |
-| [02 Classification](/02%20Classification) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `palmerpenguins`, `themis`, `patchwork`, `probably`, `tailor`, `modeldata` |  |
-| [03 Resampling and Tuning](/03%20Resampling%20and%20Tuning) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |  |
-| [04 The problem of over-dimensionality](/04%20The%20problem%20of%20over-dimensionality) | `tidymodels`, `leaps`, `ISLR`, `stats`, `MASS`, `insight`, `glmnet`, `tidyr`, `scales`, `tibble`, `ggplot2`, `vip`, `kknn`, `BiocManager`, `mixOmics`, `plsmod` |  |
-| [05 SVM](/05%20SVM) | `tidymodels`, `kernlab`, `ISLR`, `palmerpenguins` |  |
-| [06 Trees](/06%20Trees) | `tidymodels`, `rpart`, `rpart.plot`, `ISLR`, `scales`, `vip`, `MASS`, `tidymodels`, `baguette`, `randomForest`, `xgboost`, `MASS`, `forcats`, `vip` |  |
-| [07 explain predictions](/07%20explain%20predictions) | `tidymodels`, `kknn`, `randomForest`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `palmerpenguins`, `vip` |  |
-| [08 unsupervised learning](/08%20unsupervised%20learning) | `tidyverse`, `patchwork`, `recipes`, `Rtsne`, `factoextra`, `ggrepel`, `cluster`, `randomForest`, `modeldata`, `psych`, `parameters`, `performance`, `datasets`, `GPArotation`, `dplyr`, `tidyr`, `psychTools` |  |
+| Lesson | Packages |
+|:---|:---|
+| [01 Intro with Regression](/01%20Intro%20with%20Regression) | `ISLR`, `tidymodels`, `stats`, `patchwork`, `kknn` |
+| [02 Classification](/02%20Classification) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `palmerpenguins`, `themis`, `patchwork`, `probably`, `tailor`, `modeldata` |
+| [03 Resampling and Tuning](/03%20Resampling%20and%20Tuning) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |
+| [04 The problem of over-dimensionality](/04%20The%20problem%20of%20over-dimensionality) | `tidymodels`, `leaps`, `ISLR`, `stats`, `MASS`, `insight`, `glmnet`, `tidyr`, `scales`, `tibble`, `ggplot2`, `vip`, `kknn`, `BiocManager`, `mixOmics`, `plsmod` |
+| [05 SVM](/05%20SVM) | `tidymodels`, `kernlab`, `ISLR`, `palmerpenguins` |
+| [06 Trees](/06%20Trees) | `tidymodels`, `rpart`, `rpart.plot`, `ISLR`, `scales`, `vip`, `MASS`, `tidymodels`, `baguette`, `randomForest`, `xgboost`, `MASS`, `forcats`, `vip` |
+| [07 explain predictions](/07%20explain%20predictions) | `tidymodels`, `kknn`, `randomForest`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `palmerpenguins`, `vip` |
+| [08 unsupervised learning](/08%20unsupervised%20learning) | `tidyverse`, `patchwork`, `recipes`, `Rtsne`, `factoextra`, `ggrepel`, `cluster`, `randomForest`, `modeldata`, `psych`, `parameters`, `performance`, `datasets`, `GPArotation`, `dplyr`, `tidyr`, `psychTools` |
 
 <details>
 <summary>
@@ -120,26 +114,11 @@ You can install all the R packages used by running:
     )
 
 </details>
-<details>
-<summary>
-<i>Installing Python Modules</i>
-</summary>
 
-You can install all the Python modules used by saving a
-`requirements.txt` file:
+------------------------------------------------------------------------
 
-    ISLP>=0.4.0
-    matplotlib>=3.10.3
-    numpy>=2.3.1
-    pandas>=2.3.0
-    patsy>=1.0.1
-    scipy>=1.16.0
-    seaborn>=0.13.2
-    sklearn
-    statsmodels>=0.14.5
+Prior to 2025, this course was based on the `{caret}` package - this
+version can still be found
+[here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).
 
-And then running
-
-    pip install -r requirements.txt
-
-</details>
+An experimental Python version can be found [here](.\python).

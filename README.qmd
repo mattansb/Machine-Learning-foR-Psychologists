@@ -31,40 +31,18 @@ extract_pkgs <- function(fl) {
     unlist(recursive = TRUE) |>
     unique()
 }
-
-extract_modules <- function(fl) {
-  if (length(fl) == 1) {
-    txt <- read.delim(fl, header = FALSE)[[1]]
-    
-    mods <- str_extract_all(
-      string = txt,
-      pattern = "(?<=^(import|from)\\s)[a-zA-Z0-9]{1,}"
-    )
-    
-    mods <- unlist(mods)
-    
-  } else if (length(fl) > 1) {
-    mods <- sapply(fl, extract_modules)
-  }
-  
-  
-  mods |>
-    unlist(recursive = TRUE) |>
-    unique()
-}
 ```
 
 # Machine Learning foR Psychologists
 
 [![](https://img.shields.io/badge/Open%20Educational%20Resources-Compatable-brightgreen)](https://creativecommons.org/about/program-areas/education-oer/)
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
-![](https://img.shields.io/badge/Languages-R_&_Python-blue)
+[![](https://img.shields.io/badge/Language-R-blue)](http://cran.r-project.org/)
 
 <sub>*Last updated `r Sys.Date()`.*</sub>
 
-This Github repo contains all lesson files for *Machine Learning*. 
-The goal is to impart students with the basic tools to construct, evaluate and compare various **machine learning models, using [`tidymodels`](https://www.tidymodels.org/)** in R, or **[`sklearn`](https://scikit-learn.org/stable/)** in Python.
-(Prior to 2025, this course was based on the `caret` package - this version can still be found [here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).)
+This Github repo contains all lesson files for *Machine Learning in R*. 
+The goal is to impart students with the basic tools to construct, evaluate and compare various **machine learning models, using [`tidymodels`](https://www.tidymodels.org/)**.
 
 These topics were taught in the graduate-level course ***Machine Learning for Psychologists*** (Psych Dep., Ben-Gurion University of the Negev; Psych Dep., Tel-Aviv University). (Materials developed with Yael Bar-Shachar.) This course assumes basic competence in R (importing, regression modeling, plotting, etc.), along the lines of [*Practical Applications in R for Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psychologists).
 
@@ -78,42 +56,30 @@ These topics were taught in the graduate-level course ***Machine Learning for Ps
 
 You will need:
 
-1. A fresh installation of [**R**](https://cran.r-project.org/) (preferably version 4.4.1 or above), _or_  
-  A fresh installation of [**Python**](https://www.python.org/downloads/) (preferably version 3.13 or above).
-2. [Positron IDE](https://positron.posit.co/download.html) (optional, but recommended).
-3. The following packages/modules, listed by lesson:
+1. A fresh installation of [**R**](https://cran.r-project.org/) (preferably version 4.4.1 or above)
+2. [RStudio](httpshttps://posit.co/download/rstudio-desktop/) _or_ [Positron](https://positron.posit.co/download.html) (optional, but recommended).
+3. The following packages, listed by lesson:
 
 ```{r}
 r_files <- list.files(pattern = ".R$", recursive = TRUE, full.names = TRUE)
-py_files <- list.files(pattern = ".py$", recursive = TRUE, full.names = TRUE)
 
 r_files <- r_files[str_detect(r_files, "^\\./\\d{2}")]
-py_files <- py_files[str_detect(py_files, "^\\./\\d{2}")]
 
 r_lesson_names <- str_extract(r_files, pattern = "(?<=(/)).{1,}(?=(/))")
-py_lesson_names <- str_extract(py_files, pattern = "(?<=(/)).{1,}(?=(/))")
 
 r_list <- split(r_files, r_lesson_names)
-py_list <- split(py_files, py_lesson_names)
 
 r_pkgs <- lapply(r_list, extract_pkgs)
-py_mdls <- lapply(py_list, extract_modules)
 
 r_df <- tibble(
   Lesson = names(r_pkgs),
-  "R Packages" = r_pkgs
+  Packages = r_pkgs
 )
 
-py_df <- tibble(
-  Lesson = names(py_mdls),
-  "Python Modules" = py_mdls
-)
-
-full_join(r_df, py_df, by = join_by(Lesson)) |> 
+r_df |> 
   mutate(
     Lesson = glue("[{Lesson}](//{Lesson})"),
-    `R Packages` = sapply(`R Packages`, \(x) glue('`{x}`') |> glue_collapse(sep = ", ")),
-    `Python Modules` = sapply(`Python Modules`, \(x) glue('`{x}`') |> glue_collapse(sep = ", ")),
+    Packages = sapply(Packages, \(x) glue('`{x}`') |> glue_collapse(sep = ", "))
   ) |> 
   knitr::kable()
 ```
@@ -174,34 +140,9 @@ cat("  )\n)")
 ```
 </details>
 
-<details>
-<summary><i>Installing Python Modules</i></summary>
 
-You can install all the Python modules used by saving a `requirements.txt` file:
+---
 
-```{r}
-reticulate::use_python("C:/Users/user/AppData/Local/Programs/Python/Python313/python.exe", required = TRUE)
+Prior to 2025, this course was based on the `{caret}` package - this version can still be found [here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).
 
-imp <- reticulate::import("importlib.metadata")
-
-py_version <- possibly(imp$version, otherwise = "")
-
-py_mdls <- py_mdls |>
-  unlist(recursive = TRUE) |>
-  unique() |> sort()
-
-py_mdl_info <- tibble(
-  module = py_mdls,
-  version = sapply(module, py_version)
-) |> 
-  arrange(module)
-
-cat(glue_data(py_mdl_info, "{module}{ifelse(nzchar(py_mdl_info$version), '>=', '')}{version}") |> glue_collapse(sep = "\n"))
-```
-And then running 
-
-```
-pip install -r requirements.txt
-```
-
-</details>
+An experimental Python version can be found [here](/python).
