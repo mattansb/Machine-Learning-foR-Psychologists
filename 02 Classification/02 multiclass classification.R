@@ -1,9 +1,7 @@
-
 library(tidymodels)
 # library(kknn)
 
 # This script demonstrates how we might asses a multiclass-classification model.
-
 
 # Data and problem ----------------------------------------------------------
 
@@ -22,20 +20,20 @@ penguins.test <- testing(splits)
 # Fit ---------------------------------------------------------------------
 
 knn_spec <- nearest_neighbor(
-  mode = "classification", engine = "kknn", 
+  mode = "classification",
+  engine = "kknn",
   neighbors = 5
 )
 
-rec <- recipe(species ~ body_mass_g + sex,
-              data = penguins.train) |> 
+rec <- recipe(species ~ body_mass_g + sex, data = penguins.train) |>
   # The data contains missing values - we will impute using the median / mode:
-  step_impute_median(body_mass_g) |> 
-  step_impute_mode(sex) |> 
+  step_impute_median(body_mass_g) |>
+  step_impute_mode(sex) |>
   # We need to dummy code the factor predictors for KNN
-  step_dummy(sex) |> 
+  step_dummy(sex) |>
   # We need to normalize the predictors for KNN
   step_normalize(all_numeric_predictors())
-  
+
 
 knn_wf <- workflow(preprocessor = rec, spec = knn_spec)
 
@@ -62,25 +60,26 @@ mset_class <- metric_set(sensitivity, specificity, accuracy)
 # https://yardstick.tidymodels.org/articles/multiclass.html
 
 ## Macro (standard averaging)
-penguins.test_predictions |> 
-  mset_class(truth = species, estimate = .pred_class, 
-             estimator = "macro")
+penguins.test_predictions |>
+  mset_class(truth = species, estimate = .pred_class, estimator = "macro")
 
-## Weighted Macro (weight by class frequancy)
-penguins.test_predictions |> 
-  mset_class(truth = species, estimate = .pred_class, 
-             estimator = "macro_weighted")
+## Weighted Macro (weight by class frequency)
+penguins.test_predictions |>
+  mset_class(
+    truth = species,
+    estimate = .pred_class,
+    estimator = "macro_weighted"
+  )
 
 ## Micro (sort of observation wise averaging)
-penguins.test_predictions |> 
-  mset_class(truth = species, estimate = .pred_class, 
-             estimator = "micro")
+penguins.test_predictions |>
+  mset_class(truth = species, estimate = .pred_class, estimator = "micro")
 
 
 # I also provide here a function to produce event-wise - not averaging!
 source(".metric_by_event.R")
 
-penguins.test_predictions |> 
+penguins.test_predictions |>
   metric_by_event(mset_class, truth = species, estimate = .pred_class)
 # We can see we have great sensitivity and specificity Gentoo, while having poor
 # sensitivity for Chinstrap / specificity for Adelie. This is because the model
@@ -88,15 +87,11 @@ penguins.test_predictions |>
 # classes.
 
 # We can get a sense for this using a ROC curve:
-penguins.test_predictions |> 
-  roc_curve(truth = species, 
-            .pred_Adelie, .pred_Chinstrap, .pred_Gentoo) |> 
-  autoplot() + aes(color = .level)
+penguins.test_predictions |>
+  roc_curve(truth = species, .pred_Adelie, .pred_Chinstrap, .pred_Gentoo) |>
+  autoplot() +
+  aes(color = .level)
 
 # We can get an "average" AUC (using Hand & Till method):
-penguins.test_predictions |> 
-  roc_auc(truth = species, 
-          .pred_Adelie, .pred_Chinstrap, .pred_Gentoo)
-
-
-
+penguins.test_predictions |>
+  roc_auc(truth = species, .pred_Adelie, .pred_Chinstrap, .pred_Gentoo)
