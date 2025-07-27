@@ -135,7 +135,9 @@ print(f"RMSE: {rmse_model:.3f}")
 
 # Let's load the functions and methods we need:
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransformer
+from sklearn.preprocessing import (
+    StandardScaler, OneHotEncoder, FunctionTransformer
+)
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LinearRegression
