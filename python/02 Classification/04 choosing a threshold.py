@@ -13,6 +13,9 @@ from sklearn.metrics import (
     roc_curve,
     confusion_matrix,
 )
+from sklearn import set_config
+
+set_config(display="diagram")
 
 
 # The Data & Problem --------------------------------------------------------
@@ -48,8 +51,11 @@ logit_pipe.fit(X_train, y_train)
 
 y_pred_val = logit_pipe.predict(X_val)
 
-accuracy_score(y_val, y_pred_val)
-recall_score(y_val, y_pred_val)
+acc = accuracy_score(y_val, y_pred_val)
+sens = recall_score(y_val, y_pred_val)
+print(f"Accuracy = {acc:.3f}")
+print(f"Sensetivity = {sens:.3f}")
+
 # The model is pretty good, but early detection of Alzheimer's disease is
 # important - we want higher sensitivity (at the cost of lower specificity).
 # (Note also that the data is imbalanced, but even so...)
@@ -96,15 +102,22 @@ y_pred_05 = logit_pipe.predict(X_test)
 y_pred_02 = logit_pipe_02.predict(X_test)
 
 # We can see that the class predictions do not completely agree:
-confusion_matrix(y_pred_05, y_pred_02)
+print(confusion_matrix(y_pred_05, y_pred_02))
 
 
-accuracy_score(y_test, y_pred_05)
-accuracy_score(y_test, y_pred_02)
+acc05 = accuracy_score(y_test, y_pred_05)
+acc02 = accuracy_score(y_test, y_pred_02)
+sens05 = recall_score(y_test, y_pred_05)
+sens02 = recall_score(y_test, y_pred_02)
 
-recall_score(y_test, y_pred_05)
-recall_score(y_test, y_pred_02)
+print(f"Accuracy (p>0.5) = {acc05:.3f}")
+print(f"Accuracy (p>0.2) = {acc02:.3f}")
+print(f"Sensitivity (p>0.5) = {sens05:.3f}")
+print(f"Sensitivity (p>0.2) = {sens02:.3f}")
+
 
 # (Note that probabilistic metrics are unaffected by adjustment)
-roc_auc_score(y_test, logit_pipe.predict_proba(X_test)[:, 1])
-roc_auc_score(y_test, logit_pipe_02.predict_proba(X_test)[:, 1])
+auc05 = roc_auc_score(y_test, logit_pipe.predict_proba(X_test)[:, 1])
+auc02 = roc_auc_score(y_test, logit_pipe_02.predict_proba(X_test)[:, 1])
+print(f"AUC (p>0.5) = {auc05:.3f}")
+print(f"AUC (p>0.2) = {auc02:.3f}")

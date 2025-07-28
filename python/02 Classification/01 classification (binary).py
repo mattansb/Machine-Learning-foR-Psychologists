@@ -14,6 +14,9 @@ from sklearn.metrics import (
     roc_curve,
     RocCurveDisplay,
 )
+from sklearn import set_config
+
+set_config(display="diagram")
 
 # The data and problem ----------------------------------------------------
 
@@ -32,11 +35,11 @@ Smarket = load_data("Smarket")
 # Assume the following classification task on the Smarket data:
 # predict Direction (Up/Down) using the features Lag1 and Lag2.
 # If we are not sure how Direction is coded we can use levels():
-Smarket["Direction"].cat.categories
+print(Smarket["Direction"].cat.categories)
 
-Smarket["Direction"].value_counts()
+print(Smarket["Direction"].value_counts())
 # The base rate probability:
-Smarket["Direction"].value_counts(normalize=True)
+print(Smarket["Direction"].value_counts(normalize=True))
 
 
 # Data Splitting (70%):
@@ -76,7 +79,7 @@ logit_pipe.fit(X_train, y_train)
 
 # Now we can look at the coefficients...
 classifier = logit_pipe.named_steps["classifier"]
-classifier.coef_
+print(classifier.coef_)
 
 # Or...
 
@@ -84,32 +87,40 @@ classifier.coef_
 ## 4) Predict and evaluate -------------------------------------------------
 
 y_pred_class = logit_pipe.predict(X_test)  # predicts classes
-y_pred_class[0:5]
+print(y_pred_class[0:5])
 
 # But a logistic regreesion is a probabilistic classifier:
 y_pred_prob = logit_pipe.predict_proba(X_test)
-y_pred_prob[0:5, :]
+print(y_pred_prob[0:5, :])
 # The columns correspond to the probabilistic predictions for each class.
 # They add up to 1 for each row.
 
 
-confusion_matrix(y_test, y_pred_class)
+print(confusion_matrix(y_test, y_pred_class))
 
 
-accuracy_score(y_test, y_pred_class)
-recall_score(y_test, y_pred_class, pos_label="Up")  # recall = sensetivity
-recall_score(
+acc = accuracy_score(y_test, y_pred_class)
+sens = recall_score(
+    y_test, y_pred_class, pos_label="Up"
+)  # recall = sensetivity
+spec = recall_score(
     y_test, y_pred_class, pos_label="Down"
 )  # specificty is the sen for negative class
-fbeta_score(y_test, y_pred_class, pos_label="Up", beta=1)
+f1 = fbeta_score(y_test, y_pred_class, pos_label="Up", beta=1)
+
+print(f"Accuracy = {acc:.3f}")
+print(f"Sensetivity = {sens:.3f}")
+print(f"Specificty = {spec:.3f}")
+print(f"F1 = {f1:.3f}")
 
 
 # Since this is a probabilistic model, we can also look at the ROC curve and AUC:
 y_pred_prob_up = y_pred_prob[:, 1]
+plt.figure()
 RocCurveDisplay.from_predictions(
     y_test, y_pred_prob_up, pos_label="Up", plot_chance_level=True
 )
-
+plt.show()
 
 # Or at the Specificity-Sensitivity trade-off:
 fpr, tpr, thresholds = roc_curve(y_test, y_pred_prob_up, pos_label="Up")
@@ -124,4 +135,5 @@ plt.show()
 
 
 # And indeed...
-roc_auc_score(y_test, y_pred_prob_up)
+auc = roc_auc_score(y_test, y_pred_prob_up)
+print(f"AUC = {auc:.3f}")

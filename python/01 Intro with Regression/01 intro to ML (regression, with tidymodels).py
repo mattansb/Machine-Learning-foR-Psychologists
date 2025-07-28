@@ -13,7 +13,7 @@ from ISLP import load_data
 
 Auto = load_data("Auto")
 # The Auto Dataset contains information about cars.
-Auto.info()
+print(Auto.info())
 # For each car, the following vars were recorded:
 #  - cylinders
 #     Number of cylinders between 4 and 8
@@ -31,7 +31,7 @@ Auto.info()
 #     Origin of car (1. American, 2. European, 3. Japanese)
 Auto["origin"] = pd.Categorical(Auto["origin"])
 
-Auto.head()
+print(Auto.head())
 # We're interested in predicting gas consumption: MPG (miles per gallon).
 
 
@@ -75,7 +75,7 @@ f = "mpg ~ origin + zscore(weight) * horsepower"
 
 # We can see that all this happens by using the patsy.dmatrices() method:
 y_mf, X_mf = patsy.dmatrices(f, Auto_train, return_type="dataframe")
-X_mf.head()
+print(X_mf.head())
 
 
 # The manner the predictors will be used to predict the outcome is determined by
@@ -147,6 +147,9 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, root_mean_squared_error
+from sklearn import set_config
+
+set_config(display="diagram")
 
 # It also provides various tools for model fitting, data preprocessing, model
 # selection, model evaluation, and many other utilities...
@@ -161,8 +164,8 @@ features = ["weight", "origin", "horsepower"]
 X_train, X_test, y_train, y_test = train_test_split(
     Auto[features], Auto[outcome], train_size=0.7, random_state=1111
 )
-X_train.shape
-X_test.shape
+print(X_train.shape)
+print(X_test.shape)
 
 
 ## 2) Specify the model and Preprocessing ---------------------------------
@@ -205,8 +208,7 @@ preprocessor = Pipeline(
 
 # This is quite verbose compared to the formula interface, but will come in
 # handy with more complicated preprocessing steps.
-preprocessor
-
+print(preprocessor)
 
 # Right now, the transformer is just a list of general instructions. To get a
 # transformer with specific instructions, we need to train the transformer.
@@ -233,7 +235,7 @@ linreg_pipe = Pipeline(
     steps=[("preprocessor", preprocessor), ("regressor", reg)]
 )
 
-linreg_pipe
+print(linreg_pipe)
 
 
 ## 3) Fitting the model -------------------------------------------

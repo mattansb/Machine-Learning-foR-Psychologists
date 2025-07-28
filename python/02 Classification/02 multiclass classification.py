@@ -13,6 +13,9 @@ from sklearn.metrics import (
     roc_auc_score,
     RocCurveDisplay,
 )
+from sklearn import set_config
+
+set_config(display="diagram")
 
 from palmerpenguins.penguins import load_penguins
 
@@ -22,7 +25,7 @@ from palmerpenguins.penguins import load_penguins
 
 penguins = load_penguins()
 penguins["species"] = pd.Categorical(penguins["species"])
-penguins.head()
+print(penguins.head())
 # This data set contains info on penguins from the Palmer Archipelago,
 # Antarctica. We will predict the species of penguins based on their bill length
 # and depth, using a KNN model.
@@ -94,20 +97,31 @@ y_pred_prob = knn_pipe.predict_proba(X_test)
 #
 # Note, however that accuracy does not require a "positive" class, and so it can
 # be used without issue in multiclass problems.
-accuracy_score(y_test, y_pred)
-
+acc = accuracy_score(y_test, y_pred)
+print(f"AUC = {acc:.3f}")
 
 # sklearn.metrics provids 3 methods for dealing with multiclass predictions, all
 # of them effectively compute such metrics for each class, and them average
 # them.
-recall_score(y_test, y_pred, average="macro")  # standard averaging
-recall_score(y_test, y_pred, average="weighted")  # weighted by class frequency
-recall_score(
+sens_macro = recall_score(y_test, y_pred, average="macro")  # standard averaging
+sens_weight = recall_score(
+    y_test, y_pred, average="weighted"
+)  # weighted by class frequency
+sens_micro = recall_score(
     y_test, y_pred, average="micro"
 )  # sort of observation wise averaging
 
+print(f"Sensetivity (Macro) = {sens_macro:.3f}")
+print(f"Sensetivity (Weighted) = {sens_weight:.3f}")
+print(f"Sensetivity (Micro) = {sens_micro:.3f}")
+
 # We can also get these metrics by event:
-recall_score(y_test, y_pred, average=None)
+for cat, sens in zip(
+    y_test.cat.categories, recall_score(y_test, y_pred, average=None)
+):
+    print(f"Sensetivity ({cat}) = {sens:.3f}")
+
+
 # We can see we have great sensitivity for Gentoo, while having poor sensitivity
 # for Chinstrap (and what's going on with Adelie?). This is because the model
 # is very good at predicting Gentoo, but not so good at predicting the other
@@ -115,19 +129,19 @@ recall_score(y_test, y_pred, average=None)
 
 # We can get a sense for this using a ROC curve:
 y_test_onehot = LabelBinarizer().fit_transform(y_test)
-colors = ["aqua", "darkorange", "cornflowerblue"]
 
 fig, ax = plt.subplots(figsize=(6, 6))
-for class_id, color in zip(range(3), colors):
+for class_id in range(3):
     RocCurveDisplay.from_predictions(
         y_test_onehot[:, class_id],
         y_pred_prob[:, class_id],
         name=y_test.cat.categories[class_id],
-        curve_kwargs=dict(color=color),
+        # curve_kwargs=dict(color=color),
         ax=ax,
         plot_chance_level=(class_id == 2),
     )
-
+fig.show()
 
 # We can get an "average" AUC:
-roc_auc_score(y_test, y_pred_prob, multi_class="ovr")
+auc = roc_auc_score(y_test, y_pred_prob, multi_class="ovr")
+print(f"AUC (Average) = {auc:.3f}")

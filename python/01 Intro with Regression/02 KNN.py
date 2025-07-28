@@ -12,6 +12,9 @@ from sklearn.preprocessing import (
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import r2_score, root_mean_squared_error
+from sklearn import set_config
+
+set_config(display="diagram")
 
 from ISLP import load_data
 
@@ -19,7 +22,7 @@ from ISLP import load_data
 
 Auto = load_data("Auto")
 # The Auto Dataset contains information about cars.
-Auto.info()
+print(Auto.info())
 # For each car, the following vars were recorded:
 #  - cylinders
 #     Number of cylinders between 4 and 8
@@ -50,8 +53,8 @@ features = ["weight", "origin", "horsepower"]
 X_train, X_test, y_train, y_test = train_test_split(
     Auto[features], Auto[outcome], train_size=0.7, random_state=1111
 )
-X_train.shape
-X_test.shape
+print(X_train.shape)
+print(X_test.shape)
 
 
 # 2) Specify the model -------------------------------------------
