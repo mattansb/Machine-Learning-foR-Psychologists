@@ -91,8 +91,12 @@ py_mdls <- py_mdls |>
   unlist(recursive = TRUE) |>
   unique() |> sort()
 
+
 py_mdl_info <- tibble(
-  module = py_mdls,
+  module = case_match(py_mdls, 
+                      "sklearn" ~ "scikit-learn", 
+                      "imblearn" ~ "imbalanced-learn",
+                      .default = py_mdls),
   version = sapply(module, py_version)
 ) |> 
   arrange(module)

@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 ![](https://img.shields.io/badge/Languages-Python-blue.png)
 
-<sub>*Last updated 2025-07-27.*</sub>
+<sub>*Last updated 2025-07-28.*</sub>
 
 This folder contains Python translations of the R tutorials in the main
 repo.
@@ -36,15 +36,15 @@ You can install all the Python modules used by saving a
 `requirements.txt` file:
 
     ISLP>=0.4.0
-    imblearn
+    imbalanced-learn>=0.13.0
     matplotlib>=3.10.3
     numpy>=2.3.1
     palmerpenguins>=0.1.4
     pandas>=2.3.0
     patsy>=1.0.1
+    scikit-learn>=1.6.1
     scipy>=1.16.0
     seaborn>=0.13.2
-    sklearn
     statsmodels>=0.14.5
 
 And then running
