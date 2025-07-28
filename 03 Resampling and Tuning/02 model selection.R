@@ -1,4 +1,3 @@
-
 library(tidymodels)
 # library(kknn)
 
@@ -35,31 +34,25 @@ idx <- sample.int(n)
 k_start <- floor(n * c(0, cumsum(p))) + 1
 k_end <- floor(n * c(cumsum(p), 1))
 
-Auto.tune <- Auto[sort(idx[k_start[1]:k_end[1]]),]
-Auto.compare <- Auto[sort(idx[k_start[2]:k_end[2]]),]
-Auto.test <- Auto[sort(idx[k_start[3]:k_end[3]]),]
+Auto.tune <- Auto[sort(idx[k_start[1]:k_end[1]]), ]
+Auto.compare <- Auto[sort(idx[k_start[2]:k_end[2]]), ]
+Auto.test <- Auto[sort(idx[k_start[3]:k_end[3]]), ]
 
 # As you can see, these splits require a lot of data.
 # In smaller samples we might use loo-cv for comparing models, or collapse
 # decision nodes.
 
-
-
-
-
 ## Get resampled results --------------------------------------------------
 
 ### Model 1: Linear regression --------------------------------------------
 
-rec1 <- recipe(mpg ~ horsepower + weight,
-               data = Auto.compare)
+rec1 <- recipe(mpg ~ horsepower + weight, data = Auto.compare)
 
 linreg_spec <- linear_reg(mode = "regression", engine = "lm")
 
 linreg1_wf <- workflow(preprocessor = rec1, spec = linreg_spec)
 
 # (No tuning needed.)
-
 
 # Split comparison data (why?):
 cv_compare <- vfold_cv(Auto.compare, v = 10)
@@ -80,7 +73,6 @@ linreg1_oos <- fit_resamples(
 )
 
 
-
 # get a summary of the metrics across resamples:
 collect_metrics(linreg1_oos)
 # We can also get the raw data:c data (per-resample):
@@ -88,15 +80,9 @@ collect_metrics(linreg1_oos, summarize = FALSE)
 collect_metrics(linreg1_oos, summarize = FALSE, type = "wide")
 
 
-
-
-
-
-
 ### Model 2: Linear regression --------------------------------------------
 
-rec2 <- recipe(mpg ~ .,
-               data = Auto.compare) |>
+rec2 <- recipe(mpg ~ ., data = Auto.compare) |>
   step_rm(name) |>
   step_novel(cylinders, origin) |>
   step_dummy(all_nominal_predictors()) |>
@@ -107,16 +93,11 @@ rec2 <- recipe(mpg ~ .,
 linreg2_wf <- workflow(preprocessor = rec2, spec = linreg_spec)
 
 
-
 linreg2_oos <- fit_resamples(
   linreg2_wf,
   resamples = cv_compare, # We are using the SAME resamples!
   metrics = mset_reg
 )
-
-
-
-
 
 
 ### Model 3: KNN --------------------------------------------
@@ -125,7 +106,8 @@ rec3 <- rec2 |>
   step_normalize(all_predictors())
 
 knn_spec <- nearest_neighbor(
-  mode = "regression", engine = "kknn",
+  mode = "regression",
+  engine = "kknn",
   neighbors = tune()
 )
 
@@ -175,7 +157,6 @@ knn_oos <- fit_resamples(
 # 2. Because we used the *same* folds, we can compare the models in a paired
 #    fashion!
 
-
 ### Plot -----------------
 
 cv_results <- bind_rows(
@@ -197,18 +178,18 @@ cv_summary <- bind_rows(
 )
 
 
-
 cv_results |>
   ggplot(aes(model, .estimate)) +
   facet_wrap(vars(.metric), scales = "free_y") +
   # fold-data
   geom_line(aes(group = id)) +
   # summary
-  geom_pointrange(aes(y = mean, ymin = mean - std_err, ymax = mean + std_err),
-                  data = cv_summary,
-                  color = "red") +
+  geom_pointrange(
+    aes(y = mean, ymin = mean - std_err, ymax = mean + std_err),
+    data = cv_summary,
+    color = "red"
+  ) +
   scale_x_discrete(breaks = )
-
 
 
 ### Contrast ----------------
@@ -221,7 +202,6 @@ cv_compareare_lin2.knn <- cv_results |>
     diff = linear2 - KNN
   ) |>
   summarise(
-
     mean_diff = mean(diff),
     se_diff = sd(diff) / sqrt(n()),
 
@@ -237,16 +217,12 @@ cv_compareare_lin2.knn |>
   )
 
 
-
-
-
-
 # Investigating prediction errors ----------------------------------------------------------
 # It can often be interesting to see not only which model is better, but also
 # where different models fail.
 
 # Let's train the selected model(s?) on tune+compare datasets
-Auto.train <- Auto[sort(idx[k_start[1]:k_end[2]]),]
+Auto.train <- Auto[sort(idx[k_start[1]:k_end[2]]), ]
 nrow(Auto.train)
 
 # Note we're using the train data
@@ -261,10 +237,13 @@ knn_predictions <- augment(knn_fit, new_data = Auto.test)
 
 # We can also look are group performance indices:
 linreg2_predictions |>
-  group_by(origin, mpg >=  median(mpg)) |>
+  group_by(origin, mpg >= median(mpg)) |>
   mae(mpg, .pred)
 
-ggplot(linreg2_predictions, aes(origin, mpg - .pred, fill = mpg >=  median(mpg))) +
+ggplot(
+  linreg2_predictions,
+  aes(origin, mpg - .pred, fill = mpg >= median(mpg))
+) +
   geom_hline(yintercept = 0) +
   geom_violin()
 # We can seen that the model tends to fail the most for cars from Europe with
@@ -279,18 +258,21 @@ linreg2_predictions |>
 
 ggplot(mapping = aes(mpg - .pred)) +
   geom_vline(xintercept = 0) +
-  geom_density(aes(fill = "Linear Reg\n(simple)"), 
-               color = NA, alpha = 0.6,
-               data = linreg2_predictions) +
-  geom_density(aes(fill = "KNN"), 
-               color = NA, alpha = 0.6,
-               data = knn_predictions) +
-  labs(x = expression(mpg-hat(mpg)))
+  geom_density(
+    aes(fill = "Linear Reg\n(simple)"),
+    color = NA,
+    alpha = 0.6,
+    data = linreg2_predictions
+  ) +
+  geom_density(
+    aes(fill = "KNN"),
+    color = NA,
+    alpha = 0.6,
+    data = knn_predictions
+  ) +
+  labs(x = expression(mpg - hat(mpg)))
 # It seems that the simple linear model gives more negative errors (tends to
 # overestimate mpg).
 
-
 # For classification problems, we can also compare errors with
 ?mcnemar.test()
-
-
