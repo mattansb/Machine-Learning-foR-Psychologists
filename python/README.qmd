@@ -14,19 +14,25 @@ library(glue)
 extract_modules <- function(fl) {
   if (length(fl) == 1) {
     txt <- read.delim(fl, header = FALSE)[[1]]
-    
+
     mods <- str_extract_all(
       string = txt,
-      pattern = "(?<=^(import|from)\\s)[a-zA-Z0-9]{1,}"
+      pattern = "(?<=^(import|from)\\s)[a-zA-Z0-9_]{1,}"
     )
-    
+
     mods <- unlist(mods)
-    
+
+    dir_py_files <- dirname(fl) |>
+      list.files(pattern = "\\.py$", full.names = TRUE) |>
+      basename() |>
+      str_remove(pattern = "\\.py$")
+
+    mods <- setdiff(mods, dir_py_files)
+
   } else if (length(fl) > 1) {
     mods <- sapply(fl, extract_modules)
   }
-  
-  
+
   mods |>
     unlist(recursive = TRUE) |>
     unique()
@@ -67,11 +73,11 @@ py_df <- tibble(
   Modules = py_mdls
 )
 
-py_df |> 
+py_df |>
   mutate(
     Lesson = glue("[{Lesson}](//{Lesson})"),
     Modules = sapply(Modules, \(x) glue('`{x}`') |> glue_collapse(sep = ", ")),
-  ) |> 
+  ) |>
   knitr::kable()
 ```
 
@@ -93,17 +99,17 @@ py_mdls <- py_mdls |>
 
 
 py_mdl_info <- tibble(
-  module = case_match(py_mdls, 
-                      "sklearn" ~ "scikit-learn", 
+  module = case_match(py_mdls,
+                      "sklearn" ~ "scikit-learn",
                       "imblearn" ~ "imbalanced-learn",
                       .default = py_mdls),
   version = sapply(module, py_version)
-) |> 
+) |>
   arrange(module)
 
 cat(glue_data(py_mdl_info, "{module}{ifelse(nzchar(py_mdl_info$version), '>=', '')}{version}") |> glue_collapse(sep = "\n"))
 ```
-And then running 
+And then running
 
 ```
 pip install -r requirements.txt
