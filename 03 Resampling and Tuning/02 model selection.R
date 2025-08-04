@@ -18,11 +18,12 @@ Auto$cylinders <- factor(Auto$cylinders)
 Auto$origin <- factor(Auto$origin)
 
 ## Data splitting ----------------------------------------
-# We will be using data a little differently here since we will be doing 3 things along the way:
+# We will be using data a little differently here since we will be doing 3
+# things along the way:
 # 1. Tune hyper parameters
 # 2. Compare models (and select between them)
 # 3. Test the final model
-# We want a "clean" dataset for each type of work that is independant from the
+# We want a "clean" dataset for each type of work that is independent from the
 # data used in previous steps.
 
 # So let's split the data in 3 parts:
@@ -188,8 +189,7 @@ cv_results |>
     aes(y = mean, ymin = mean - std_err, ymax = mean + std_err),
     data = cv_summary,
     color = "red"
-  ) +
-  scale_x_discrete(breaks = )
+  )
 
 
 ### Contrast ----------------
@@ -225,7 +225,7 @@ cv_compareare_lin2.knn |>
 Auto.train <- Auto[sort(idx[k_start[1]:k_end[2]]), ]
 nrow(Auto.train)
 
-# Note we're using the train data
+# Note we're using the full train data
 linreg2_fit <- fit(linreg1_wf, data = Auto.train)
 knn_fit <- fit(wf_knn, data = Auto.train)
 

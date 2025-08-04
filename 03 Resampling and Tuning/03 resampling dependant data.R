@@ -69,9 +69,6 @@ hotel_rates |>
 linreg_spec <- linear_reg("regression", engine = "lm")
 
 mset_reg <- metric_set(rsq_trad, rmse)
-# We will be using rsq_trad() instead of rsq() because the former is more
-# sensitive to the number of predictors in the model. This is because rsq()sues caused by grouped data (that are often masked
-# by rsq()).
 
 rec <- recipe(avg_price_per_room ~ ., data = hr.train) |>
   step_dummy(all_factor_predictors())
