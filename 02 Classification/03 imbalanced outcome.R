@@ -29,8 +29,7 @@ table(Caravan.test$Purchase) |> proportions()
 
 
 # We will be using this recipe:
-rec <- recipe(Purchase ~ ., 
-              data = Caravan.train) |> 
+rec <- recipe(Purchase ~ ., data = Caravan.train) |>
   step_normalize(all_numeric_predictors())
 
 # And these classification metrics:
@@ -42,13 +41,12 @@ mset_class <- metric_set(accuracy, specificity, sensitivity)
 # simply predicting "No"....
 
 null_fit <-
-  workflow(preprocessor = rec,
-           spec = null_model(mode = "classification")) |>
+  workflow(preprocessor = rec, spec = null_model(mode = "classification")) |>
   fit(data = Caravan.train)
 # The null model is the worst possible model - it does not use any information
 # in X, only the distribution of Y in the training set.
 # - For regression, it always predicts mean(Y)
-# - For classification, it predicts the frequent class and base rate 
+# - For classification, it predicts the frequent class and base rate
 #   probabilities.
 # These models are good for benchmarking.
 
@@ -58,7 +56,6 @@ Caravan.test_predictions_NULL <- augment(null_fit, new_data = Caravan.test)
 # Same as:
 # Caravan.test$.pred_class.BAD <- factor("No", levels = c("Yes", "No"))
 # Caravan.test$.pred_Yes.BAD <- 0
-
 
 Caravan.test_predictions_NULL |>
   conf_mat(truth = Purchase, estimate = .pred_class)
@@ -113,37 +110,35 @@ knn_fit.down <- knn_wf |>
 # Comparing Results -------------------------------------------------------
 
 # Get raw predictions
-Caravan.test_predictions <- 
+Caravan.test_predictions <-
   bind_rows(
     "NULL" = Caravan.test_predictions_NULL,
     None = augment(knn_fit, new_data = Caravan.test),
     Up = augment(knn_fit.up, new_data = Caravan.test),
-    Down = augment(knn_fit.down, new_data = Caravan.test), 
-    
+    Down = augment(knn_fit.down, new_data = Caravan.test),
+
     .id = "Method"
-  ) |> 
+  ) |>
   mutate(
     Method = factor(Method, levels = c("NULL", "None", "Up", "Down"))
   )
 
 # Let's look at the predictions made by the different methods for the first test
 # case:
-Caravan.test_predictions |> 
+Caravan.test_predictions |>
   select(Method, Purchase, starts_with(".pred")) |>
   slice(1, .by = Method)
 
 
-
-
-Caravan.test_predictions |> 
-  group_by(Method) |> 
+Caravan.test_predictions |>
+  group_by(Method) |>
   mset_class(truth = Purchase, estimate = .pred_class)
 # As we can see, the accuracy (and specificity) have dropped, but sensitivity is
 # higher.
 
 # We can also compare ROC curves and AUCs:
 
-Caravan.test_predictions |> 
-  group_by(Method) |> 
-  roc_curve(truth = Purchase, .pred_Yes) |> 
+Caravan.test_predictions |>
+  group_by(Method) |>
+  roc_curve(truth = Purchase, .pred_Yes) |>
   autoplot()
