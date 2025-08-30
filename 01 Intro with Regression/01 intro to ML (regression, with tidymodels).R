@@ -1,4 +1,3 @@
-
 data("Auto", package = "ISLR")
 str(Auto)
 # The Auto Dataset contains information about cars.
@@ -22,22 +21,13 @@ Auto$origin <- factor(Auto$origin)
 # - name
 #     Vehicle name
 
-
-
-
 # We're interested in predicting gas consumption: MPG (miles per gallon)
-
-
-
 
 # (Linear) Regression with Base R --------------------------------------------------
 
 # We'll start with an example of fitting and evaluating a regression model using
 # base R. Specifically, we'll fit a *linear regression* model (remember that in
 # ML-speak, "regression" is any prediction model with a quantitative outcome.)
-
-
-
 
 ## 1) Split the data ----------------------------------------------
 
@@ -47,13 +37,11 @@ Auto$origin <- factor(Auto$origin)
 
 # because we will use random sampling we need to set a random seed in order to
 # replicate the results
-set.seed(1111) 
+set.seed(1111)
 
 i <- sample.int(nrow(Auto), size = 0.7 * nrow(Auto))
 Auto.train <- Auto[i, ]
 Auto.test <- Auto[-i, ]
-
-
 
 
 ## 2) Specify the model -------------------------------------------
@@ -71,13 +59,9 @@ mpg ~ origin + scale(weight) * horsepower
 # - weight is standardized
 # - adding an interaction between (standardized) weight and horsepower
 
-
 # We can see that all this happens by using the model.matrix() function:
-model.matrix(mpg ~ origin + scale(weight) * horsepower,
-             data = Auto.train) |> 
+model.matrix(mpg ~ origin + scale(weight) * horsepower, data = Auto.train) |>
   head(n = 10)
-
-
 
 
 # The manner the predictors will be used to predict the outcome is determined by
@@ -86,18 +70,13 @@ model.matrix(mpg ~ origin + scale(weight) * horsepower,
 ?lm
 
 
-
-
 ## 3) Fitting the model -------------------------------------------
 # Fitting, or statistical learning, or training is the process of finding the
 # best-fitting model for the data. In the case of linear regression, this means
 # finding the coefficients that minimize the sum of squared errors.
 
 # We combine the formula, and data and the fitting function as defined above:
-fit <- lm(mpg ~ origin + scale(weight) * horsepower,
-          data = Auto.train)
-
-
+fit <- lm(mpg ~ origin + scale(weight) * horsepower, data = Auto.train)
 
 
 ## 4) Evaluate the model ------------------------------------------
@@ -109,26 +88,24 @@ Auto.test$mpg_pred <- predict(fit, newdata = Auto.test)
 
 
 # Plot estimated values vs truth
-plot(Auto.test$mpg_pred, Auto.test$mpg, 
-     xlab = expression("Estimated:"~hat(mpg)), 
-     ylab = "Truth: mpg")
+plot(
+  Auto.test$mpg_pred,
+  Auto.test$mpg,
+  xlab = expression("Estimated:" ~ hat(mpg)),
+  ylab = "Truth: mpg"
+)
 abline(a = 0, b = 1)
 
 
-# How we assess model performance? 
+# How we assess model performance?
 # For regression problems- R-squared, MSE, RMSE, MAE...
 c(
-  rsq = cor(Auto.test$mpg_pred, Auto.test$mpg) ^ 2,
-  rmse = sqrt(mean((Auto.test$mpg - Auto.test$mpg_pred) ^ 2))
+  rsq = cor(Auto.test$mpg_pred, Auto.test$mpg)^2,
+  rmse = sqrt(mean((Auto.test$mpg - Auto.test$mpg_pred)^2))
 )
 
 
-
-
 # Let's do this again, with {tidymodels}.
-
-
-
 
 # (Linear) Regression with {tidymodels}  ----------------------------------------------
 
@@ -144,9 +121,6 @@ library(tidymodels)
 #
 # (see: https://www.tidymodels.org/)
 
-
-
-
 ## 1) Split the data ----------------------------------------------
 
 splits <- initial_split(Auto, prop = 0.7) # create a splits object
@@ -155,15 +129,12 @@ Auto.train <- training(splits) # Extract the training set
 Auto.test <- testing(splits) # Extract the test set
 
 
-
-
 ## 2) Specify the model -------------------------------------------
 
 ### i. Define outcome + predictors --------------------
 
 # We again use a formula, but inside the recipe()
-rec <- recipe(mpg ~ origin + weight + horsepower,
-              data = Auto.train)
+rec <- recipe(mpg ~ origin + weight + horsepower, data = Auto.train)
 rec
 
 
@@ -175,11 +146,11 @@ rec
 # There are many prepossessing "steps" we can take:
 # https://recipes.tidymodels.org/reference/index.html
 # For example, here we want:
-rec <- rec |> 
+rec <- rec |>
   # - origin is a factor, so will produce dummy coding
-  step_dummy(origin) |> 
+  step_dummy(origin) |>
   # - weight is standardized
-  step_normalize(weight) |> 
+  step_normalize(weight) |>
   # - adding an interaction between (standardized) weight and horsepower
   step_interact(~ weight:horsepower)
 
@@ -199,9 +170,6 @@ prep(rec)
 prep(rec) |> bake(new_data = Auto.train)
 # Compare this to the model matrix above
 
-
-
-
 ### iii. Define the type of model ---------------------
 
 # In {tidymodels} this stage is separate from the model fitting. We define a
@@ -220,14 +188,10 @@ translate(linreg_spec)
 show_engines("linear_reg")
 
 
-
-
 # Finally, we can combine the recipe and the model spec to a workflow - together
 # they tell us how data *should* be used to fit a model.
 linreg_wf <- workflow(preprocessor = rec, spec = linreg_spec)
 linreg_wf
-
-
 
 
 ## 3) Fitting the model -------------------------------------------
@@ -246,7 +210,6 @@ cbind(
 )
 # (Why aren't these exactly the same? How is this related to bias or variance?)
 
-
 ## 4) Evaluate the model ------------------------------------------
 
 # Generate predictions:
@@ -260,13 +223,12 @@ head(Auto.test_predictions)
 # In either case, the test set is preprocessed according to the recipe, and
 # predictions are then made.
 
-ggplot(Auto.test_predictions, aes(.pred, mpg)) + 
-  geom_abline() + 
-  geom_point() + 
-  coord_obs_pred() + 
-  labs(x = expression("Estimated:"~hat(mpg)), 
-       y = "Truth: mpg")
-  
+ggplot(Auto.test_predictions, aes(.pred, mpg)) +
+  geom_abline() +
+  geom_point() +
+  coord_obs_pred() +
+  labs(x = expression("Estimated:" ~ hat(mpg)), y = "Truth: mpg")
+
 # Performance metrics
 Auto.test_predictions |> rsq(mpg, .pred)
 Auto.test_predictions |> rmse(mpg, .pred)
@@ -274,5 +236,3 @@ Auto.test_predictions |> rmse(mpg, .pred)
 # or define a metric est:
 mset_reg <- metric_set(rsq, rmse, mae)
 Auto.test_predictions |> mset_reg(mpg, .pred)
-
-
