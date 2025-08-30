@@ -1,10 +1,10 @@
-import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score, recall_score, RocCurveDisplay
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.dummy import DummyClassifier
 from sklearn.preprocessing import StandardScaler
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler
@@ -48,8 +48,23 @@ print(y_test.value_counts(normalize=True))
 # The data imbalance means that, technically, we can achieve high accuracy by
 # simply predicting "No"....
 
-y_pred_BAD = np.array(["No"] * len(y_test))
-y_pred_probYes_BAD = np.array([0] * len(y_test))
+dummy_model = DummyClassifier().fit(X_train, y_train)
+# The dummy model is the worst possible model - it does not use any information
+# in X, only the distribution of Y in the training set.
+# - For regression, it always predicts mean(Y)
+# - For classification, it predicts the frequent class and base rate
+#   probabilities.
+# These models are good for benchmarking.
+
+# But like a "real" model, it can be used to generate predictions on new data:
+y_pred_BAD = dummy_model.predict(X_test)
+y_pred_probYes_BAD = dummy_model.predict_proba(X_test)
+
+# same as:
+# y_pred_BAD = np.array(["No"] * len(y_test))
+# y_pred_probYes_BAD = np.tile(
+#     y_train.value_counts(normalize=True), (len(y_test), 1)
+# )
 
 print(confusion_matrix(y_test, y_pred_BAD))
 
