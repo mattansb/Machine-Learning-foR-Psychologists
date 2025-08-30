@@ -1,3 +1,4 @@
+
 library(tidymodels)
 # library(kknn)
 
@@ -19,8 +20,9 @@ Caravan.train <- training(splits)
 Caravan.test <- testing(splits)
 
 
+
 table(Caravan.train$Purchase) |> proportions()
-# As we can see, the classes are very unbalanced.
+# As we can see, the classes are very unbalanced. 
 
 # Note we used a stratified split, so that both the train and test set have
 # about the ~same distribution of classes. This is particularly important with
@@ -63,17 +65,16 @@ Caravan.test_predictions_NULL <- augment(null_fit, new_data = Caravan.test)
 Caravan.test_predictions_NULL |>
   conf_mat(truth = Purchase, estimate = .pred_class)
 
-
 # But as we can see, we have no specificity!
 Caravan.test_predictions_NULL |>
   mset_class(truth = Purchase, estimate = .pred_class)
 
 
+
 # Training with Imbalance Data --------------------------------------------
 
 knn_spec <- nearest_neighbor(
-  mode = "classification",
-  engine = "kknn",
+  mode = "classification", engine = "kknn", 
   neighbors = 10
 )
 
@@ -82,14 +83,15 @@ knn_wf <- workflow(preprocessor = rec, spec = knn_spec)
 knn_fit <- fit(knn_wf, data = Caravan.train)
 
 
+
 # Up- and Down-Sampling ---------------------------------------------------
 
 # We can also sample our data such that we artificially achieve class balances.
 # The main methods are:
-# down-sampling:
+# down-sampling: 
 #   randomly subset all the classes in the training set so that their class
 #   frequencies match the least prevalent class.
-# up-sampling:
+# up-sampling: 
 #   randomly sample (with replacement) the minority class(es) to be the same
 #   size as the majority class.
 # hybrid methods:
@@ -102,11 +104,11 @@ knn_fit <- fit(knn_wf, data = Caravan.train)
 rec_up <- rec |> themis::step_upsample(Purchase)
 rec_down <- rec |> themis::step_downsample(Purchase)
 
-knn_fit.up <- knn_wf |>
-  update_recipe(rec_up) |>
+knn_fit.up <- knn_wf |> 
+  update_recipe(rec_up) |> 
   fit(data = Caravan.train)
 knn_fit.down <- knn_wf |>
-  update_recipe(rec_down) |>
+  update_recipe(rec_down) |> 
   fit(data = Caravan.train)
 
 
@@ -134,15 +136,15 @@ Caravan.test_predictions |>
 
 
 
-
 Caravan.test_predictions |> 
   group_by(Method) |> 
   mset_class(truth = Purchase, estimate = .pred_class)
 # As we can see, the accuracy (and specificity) have dropped, but sensitivity is
 # higher.
 
-# We can also compare ROC curves and AUCs:
 
+
+# We can also compare ROC curves and AUCs:
 Caravan.test_predictions |> 
   group_by(Method) |> 
   roc_curve(truth = Purchase, .pred_Yes) |> 

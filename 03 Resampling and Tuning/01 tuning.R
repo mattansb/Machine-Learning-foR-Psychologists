@@ -1,3 +1,4 @@
+
 library(tidymodels)
 # library(kknn)
 # library(finetune)
@@ -37,26 +38,29 @@ Smarket.test <- testing(splits)
 
 # We'll use KNN - but we will use resampling methods to find K!
 
+
 # Tuning a KNN model -----------------------------------
 
 ## 1) Specify the model -------------------------------------------
 
+
 # Define the model
-# Note: we are setting neighbors (k) to tune(). This is a placeholder for the
+# Note: we are stting neighbors (k) to tune(). This is a placeholder for the
 # tuning grid, and will later be replaced by the actual selected value.
 knn_spec <- nearest_neighbor(
-  mode = "classification",
-  engine = "kknn",
+  mode = "classification", engine = "kknn", 
   neighbors = tune()
 )
 
 
 # Define the recipe
-rec <- recipe(Direction ~ ., data = Smarket.train) |>
+rec <- recipe(Direction ~ ., 
+              data = Smarket.train) |> 
   # Keep only Lag predictors
-  step_rm(Volume, Today) |>
+  step_rm(Volume, Today) |> 
   # KNN requires standardization of predictors
   step_normalize(all_numeric_predictors())
+
 
 
 # Create a workflow
@@ -70,6 +74,7 @@ knn_wf
 # 1) A resmapling method
 # 2) What metrics to use for validation
 # 3) How to search for different values of hyperparameters.
+
 
 ### Resampling and Metrics ----------------------------------
 # We will use 10-fold CV.
@@ -88,6 +93,9 @@ cv_folds
 # You can still use it -- e.g., for OOS performance estimation -- but it
 # requires manual code writing (see 04 estimating performance with LOO-CV.R).
 
+
+
+
 # For each fold we will compute the out-of-sample performance using the
 # following metrics:
 
@@ -95,26 +103,31 @@ mset_class <- metric_set(sensitivity, specificity, f_meas, roc_auc, kap)
 mset_class
 
 
+
 ### Tuning method -------------------------------
 
-# In this course we will be tuning by grid search - via the
+# In this course we will be tuning by grid search - via the 
 ?tune_grid
 # function, that requires a grid input - predefined candidate values that will
 # be used for model fitting and then validation on the validation set(s).
 help.search("^tune_", package = c("tune", "finetune")) # See more options here
 
 
+
+
 # Define the tuning grid
 knn_grid <- expand_grid(neighbors = c(5, 10, 50, 200))
 # Or
 knn_grid <- grid_regular(
-  neighbors(range = c(5, 200)),
+  neighbors(range = c(5, 200)), 
   levels = 4
 )
 
 # We can also generate a random grid
 ?grid_random
 # help.search("^grid_", package = "dials") # See more options here
+
+
 
 ### Model tuning ----------------------------------
 
@@ -125,6 +138,7 @@ knn_tuned <- tune_grid(
   grid = knn_grid,
   metrics = mset_class
 )
+
 
 
 #### View results ---------------------
@@ -150,6 +164,9 @@ knn_final_wf <- finalize_workflow(knn_wf, best_knn)
 knn_final_wf
 
 
+
+
+
 ## 3) Fit the final model -------------------------------------
 # Using the full training set
 
@@ -163,18 +180,20 @@ Smarket.test_predictions <- augment(knn_final_fit, new_data = Smarket.test)
 glimpse(Smarket.test_predictions)
 
 
-Smarket.test_predictions |>
+Smarket.test_predictions |> 
   conf_mat(truth = Direction, estimate = .pred_class)
 
 
-Smarket.test_predictions |>
+Smarket.test_predictions |> 
   mset_class(truth = Direction, estimate = .pred_class, .pred_Up)
 # Overall, not amazing...
 
+
 # Since this is a probabilistic model, we can also look at the ROC curve and AUC:
-Smarket.test_predictions |>
-  roc_curve(truth = Direction, .pred_Up) |>
+Smarket.test_predictions |> 
+  roc_curve(truth = Direction, .pred_Up) |> 
   autoplot()
+
 
 
 # Exercises ----------------------------------------------------------------------
@@ -187,9 +206,13 @@ Smarket.test_predictions |>
 #     https://yardstick.tidymodels.org/reference/index.html
 #   C. Use the following resampling methods:
 #     1. With 50 bootstrap samples
-(bootstrap_samps <- bootstraps(Smarket, times = 50))
+(bootstrap_samps <- bootstraps(Smarket, times = 50)) 
 # (Note that the validation set is not always of the same size!)
 #     2. 10 repeated 5-fold CV:
 (cv_repeated_folds <- vfold_cv(Smarket, v = 5, repeats = 10))
 #   D. Select K using best / one-SE rule.
 #     How did the resampling methods differ in their results?
+
+
+
+

@@ -6,12 +6,15 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2025-07-27.*</sub>
+<sub>*Last updated 2025-06-25.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
 evaluate and compare various **machine learning models, using
-[`tidymodels`](https://www.tidymodels.org/)**.
+[`tidymodels`](https://www.tidymodels.org/)**. (Prior to 2025, this
+course was based on the `caret` package - this version can still be
+found
+[here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).)
 
 These topics were taught in the graduate-level course ***Machine
 Learning for Psychologists*** (Psych Dep., Ben-Gurion University of the
@@ -24,8 +27,7 @@ Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psyc
 **Notes:**
 
 - This repo contains only materials relating to *Practical Applications
-  in R/Python*, and does not contain any theoretical or introductory
-  materials.
+  in R*, and does not contain any theoretical or introductory materials.
 - Please note that some code does not work *on purpose*, to force
   students to learn to debug.
 
@@ -33,92 +35,95 @@ Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psyc
 
 You will need:
 
-1.  A fresh installation of [**R**](https://cran.r-project.org/)
-    (preferably version 4.4.1 or above)
-2.  [RStudio](httpshttps://posit.co/download/rstudio-desktop/) *or*
-    [Positron](https://positron.posit.co/download.html) (optional, but
-    recommended).
+1.  A fresh installation of [**`R`**](https://cran.r-project.org/)
+    (preferably version 4.3.2 or above).
+2.  [RStudio IDE](https://www.rstudio.com/products/rstudio/download/)
+    (optional, but recommended).
 3.  The following packages, listed by lesson:
 
 | Lesson | Packages |
-|:---|:---|
-| [01 Intro with Regression](/01%20Intro%20with%20Regression) | `ISLR`, `tidymodels`, `stats`, `patchwork`, `kknn` |
-| [02 Classification](/02%20Classification) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `palmerpenguins`, `themis`, `patchwork`, `probably`, `tailor`, `modeldata` |
-| [03 Resampling and Tuning](/03%20Resampling%20and%20Tuning) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |
-| [04 The problem of over-dimensionality](/04%20The%20problem%20of%20over-dimensionality) | `tidymodels`, `leaps`, `ISLR`, `stats`, `MASS`, `insight`, `glmnet`, `tidyr`, `scales`, `tibble`, `ggplot2`, `vip`, `kknn`, `BiocManager`, `mixOmics`, `plsmod` |
-| [05 SVM](/05%20SVM) | `tidymodels`, `kernlab`, `ISLR`, `palmerpenguins` |
-| [06 Trees](/06%20Trees) | `tidymodels`, `rpart`, `rpart.plot`, `ISLR`, `scales`, `vip`, `MASS`, `tidymodels`, `baguette`, `randomForest`, `xgboost`, `MASS`, `forcats`, `vip` |
-| [07 explain predictions](/07%20explain%20predictions) | `tidymodels`, `kknn`, `randomForest`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `palmerpenguins`, `vip` |
-| [08 unsupervised learning](/08%20unsupervised%20learning) | `tidyverse`, `patchwork`, `recipes`, `Rtsne`, `factoextra`, `ggrepel`, `cluster`, `randomForest`, `modeldata`, `psych`, `parameters`, `performance`, `datasets`, `GPArotation`, `dplyr`, `tidyr`, `psychTools` |
+|----|----|
+| [01 Intro with Regression](/01%20Intro%20with%20Regression) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`stats`](https://CRAN.R-project.org/package=stats), [`patchwork`](https://CRAN.R-project.org/package=patchwork), [`kknn`](https://CRAN.R-project.org/package=kknn) |
+| [02 Classification](/02%20Classification) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`stats`](https://CRAN.R-project.org/package=stats), [`parameters`](https://CRAN.R-project.org/package=parameters), [`kknn`](https://CRAN.R-project.org/package=kknn), [`palmerpenguins`](https://CRAN.R-project.org/package=palmerpenguins), [`themis`](https://CRAN.R-project.org/package=themis), [`patchwork`](https://CRAN.R-project.org/package=patchwork), [`probably`](https://CRAN.R-project.org/package=probably), [`tailor`](https://CRAN.R-project.org/package=tailor), [`modeldata`](https://CRAN.R-project.org/package=modeldata) |
+| [03 Resampling and Tuning](/03%20Resampling%20and%20Tuning) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`kknn`](https://CRAN.R-project.org/package=kknn), [`finetune`](https://CRAN.R-project.org/package=finetune), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`glue`](https://CRAN.R-project.org/package=glue), [`modeldata`](https://CRAN.R-project.org/package=modeldata), [`patchwork`](https://CRAN.R-project.org/package=patchwork), [`datasets`](https://CRAN.R-project.org/package=datasets), [`tune`](https://CRAN.R-project.org/package=tune), [`performance`](https://CRAN.R-project.org/package=performance) |
+| [04 The problem of over-dimensionality](/04%20The%20problem%20of%20over-dimensionality) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`leaps`](https://CRAN.R-project.org/package=leaps), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`stats`](https://CRAN.R-project.org/package=stats), [`MASS`](https://CRAN.R-project.org/package=MASS), [`insight`](https://CRAN.R-project.org/package=insight), [`glmnet`](https://CRAN.R-project.org/package=glmnet), [`tidyr`](https://CRAN.R-project.org/package=tidyr), [`scales`](https://CRAN.R-project.org/package=scales), [`tibble`](https://CRAN.R-project.org/package=tibble), [`ggplot2`](https://CRAN.R-project.org/package=ggplot2), [`vip`](https://CRAN.R-project.org/package=vip), [`kknn`](https://CRAN.R-project.org/package=kknn), [`plsmod`](https://CRAN.R-project.org/package=plsmod), [`BiocManager`](https://CRAN.R-project.org/package=BiocManager) |
+| [05 SVM](/05%20SVM) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`kernlab`](https://CRAN.R-project.org/package=kernlab), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`palmerpenguins`](https://CRAN.R-project.org/package=palmerpenguins) |
+| [06 Trees](/06%20Trees) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`rpart`](https://CRAN.R-project.org/package=rpart), [`rpart.plot`](https://CRAN.R-project.org/package=rpart.plot), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`scales`](https://CRAN.R-project.org/package=scales), [`vip`](https://CRAN.R-project.org/package=vip), [`MASS`](https://CRAN.R-project.org/package=MASS), [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`baguette`](https://CRAN.R-project.org/package=baguette), [`randomForest`](https://CRAN.R-project.org/package=randomForest), [`xgboost`](https://CRAN.R-project.org/package=xgboost), [`MASS`](https://CRAN.R-project.org/package=MASS), [`forcats`](https://CRAN.R-project.org/package=forcats), [`vip`](https://CRAN.R-project.org/package=vip) |
+| [07 explain predictions](/07%20explain%20predictions) | [`tidymodels`](https://CRAN.R-project.org/package=tidymodels), [`kknn`](https://CRAN.R-project.org/package=kknn), [`randomForest`](https://CRAN.R-project.org/package=randomForest), [`patchwork`](https://CRAN.R-project.org/package=patchwork), [`DALEX`](https://CRAN.R-project.org/package=DALEX), [`DALEXtra`](https://CRAN.R-project.org/package=DALEXtra), [`marginaleffects`](https://CRAN.R-project.org/package=marginaleffects), [`ISLR`](https://CRAN.R-project.org/package=ISLR), [`palmerpenguins`](https://CRAN.R-project.org/package=palmerpenguins), [`vip`](https://CRAN.R-project.org/package=vip) |
+| [08 unsupervised learning](/08%20unsupervised%20learning) | [`tidyverse`](https://CRAN.R-project.org/package=tidyverse), [`patchwork`](https://CRAN.R-project.org/package=patchwork), [`recipes`](https://CRAN.R-project.org/package=recipes), [`Rtsne`](https://CRAN.R-project.org/package=Rtsne), [`factoextra`](https://CRAN.R-project.org/package=factoextra), [`ggrepel`](https://CRAN.R-project.org/package=ggrepel), [`cluster`](https://CRAN.R-project.org/package=cluster), [`randomForest`](https://CRAN.R-project.org/package=randomForest), [`modeldata`](https://CRAN.R-project.org/package=modeldata), [`psych`](https://CRAN.R-project.org/package=psych), [`parameters`](https://CRAN.R-project.org/package=parameters), [`performance`](https://CRAN.R-project.org/package=performance), [`dplyr`](https://CRAN.R-project.org/package=dplyr), [`tidyr`](https://CRAN.R-project.org/package=tidyr), [`datasets`](https://CRAN.R-project.org/package=datasets), [`GPArotation`](https://CRAN.R-project.org/package=GPArotation), [`psychTools`](https://CRAN.R-project.org/package=psychTools) |
 
-<details>
-<summary>
-<i>Installing R Packages</i>
-</summary>
-
-You can install all the R packages used by running:
+You can install all the packages used by running:
 
     # in alphabetical order:
 
-    pak::pak(
-      c(
-
-        "cran::BiocManager" # 1.30.25
-        "cran::DALEX" # 2.4.3
-        "cran::DALEXtra" # 2.3.0
-        "cran::GPArotation" # 2024.3-1
-        "cran::ISLR" # 1.4
-        "cran::MASS" # 7.3-60.2
-        "cran::Rtsne" # 0.17
-        "cran::baguette" # 1.1.0
-        "cran::cluster" # 2.1.6
-        "cran::dplyr" # 1.1.4
-        "cran::factoextra" # 1.0.7
-        "cran::finetune" # 1.2.0
-        "cran::forcats" # 1.0.0
-        "cran::ggplot2" # 3.5.1
-        "cran::ggrepel" # 0.9.6
-        "cran::glmnet" # 4.1-8
-        "cran::glue" # 1.8.0
-        "cran::insight" # 1.3.1
-        "cran::kernlab" # 0.9-33
-        "cran::kknn" # 1.3.1
-        "cran::leaps" # 3.2
-        "github::vincentarelbundock/marginaleffects" # 0.26.0.3
-        "bioc::mixOmics" # 6.30.0
-        "cran::modeldata" # 1.4.0
-        "cran::palmerpenguins" # 0.1.1
-        "parameters" # 0.26.0.1
-        "cran::patchwork" # 1.3.0
-        "cran::performance" # 0.14.0
-        "cran::plsmod" # 1.0.0
-        "cran::probably" # 1.0.3
-        "cran::psych" # 2.4.12
-        "cran::psychTools" # 2.4.3
-        "cran::randomForest" # 4.7-1.2
-        "github::tidymodels/recipes" # 1.3.1.9000
-        "cran::rpart" # 4.1.23
-        "cran::rpart.plot" # 3.1.2
-        "cran::scales" # 1.3.0
-        "github::tidymodels/tailor" # 0.0.0.9002
-        "cran::themis" # 1.0.3
-        "cran::tibble" # 3.2.1
-        "cran::tidymodels" # 1.2.0
-        "cran::tidyr" # 1.3.1
-        "cran::tidyverse" # 2.0.0
-        "github::tidymodels/tune" # 1.3.0.9001
-        "cran::vip" # 0.4.1
-        "cran::xgboost" # 1.7.8.1
-
-      )
+    pkgs <- c(
+      "baguette", "BiocManager", "cluster", "DALEX", "DALEXtra",
+      "datasets", "dplyr", "factoextra", "finetune", "forcats", "ggplot2",
+      "ggrepel", "glmnet", "glue", "GPArotation", "insight", "ISLR",
+      "kernlab", "kknn", "leaps", "marginaleffects", "MASS", "modeldata",
+      "palmerpenguins", "parameters", "patchwork", "performance", "plsmod",
+      "probably", "psych", "psychTools", "randomForest", "recipes",
+      "rpart", "rpart.plot", "Rtsne", "scales", "stats", "tailor",
+      "themis", "tibble", "tidymodels", "tidyr", "tidyverse", "tune",
+      "vip", "xgboost"
     )
 
+    install.packages(pkgs, dependencies = TRUE)
+
+<details>
+<summary>
+<i>Package Versions</i>
+</summary>
+
+The package versions used here:
+
+- `baguette` 1.1.0 (*CRAN*)
+- `BiocManager` 1.30.25 (*CRAN*)
+- `cluster` 2.1.6 (*CRAN*)
+- `DALEX` 2.4.3 (*CRAN*)
+- `DALEXtra` 2.3.0 (*CRAN*)
+- `datasets` 4.4.1 (*Dev*)
+- `dplyr` 1.1.4 (*CRAN*)
+- `factoextra` 1.0.7 (*CRAN*)
+- `finetune` 1.2.0 (*CRAN*)
+- `forcats` 1.0.0 (*CRAN*)
+- `ggplot2` 3.5.1 (*CRAN*)
+- `ggrepel` 0.9.6 (*CRAN*)
+- `glmnet` 4.1-8 (*CRAN*)
+- `glue` 1.8.0 (*CRAN*)
+- `GPArotation` 2024.3-1 (*CRAN*)
+- `insight` 1.3.0 (*CRAN*)
+- `ISLR` 1.4 (*CRAN*)
+- `kernlab` 0.9-33 (*CRAN*)
+- `kknn` 1.3.1 (*CRAN*)
+- `leaps` 3.2 (*CRAN*)
+- `marginaleffects` 0.26.0.3 (*Github:
+  vincentarelbundock/marginaleffects*)
+- `MASS` 7.3-60.2 (*CRAN*)
+- `modeldata` 1.4.0 (*CRAN*)
+- `palmerpenguins` 0.1.1 (*CRAN*)
+- `parameters` 0.26.0.1 (*Dev*)
+- `patchwork` 1.3.0 (*CRAN*)
+- `performance` 0.14.0 (*CRAN*)
+- `plsmod` 1.0.0 (*CRAN*)
+- `probably` 1.0.3 (*CRAN*)
+- `psych` 2.4.12 (*CRAN*)
+- `psychTools` 2.4.3 (*CRAN*)
+- `randomForest` 4.7-1.2 (*CRAN*)
+- `recipes` 1.1.0 (*CRAN*)
+- `rpart` 4.1.23 (*CRAN*)
+- `rpart.plot` 3.1.2 (*CRAN*)
+- `Rtsne` 0.17 (*CRAN*)
+- `scales` 1.3.0 (*CRAN*)
+- `stats` 4.4.1 (*Dev*)
+- `tailor` 0.0.0.9002 (*Github: tidymodels/tailor*)
+- `themis` 1.0.3 (*CRAN*)
+- `tibble` 3.2.1 (*CRAN*)
+- `tidymodels` 1.2.0 (*CRAN*)
+- `tidyr` 1.3.1 (*CRAN*)
+- `tidyverse` 2.0.0 (*CRAN*)
+- `tune` 1.2.1 (*CRAN*)
+- `vip` 0.4.1 (*CRAN*)
+- `xgboost` 1.7.8.1 (*CRAN*)
+
 </details>
-
-------------------------------------------------------------------------
-
-Prior to 2025, this course was based on the `{caret}` package - this
-version can still be found
-[here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).
-
-An experimental Python version can be found [here](python).
