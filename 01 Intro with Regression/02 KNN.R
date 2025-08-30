@@ -1,12 +1,9 @@
-
 library(patchwork)
 
 library(tidymodels)
 # library(kknn)
 
-
 # The data and problem ----------------------------------------------------
-
 
 data("Auto", package = "ISLR")
 str(Auto)
@@ -31,13 +28,9 @@ Auto$origin <- factor(Auto$origin)
 # - name
 #     Vehicle name
 
-
-
-
 # We're interested in predicting gas consumption: MPG (miles per gallon)
 
 # But this time we won't be using a linear regression model - we're using KNN!
-
 
 # 1) Split the data ----------------------------------------------
 
@@ -46,15 +39,13 @@ Auto.train <- training(splits) # Extract the training set
 Auto.test <- testing(splits) # Extract the test set
 
 
-
-
 # 2) Specify the model -------------------------------------------
 
 ## Model specification ---------------------
 
-
 knn_spec <- nearest_neighbor(
-  mode = "regression", engine = "kknn",
+  mode = "regression",
+  engine = "kknn",
   neighbors = 5
 )
 
@@ -64,8 +55,6 @@ show_engines("nearest_neighbor")
 # This spec will then we "translated" to use the correct underlying fitting
 # function:
 translate(knn_spec)
-
-
 
 
 ## Define outcome + predictors + preprocessing --------------------
@@ -80,12 +69,10 @@ translate(knn_spec)
 ?details_nearest_neighbor_kknn
 # ?details_{spec}_{engine}
 
-
 # There are several ways to do this -
 # here's one.
 
-rec <- recipe(mpg ~ origin + weight + horsepower,
-              data = Auto.train) |>
+rec <- recipe(mpg ~ origin + weight + horsepower, data = Auto.train) |>
   step_dummy(origin) |>
   # The Yeo–Johnson transformation (a generalization of the Box-Cox
   # transformation) can be used to make highly skewed variables resemble a more
@@ -101,12 +88,12 @@ rec
 
 
 (ggplot(Auto.train, aes(horsepower)) +
-    geom_density() +
-    labs(title = "Raw")) +
+  geom_density() +
+  labs(title = "Raw")) +
   (bake(prep(rec), new_data = NULL) |>
-     ggplot(aes(horsepower)) +
-     geom_density() +
-     labs(title = "Standardized Yeo–Johnson"))
+    ggplot(aes(horsepower)) +
+    geom_density() +
+    labs(title = "Standardized Yeo-Johnson"))
 
 
 # Finally, we can combine the recipe and the model spec to a workflow - together
@@ -115,15 +102,11 @@ knn_wf <- workflow(preprocessor = rec, spec = knn_spec)
 knn_wf
 
 
-
-
 ## 3) Fitting the model -------------------------------------------
 
 # Fitting the model is as easy as passing the workflow and some training data
 # to the fit() function:
 knn_fit <- fit(knn_wf, data = Auto.train)
-
-
 
 
 ## 4) Predict and Evaluate the model -------------------------------
@@ -139,8 +122,7 @@ ggplot(Auto.test_predictions, aes(.pred, mpg)) +
   geom_abline() +
   geom_point() +
   coord_obs_pred() +
-  labs(x = expression("Estimated:"~hat(mpg)),
-       y = "Truth: mpg")
+  labs(x = expression("Estimated:" ~ hat(mpg)), y = "Truth: mpg")
 # What happened here?? Got back and fix it...
 
 # Performance metrics
@@ -152,23 +134,20 @@ Auto.test_predictions |> mset_reg(mpg, .pred)
 augment(knn_fit, new_data = Auto.train) |> mset_reg(mpg, .pred)
 
 
-
-
 # Exercise ---------------------------------------------------------------
 
 # 1. Define a recipe for a new KNN model
 #   Add the required steps for KNN.
-rec2 <- recipe(mpg ~ ., # all predictors,
-               data = Auto.train) |>
+rec2 <- recipe(
+  mpg ~ ., # all predictors,
+  data = Auto.train
+) |>
   # Remove the {name} predictor
   step_rm(name)
 
-
 # 2. Fit a KNN model with k=5
-
 
 # 3. Evaluate the new model on the test set.
 #   How does it compare to the k=5 model with 3 predictors?
-
 
 # 4. Repeat steps 2 and 3 with k=10. What can we expect to happen?
