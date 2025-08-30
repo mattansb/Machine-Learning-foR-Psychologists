@@ -1,3 +1,4 @@
+
 library(tidymodels)
 library(patchwork)
 
@@ -6,6 +7,7 @@ library(patchwork)
 # performance estimation -- but it requires manual code writing.
 # Let's do just that.
 
+
 # The data ----------------------------------------------------------------
 # The most famous data set in R.
 
@@ -13,7 +15,7 @@ data("mtcars")
 ?datasets::mtcars
 
 nrow(mtcars)
-# The dataset is too small for splitting...
+# The dataset is too small for splitting... 
 vfold_cv(mtcars, v = 10) # gives only 3 obs. in the validation sets.
 bootstraps(mtcars, times = 200) # also give small validation sets.
 
@@ -50,20 +52,22 @@ fit_resamples(linreg_wf, resamples = splits, metrics = mset_reg)
 
 # We cannot use tune::fit_resamples().
 
+
 # Let's go manual.
 
 predict_from_my_model <- function(split, model_wf) {
   # analysis(split) generates the split's training sample
   model_fit <- fit(model_wf, data = analysis(split))
-
+  
   # assessment(split) generates the split's validation sample
   augment(model_fit, new_data = assessment(split))
 }
 
 
-splits_predictions <- splits |>
+
+splits_predictions <- splits |> 
   mutate(
-    map(splits, .f = predict_from_my_model, model_wf = linreg_wf) |>
+    map(splits, .f = predict_from_my_model, model_wf = linreg_wf) |> 
       bind_rows()
   )
 splits_predictions
@@ -72,30 +76,29 @@ splits_predictions
 
 # Estimate performance ----------------------------------------------------
 
-splits_predictions |>
+splits_predictions |> 
   mset_reg(truth = mpg, estimate = .pred)
 # Not bad.
 # How does this compare to the rsq and the adjusted rsq of the model trained on
 # the full data?
 
 linreg_fit <- fit(linreg_wf, data = mtcars)
-extract_fit_engine(linreg_fit) |>
+extract_fit_engine(linreg_fit) |> 
   performance::model_performance(metrics = c("R2", "R2_adj", "RMSE"))
 # We can see that even the adjusted rsq gives an over-estimates...
 
-(ggplot(splits_predictions, aes(.pred, mpg)) +
-  geom_abline() +
-  geom_point() +
-  coord_obs_pred(xlim = c(5, 35)) +
-  ggtitle("LOO-CV predictions")) +
 
-  (augment(linreg_fit, new_data = mtcars) |>
-    ggplot(aes(.pred, mpg)) +
-    geom_abline() +
-    geom_point() +
-    coord_obs_pred(xlim = c(5, 35)) +
-    ggtitle("In-sample predictions")) +
-
-  plot_annotation(
-    caption = "LOO-CV looks worse, but in-sample is actually overfitting."
-  )
+(ggplot(splits_predictions, aes(.pred, mpg)) + 
+    geom_abline() + 
+    geom_point() + 
+    coord_obs_pred(xlim = c(5, 35)) + 
+    ggtitle("LOO-CV predictions")) + 
+  
+  (augment(linreg_fit, new_data = mtcars) |> 
+     ggplot(aes(.pred, mpg)) + 
+     geom_abline() + 
+     geom_point() + 
+     coord_obs_pred(xlim = c(5, 35)) + 
+     ggtitle("In-sample predictions")) + 
+  
+  plot_annotation(caption = "LOO-CV looks worse, but in-sample is actually overfitting.")
