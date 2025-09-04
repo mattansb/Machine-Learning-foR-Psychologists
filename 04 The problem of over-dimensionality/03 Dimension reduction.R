@@ -141,6 +141,7 @@ extract_pcr_coef(pcr_fit)
 
 # install.packages("BiocManager", repos = "https://cloud.r-project.org")
 # BiocManager::install("mixOmics")
+# library(mixOmics)
 library(plsmod)
 
 pls_spec <- pls(
