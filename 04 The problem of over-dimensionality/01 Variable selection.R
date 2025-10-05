@@ -1,12 +1,9 @@
-
-
 library(tidymodels)
 
 library(leaps)
 
 # Recommendation: read "Feature Selection Overview" on caret website:
 # https://topepo.github.io/caret/feature-selection-overview.html
-
 
 # Hitters DATA and the PROBLEM ---------------------------------
 # (a REGRESSION problem)
@@ -26,16 +23,13 @@ names(Hitters)
 # variables in the previous year.
 # Which 19 predictors will be best for predicting Salary?
 
-
 # Split:
-set.seed(123442) 
+set.seed(123442)
 splits <- initial_split(Hitters, prop = 0.7)
 Hitters.train <- training(splits)
 Hitters.test <- testing(splits)
 # Our data is REALLY SMALL such that splitting the data to train and test might
 # leave us with very small datasets.
-
-
 
 # Best Subset Selection Method --------------------------------------
 
@@ -50,8 +44,7 @@ regfit.full <- regsubsets(Salary ~ ., data = Hitters.train)
 summary(regfit.full)
 # Outputs the best set of variables for each model size up to the best
 # 8-variable model (8 is the default).
-# An asterisk indicates the variable is included in the corresponding model. 
-
+# An asterisk indicates the variable is included in the corresponding model.
 
 # If we want we can fit in this data up to a 19-variable model (and not 8) using
 # the nvmax option.
@@ -60,24 +53,22 @@ summary(regfit.full)
 
 # Let's get a closer look on the statistics of this output:
 reg.summary <- summary(regfit.full)
-names(reg.summary) 
+names(reg.summary)
 # The summary() function also returns R2 (rsq), RSS, adjusted R2 (adjr2), Cp,
 # and BIC. We can examine these statistics to select the best overall model.
-reg.summary_df <- data.frame(nv = 1:19, reg.summary[2:6]) |> 
-  pivot_longer(cols = -nv, 
-               names_to = "Index", 
-               values_to = "value") |> 
-  group_by(Index) |> 
+reg.summary_df <- data.frame(nv = 1:19, reg.summary[2:6]) |>
+  pivot_longer(cols = -nv, names_to = "Index", values_to = "value") |>
+  group_by(Index) |>
   mutate(
-    is_best = 
-      value == ifelse(Index %in% c("rsq", "adjr2"), max(value), min(value))
+    is_best = value ==
+      ifelse(Index %in% c("rsq", "adjr2"), max(value), min(value))
   )
 
 ggplot(reg.summary_df, aes(nv, value)) +
   facet_wrap(~Index, scales = "free", ncol = 3) +
   geom_line() +
   geom_point(aes(shape = is_best), size = 3, fill = "red") +
-  scale_shape_manual("Best?", values = c(20, 23)) + 
+  scale_shape_manual("Best?", values = c(20, 23)) +
   scale_x_continuous(breaks = 1:19, minor_breaks = NULL)
 # For instance, we see that R2 increases from 32% for 1-variable model, to
 # almost 55%, for 19-variables model. As expected, the R2 increases
@@ -93,65 +84,109 @@ coef(regfit.full, id = 9)
 
 # the leaps package doesn't provide a predict method for `regsubsets` objects.
 # Se we will define one ourselves
-predict.regsubsets <- function (object, newdata, id = NULL, 
-                                select = c("adjr2", "cp", "bic")) {
+predict.regsubsets <- function(
+  object,
+  newdata,
+  id = NULL,
+  select = c("adjr2", "cp", "bic")
+) {
   cl <- object$call
   cl[[1]] <- quote(stats::lm)
   cl[!names(cl) %in% c(formalArgs(stats::lm), "")] <- NULL
   lm_object <- eval.parent(cl)
-  
-  X_newdata <- model.matrix(terms(lm_object), newdata, 
-                            contrasts.arg = object$contrasts)
-  
+
+  X_newdata <- model.matrix(
+    terms(lm_object),
+    newdata,
+    contrasts.arg = object$contrasts
+  )
+
   if (is.null(id)) {
     select <- match.arg(select)
     v <- summary(object)[[select]]
-    id <- switch (select,
-                  adjr2 = which.max(v),
-                  cp = ,
-                  bic = which.min(v)
-    )
+    id <- switch(select, adjr2 = which.max(v), cp = , bic = which.min(v))
   }
-  
+
   b <- coef(object, id = id)
-  
+
   as.vector(X_newdata[, names(b), drop = FALSE] %*% b)
 }
 
 
-Hitters.test$pred_bss <- predict(regfit.full, newdata = Hitters.test, id = 9) 
+Hitters.test$pred_bss <- predict(regfit.full, newdata = Hitters.test, id = 9)
 
 Hitters.test |> rsq(truth = Salary, estimate = pred_bss)
 # Not bad!
 
-
 # Stepwise -----------------------------------------------------------------
-
-# First, fit the full model
-regfit.all <- lm(Salary ~ ., data = Hitters.train)
 
 ?MASS::stepAIC
 # Selection is based on AIC (similar to Cp or BIC), and supports a wide range
 # of model types.
 
+# For stepwise selection, we need to define the starting model and the scope of
+# the search: the simplest model and the most complex model.
+scope <- list(
+  # The simplest model (intercept only):
+  lower = ~1,
+  # The most complex model (all variables, but no interactions / polynomials):
+  upper = ~ AtBat +
+    Hits +
+    HmRun +
+    Runs +
+    RBI +
+    Walks +
+    Years +
+    CAtBat +
+    CHits +
+    CHmRun +
+    CRuns +
+    CRBI +
+    CWalks +
+    League +
+    Division +
+    PutOuts +
+    Assists +
+    Errors +
+    NewLeague
+)
+
 ## Forward -------------------------------
 
-regfit.fwd <- MASS::stepAIC(regfit.all, direction = "forward")
+# We can start with an empty model:
+regfit.none <- lm(Salary ~ 1, data = Hitters.train)
+
+regfit.fwd <- MASS::stepAIC(
+  regfit.none,
+  direction = "forward",
+  scope = scope
+)
 
 ## Backward -------------------------------
 
-regfit.bwd <- MASS::stepAIC(regfit.all, direction = "backward")
+# We can start with the full model:
+regfit.all <- lm(Salary ~ ., data = Hitters.train)
+
+regfit.bwd <- MASS::stepAIC(
+  regfit.all,
+  direction = "backward",
+  scope = scope
+)
 
 ## Both -------------------------------
 
-regfit.both <- MASS::stepAIC(regfit.all, direction = "both")
+regfit.both <- MASS::stepAIC(
+  regfit.all,
+  direction = "both",
+  scope = scope
+)
 
 
 # Compare ---------------------------------------------------
 
 # using best-subset\ forward\ backward selection, can lead to different results.
 
-length(insight::find_terms(regfit.fwd)[["conditional"]]) # 19 (forward from max...)
+length(insight::find_terms(regfit.fwd)[["conditional"]]) # 6
 length(insight::find_terms(regfit.bwd)[["conditional"]]) # 9
 length(insight::find_terms(regfit.both)[["conditional"]]) # 9
 
@@ -159,13 +194,10 @@ length(insight::find_terms(regfit.both)[["conditional"]]) # 9
 # Predict using test data.
 Hitters.test$pred_bwd <- predict(regfit.fwd, newdata = Hitters.test)
 Hitters.test$pred_fwd <- predict(regfit.bwd, newdata = Hitters.test)
-Hitters.test$pred_both <- predict(regfit.both, newdata = Hitters.test)  
+Hitters.test$pred_both <- predict(regfit.both, newdata = Hitters.test)
 
 # Assess the test fit for each type of models:
 Hitters.test |> rsq(truth = Salary, estimate = pred_bss)
 Hitters.test |> rsq(truth = Salary, estimate = pred_bwd)
 Hitters.test |> rsq(truth = Salary, estimate = pred_fwd)
 Hitters.test |> rsq(truth = Salary, estimate = pred_both)
-
-
-
