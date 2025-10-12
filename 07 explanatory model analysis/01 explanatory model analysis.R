@@ -28,8 +28,7 @@ rec <- recipe(Salary ~ ., data = Hitters.train) |>
   step_naomit(Salary) |>
   step_dummy(all_factor_predictors()) |>
   step_interact(~ PutOuts:Walks) |>
-  step_normalize(all_numeric_predictors()) |>
-  step_pca(all_numeric_predictors(), threshold = 0.9)
+  step_normalize(all_numeric_predictors())
 
 
 knn_spec <- nearest_neighbor(
@@ -147,8 +146,8 @@ plot(shap_bob, max_features = Inf, show_boxplots = FALSE) +
 vi_perm <- model_parts(
   knn_xplnr,
   B = 10, # Number of permutations
-  variables = NULL
-) # specify to only compute for some
+  variables = NULL # specify to only compute for some
+)
 plot(vi_perm, bar_width = 5)
 # - The vertical line is the baseline RMSE
 # - The horizontal bars are the increase in RMSE
