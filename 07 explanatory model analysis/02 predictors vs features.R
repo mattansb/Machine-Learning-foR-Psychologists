@@ -132,8 +132,7 @@ plot(shap_bob_predictors, max_features = Inf, show_boxplots = FALSE) +
 
 # Note that permutation of features might not make sense in some cases - for
 # example, HmRun and HmRun^2 are dependent features, as are Hits_x_Years and
-# Hits / Years so permuting one but not the others might lead to unrealistic
-# values.
+# Hits / Years so permuting one but not the others might not make sense.
 vi_perm_features <- model_parts(
   rf_xpln_features,
   B = 10, # Number of permutations
