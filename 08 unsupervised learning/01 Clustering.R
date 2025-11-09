@@ -42,6 +42,7 @@ head(USArrests_z)
 # data but not the global structure of the data.
 # Read more:
 # https://biostatsquid.com/pca-umap-tsne-comparison/
+# https://pair-code.github.io/understanding-umap/
 
 # It is also non-deterministic = it will return different results each time,
 # so don't forget to set a seed:
