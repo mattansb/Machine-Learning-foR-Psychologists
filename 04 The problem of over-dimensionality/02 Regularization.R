@@ -56,7 +56,7 @@ ridge_grid <- grid_regular(
   levels = 20
 )
 
-# Using 5-fold CV:
+# Using 10-fold CV:
 set.seed(20251201)
 cv_10folds <- vfold_cv(Hitters.train, v = 10)
 
@@ -323,7 +323,7 @@ head(College)
 # Notes for the last 3 methods, you should use the same lambda values - make
 # sure they are broad enough to capture a desired RMSE minima. You can do this
 # by plotting RMSE vs lambda and see if there is a "valley".
-# Use 5-folds CV to tune alpha/lambda.
+# Use 10-folds CV to tune alpha/lambda.
 
 # 3) Compare:
 # - Did the method diverged from each other in their performance on test data

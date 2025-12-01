@@ -51,7 +51,7 @@ linreg_wf <- workflow(preprocessor = pcr_rec, spec = linreg_spec)
 
 ## Tune ------------------------------------
 
-# Using 5-fold CV:
+# Using 10-fold CV:
 set.seed(20251201)
 cv_10folds <- vfold_cv(Hitters.train, v = 10)
 
