@@ -1,5 +1,7 @@
 library(tidymodels)
-# library(kernlab)
+library(kernlab)
+
+mirai::daemons(4) # Enable parallel processing
 
 # The OJ Data -----------------------------------------------------------------
 
@@ -89,7 +91,7 @@ svmlin_fit <- svmlin_wf |>
 # We can explore the model but extracting the underlying model object:
 (svmlin_eng <- extract_fit_engine(svmlin_fit))
 # training error is 0.17 (for the cost 0.13)
-# Number of Support Vectors : 374!
+# Number of Support Vectors : 382!
 
 # Here we demonstrated the use of this function on a two-dimensional example so
 # that we can plot the resulting decision boundary.
@@ -151,8 +153,8 @@ svmpoly_fit <- svmpoly_wf |>
 
 
 (svmpoly_eng <- extract_fit_engine(svmpoly_fit))
-# best training error is 0.17 (for the cost 0.045)
-# Number of Support Vectors : 359!
+# best training error is 0.17 (for the cost 0.13)
+# Number of Support Vectors : 356!
 plot(svmpoly_eng, data = X_train)
 
 
@@ -171,7 +173,7 @@ plot(svmpoly_eng, data = X_train)
 svmrad_spec <- svm_rbf(
   "classification",
   engine = "kernlab",
-  cost = 0.1, # we get it...
+  cost = 0.13, # we get it...
   rbf_sigma = 2
 )
 # rbf_sigma is the sigma parameter for the radial basis kernel, which controls
@@ -196,15 +198,16 @@ svmpoly_predictions <- augment(svmpoly_fit, new_data = OJ.test)
 svmrad_predictions <- augment(svmrad_fit, new_data = OJ.test)
 
 
+# These are all basically the same...
 svmlin_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
 svmpoly_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
 svmrad_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
-# These are all basically the same...
+
 
 # Multi-classes SVM -------------------------------------------------
 
-data("penguins", package = "palmerpenguins")
-?palmerpenguins::penguins
+data("penguins")
+?penguins
 
 set.seed(20251201)
 splits <- initial_split(penguins, prop = 0.7)
@@ -222,6 +225,7 @@ table(penguins.train$species) |> proportions()
 svmlin_spec2 <- svm_linear("classification", engine = "kernlab", cost = 0.1)
 
 rec2 <- recipe(species ~ bill_length_mm + body_mass_g, data = penguins.train) |>
+  step_impute_mean(all_predictors()) |>
   step_normalize(all_numeric_predictors())
 
 
@@ -277,6 +281,14 @@ ggplot(pred_grid, aes(bill_length_mm, body_mass_g)) +
 # We can also perform support vector regression, if
 # the response vector that is numerical rather than a factor.
 
+data("College", package = "ISLR")
+?ISLR::College
+
+set.seed(20251201)
+splits <- initial_split(College, prop = 0.7)
+College.train <- training(splits)
+College.test <- testing(splits)
+
 svrlin_spec <- svm_linear(
   mode = "regression",
   engine = "kernlab",
@@ -286,18 +298,15 @@ svrlin_spec <- svm_linear(
 # We've added a new parameter - margin. The margin in SVR refers to the region
 # around the regression line where errors are not penalized.
 
-rec3 <- recipe(body_mass_g ~ bill_length_mm + species, data = penguins.train) |>
-  step_naomit(body_mass_g) |>
-  step_impute_mean(bill_length_mm) |>
-  step_dummy(species, one_hot = TRUE) |>
-  step_interact(~ starts_with("species"):bill_length_mm) |>
+rec3 <- recipe(Grad.Rate ~ Private + Expend, data = College.train) |>
+  step_dummy(all_nominal_predictors(), one_hot = TRUE) |>
   step_normalize(all_numeric_predictors())
 
 svrlin_wf <- workflow(preprocessor = rec3, spec = svrlin_spec)
 
 
 # Tune the model...
-folds <- vfold_cv(penguins.train, v = 10)
+folds <- vfold_cv(College.train, v = 10)
 
 svrlin_grid <- grid_regular(
   cost(),
@@ -313,19 +322,16 @@ autoplot(svrlin_tune)
 svrlin_fit <-
   svrlin_wf |>
   finalize_workflow(select_best(svrlin_tune, metric = "rmse")) |>
-  fit(data = penguins.train)
+  fit(data = College.train)
 
 
-penguins.test$.pred <- as.vector(predict(
-  svrlin_fit,
-  new_data = penguins.test,
-  type = "raw"
-))
-penguins.test |>
-  group_by(species) |>
-  rsq(body_mass_g, .pred)
+College.test_preds <- augment(svrlin_fit, new_data = College.train)
 
-ggplot(penguins.test, aes(bill_length_mm, body_mass_g, color = species)) +
+College.test_preds |>
+  group_by(Private) |>
+  rmse(Grad.Rate, .pred)
+
+ggplot(College.test_preds, aes(Expend, Grad.Rate, color = Private)) +
   geom_point() +
   stat_smooth(aes(linetype = "OLS"), method = "lm", se = FALSE, geom = "line") +
   geom_line(aes(y = .pred, linetype = "SVR")) +
@@ -335,7 +341,7 @@ ggplot(penguins.test, aes(bill_length_mm, body_mass_g, color = species)) +
 
 # Exercise ---------------------------------------------------------------
 
-# 1. Take one of the datasets used here (OJ / penguins) and predict the outcome
-#   with 4 variables of your choice.
+# 1. Take one of the College dataset and predict the outcome with 4 variables of
+#    your choice.
 # 2. Use two method (linear, poly, radial) and compare their performance using
-#   CV model comparison (see "03 Resampling and Tuning/02 model selection.R").
+#    CV model comparison (see "02 Resampling and Tuning/02 model selection.R").
