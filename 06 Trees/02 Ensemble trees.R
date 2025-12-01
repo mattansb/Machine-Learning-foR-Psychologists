@@ -1,4 +1,3 @@
-
 library(tidymodels)
 # library(baguette)
 # library(randomForest)
@@ -24,17 +23,9 @@ Bostin.comp_splits <- vfold_cv(Boston.test, v = 10) # Make 10-folds for CV
 mset_reg <- metric_set(rsq, mae)
 
 
-
-
-
 # We are again predicting medv (median house value), this time using all 13
 # predictors:
-rec <- recipe(medv ~ .,
-              data = Boston.train)
-
-
-
-
+rec <- recipe(medv ~ ., data = Boston.train)
 
 
 # Bagging ---------------------------------------------------------------------
@@ -45,12 +36,13 @@ rec <- recipe(medv ~ .,
 library(baguette)
 
 bag_spec <- bag_tree(
-  mode = "regression", engine = "rpart",
+  mode = "regression",
+  engine = "rpart",
   # There hyperparameters here similar to those of decision trees, that control
   # the complexity of the tree, but we can keep those at their default
   # (~maximal) values!
   cost_complexity = 0,
-  tree_depth = 30, 
+  tree_depth = 30,
   min_n = 2
 ) |>
   # But we do have a special argument - the number of trees. Default is 11 -
@@ -67,11 +59,11 @@ bag_wf <- workflow(preprocessor = rec, spec = bag_spec)
 bag_fit <- fit(bag_wf, data = Boston.train)
 
 # We'll use this later for comparisons
-bag_resamps <- fit_resamples(bag_wf,
-                             resamples = Bostin.comp_splits,
-                             metrics = mset_reg)
-
-
+bag_resamps <- fit_resamples(
+  bag_wf,
+  resamples = Bostin.comp_splits,
+  metrics = mset_reg
+)
 
 
 ## Variable Importance --------------------------------
@@ -85,28 +77,19 @@ bag_eng <- extract_fit_engine(bag_fit)
 # impurity that results from splits over that variable, averaged over all trees.
 # (In the case of regression trees, the node impurity is measured by the
 # training RSS, and for classification trees by the deviance.)
-var_imp(bag_eng) |> 
+var_imp(bag_eng) |>
   mutate(
     term = forcats::fct_reorder(term, value)
   ) |>
   ggplot(aes(value, term)) +
   geom_col() +
-  geom_errorbar(aes(xmin = value - std.error, xmax = value + std.error),
-                width = 0.2)
+  geom_errorbar(
+    aes(xmin = value - std.error, xmax = value + std.error),
+    width = 0.2
+  )
 # The results indicate that across all of the trees considered in the random
 # forest, the wealth level of the community (lstat) and the house size (rm) are
 # by far the two most important variables.
-
-
-
-
-
-
-
-
-
-
-
 
 # Random Forests-------------------------------------------------------------------------------------
 
@@ -118,7 +101,8 @@ var_imp(bag_eng) |>
 # Really, bagging is simply a special case of a random forest with m = p.
 
 rf_spec <- rand_forest(
-  mode = "regression", engine = "randomForest",
+  mode = "regression",
+  engine = "randomForest",
   mtry = tune(),
   min_n = 2,
   trees = 100
@@ -140,16 +124,17 @@ rf_wf <- workflow(preprocessor = rec, spec = rf_spec)
 # But we should tune mtry! Let's try the following values (note that we only
 # have 13 predictors, so mtry=13 is equivalent to bagging).
 
-
 # Building the grid ourselves
 rf_grid <- expand_grid(
   mtry = c(1, 2, 4, 7, 10, 13)
 )
 
-rf_tuner <- tune_grid(rf_wf,
-                      resamples = Bostin.tune_splits,
-                      grid = rf_grid,
-                      metrics = mset_reg)
+rf_tuner <- tune_grid(
+  rf_wf,
+  resamples = Bostin.tune_splits,
+  grid = rf_grid,
+  metrics = mset_reg
+)
 
 autoplot(rf_tuner)
 
@@ -158,16 +143,19 @@ select_by_one_std_err(rf_tuner, mtry, metric = "mae")
 
 # Fit the final model:
 rf_fit <- rf_wf |>
-  finalize_workflow(parameters = select_by_one_std_err(rf_tuner, mtry, metric = "mae")) |> 
+  finalize_workflow(
+    parameters = select_by_one_std_err(rf_tuner, mtry, metric = "mae")
+  ) |>
   fit(data = Boston.train)
 rf_fit # mtry = 4
 
 
 # We'll use this later for comparisons
-rf_resamps <- fit_resamples(rf_fit,
-                            resamples = Bostin.comp_splits,
-                            metrics = mset_reg)
-
+rf_resamps <- fit_resamples(
+  rf_fit,
+  resamples = Bostin.comp_splits,
+  metrics = mset_reg
+)
 
 
 ## Explore the final model ---------------------------------------
@@ -181,10 +169,6 @@ plot(rf_eng) # See how the error decreased with re-sampling (# of trees)
 vip::vip(rf_eng, method = "model", num_features = 13)
 
 
-
-
-
-
 # Boosting --------------------------------------------------------------------
 
 # In Bagging \ Random forest, each tree is built on an independent bootstrap
@@ -193,16 +177,15 @@ vip::vip(rf_eng, method = "model", num_features = 13)
 # - each tree is grown using information from previously grown trees.
 # - each tree is fitted using the current residuals, rather than the outcome Y.
 
-
 # Boosting has three types of tuning parameters:
 # 1. Model complexity
 # 2. Learning gradient
 # 3. Randomness
 # https://xgboost.readthedocs.io/en/stable/parameter.html
 
-
 boost_spec <- boost_tree(
-  mode = "regression", engine = "xgboost",
+  mode = "regression",
+  engine = "xgboost",
 
   ## Complexity (of each tree)
   tree_depth = 1, # [1, Inf] limits the depth of each tree
@@ -229,10 +212,11 @@ boost_wf <- workflow(preprocessor = rec, spec = boost_spec)
 boost_fit <- fit(boost_wf, data = Boston.train)
 
 # We'll use this later for comparisons
-boost_resamps <- fit_resamples(boost_wf,
-                               resamples = Bostin.comp_splits,
-                               metrics = mset_reg)
-
+boost_resamps <- fit_resamples(
+  boost_wf,
+  resamples = Bostin.comp_splits,
+  metrics = mset_reg
+)
 
 
 ## Variable Importance --------------------------------
@@ -241,13 +225,9 @@ boost_eng <- extract_fit_engine(boost_fit)
 vip::vip(boost_eng, method = "model", num_features = 13)
 # We see that lstat and rm are by far the most important variables.
 
-
-
 # Comparing ---------------------------------------------------------------
 
-
 ## Test set performance -----------------------------------
-
 
 Boston.test_bag.pred <- augment(bag_fit, Boston.test)
 Boston.test_rf.pred <- augment(rf_fit, Boston.test)
@@ -256,11 +236,11 @@ Boston.test_boost.pred <- augment(boost_fit, Boston.test)
 bind_rows(
   "bagging" = Boston.test_bag.pred,
   "rf" = Boston.test_rf.pred,
-  "boosting" = Boston.test_boost.pred, 
-  
+  "boosting" = Boston.test_boost.pred,
+
   .id = "Model"
-) |> 
-  group_by(Model) |> 
+) |>
+  group_by(Model) |>
   mset_reg(medv, .pred)
 
 
@@ -281,20 +261,19 @@ ensemble_metrics <- bind_rows(
 ensemble_metrics |>
   group_by(id, .metric) |>
   mutate(
-    best_model = case_match(.metric,
-                            "mae" ~ Model[which.min(.estimate)],
-                            "rsq" ~ Model[which.max(.estimate)])
+    best_model = case_match(
+      .metric,
+      "mae" ~ Model[which.min(.estimate)],
+      "rsq" ~ Model[which.max(.estimate)]
+    )
   ) |>
   ggplot(aes(Model, .estimate, color = Model)) +
   facet_wrap(facets = vars(.metric), scales = "free") +
-  stat_summary(size = 1, 
-               position = position_nudge(0.1), 
-               show.legend = FALSE) + 
+  stat_summary(size = 1, position = position_nudge(0.1), show.legend = FALSE) +
   geom_point() +
   geom_line(aes(group = id, color = best_model))
 # bagging and rf look to be better than boosting in this case.
 # But can we say which is better?
-
 
 ensemble_metrics |>
   filter(Model != "boosting", .metric == "mae") |>
@@ -310,14 +289,11 @@ ensemble_metrics |>
   )
 # Nope, the difference in MAE is in the range of -0.9--+1.2.
 
-
-
 ggplot(Boston.test_rf.pred, aes(.pred, medv)) +
   geom_point() +
   geom_abline() +
   coord_obs_pred()
 # That's very good!
-
 
 # Exercise  ---------------------------------------------------------------
 
