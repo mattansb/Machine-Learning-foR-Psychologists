@@ -244,8 +244,8 @@ plot_predictions(
 ## Fit a model -------------------------------------
 # Let's fit a classification model!
 
-data("penguins", package = "palmerpenguins")
-?palmerpenguins::penguins
+data("penguins")
+?penguins
 
 # split the data
 set.seed(20251201)
