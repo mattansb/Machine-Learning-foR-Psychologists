@@ -99,6 +99,12 @@ knn_fit2 <- knn_wf2 |>
   ) |>
   fit(data = Alz.train)
 
+# We can also select by optimizing multiple metrics simultaneously with the
+# {desirability} package:
+# https://.tidymodels.org/#using-with-the-tune-package
+?desirability2::select_best_desirability()
+
+
 knn_fit2
 
 
