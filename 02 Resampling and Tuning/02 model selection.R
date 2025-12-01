@@ -28,6 +28,8 @@ Auto.test <- testing(splits)
 
 ## Get resampled results --------------------------------------------------
 
+mirai::daemons(4) # use 4 cores for parallel processing
+
 ### Model 1: Linear regression --------------------------------------------
 
 rec1 <- recipe(mpg ~ horsepower + weight, data = Auto.train)
@@ -111,13 +113,14 @@ knn_grid <- grid_regular(
   levels = 7
 )
 
+# Note we're using the same data - but a different set of splits! This is a
+# single repeated k-fold CV which can protect against overfitting during model
+# selection later.
+cv_tune <- vfold_cv(Auto.train, v = 10)
 
 knn_tuner <- tune_grid(
   wf_knn,
-  # Note we're using the same CV splits, but we can also create a new CV split
-  # on the trainset, which might protect against overfitting during model
-  # selection later.
-  resamples = cv_compare,
+  resamples = cv_tune,
   grid = knn_grid,
   metrics = mset_reg,
 
@@ -128,27 +131,27 @@ knn_tuner <- tune_grid(
 
 autoplot(knn_tuner)
 
+# Selecting by the one-SE rule also protects us from overfitting:
 (k_1SE <- select_by_one_std_err(knn_tuner, desc(neighbors), metric = "mae"))
 
 
 #### Get OOS results -----------------------
 
-# wf_knn <- finalize_workflow(wf_knn, k_1SE)
-# wf_knn
+wf_knn <- finalize_workflow(wf_knn, k_1SE)
+wf_knn
+
+knn_oos <- fit_resamples(
+  wf_knn,
+  # Note we're using the same splits!
+  resamples = cv_compare,
+  metrics = mset_reg
+)
+
+# # If we used the same folds for tuning and selection, we can also get the resampled results
+# # from the tuning results:
 #
-# knn_oos <- fit_resamples(
-#   wf_knn,
-#   # Note we're using the same splits!
-#   resamples = cv_compare,
-#   metrics = mset_reg
-# )
-
-# If we used the same folds for tuning and selection, we can also get the resampled results
-# from the tuning results:
-
-collect_metrics(knn_tuner, summarize = FALSE) |>
-  semi_join(k_1SE, by = ".config")
-
+# collect_metrics(knn_tuner, summarize = FALSE) |>
+#   semi_join(k_1SE, by = ".config")
 
 ## Compare the resampled performance ------------------------------------------------
 # We're actually doing two things with this:
@@ -196,8 +199,7 @@ cv_results |>
   geom_pointrange(
     aes(y = mean, ymin = mean - std_err, ymax = mean + std_err),
     data = cv_summary
-  ) +
-  scale_x_discrete(breaks = )
+  )
 
 
 ### Contrast ----------------
@@ -228,49 +230,19 @@ cv_compareare_lin2.knn |>
     "A diff of {mean_diff} in {.metric}, 95% CI[{lb}, {ub}]"
   )
 
+# Other uses for the resampled results --------------------------------
 
-# Investigating prediction errors ----------------------------------------------------------
 # It can often be interesting to see not only which model is better, but also
 # where different models fail.
 
-# Here we're still looking at the OOS predictions from the training set.
+# Here we're still looking at the OOS predictions from the training set, but
+# we can look at the distribution of errors for the test set as well.
 linreg2_predictions <- collect_predictions(linreg2_oos)
 
 knn_predictions <- collect_predictions(knn_tuner) |>
   semi_join(k_1SE, by = ".config")
 
-## Sub-sample performance -------------------------------------
-
-# We can also look are group performance indices:
-# Add the original variable back in:
-Auto.train |>
-  slice(linreg2_predictions$.row) |>
-  select(-mpg) |>
-  bind_cols(linreg2_predictions) |>
-  group_by(origin, mpg >= median(mpg)) |>
-  mae(mpg, .pred)
-
-Auto.train |>
-  slice(linreg2_predictions$.row) |>
-  select(-mpg) |>
-  bind_cols(linreg2_predictions) |>
-  ggplot(
-    aes(origin, mpg - .pred, fill = mpg >= median(mpg))
-  ) +
-  geom_hline(yintercept = 0) +
-  geom_violin()
-# We can seen that the model tends to fail the most for cars from Europe with
-# high MPG, and least for American cars with low MPG.
-
-# etc...
-Auto.train |>
-  slice(linreg2_predictions$.row) |>
-  select(-mpg) |>
-  bind_cols(linreg2_predictions) |>
-  group_by(cut_number(horsepower, 3)) |>
-  mae(mpg, .pred)
-
-## Comparing error distributions --------------------------------
+## 1. Comparing error distributions --------------------------------
 
 ggplot(mapping = aes(mpg - .pred)) +
   geom_vline(xintercept = 0) +
@@ -290,9 +262,40 @@ ggplot(mapping = aes(mpg - .pred)) +
 # It seems that the simple linear model gives more negative errors (tends to
 # overestimate mpg).
 
-# For classification problems, we can also compare errors with
-?mcnemar.test()
-
 # Have we selected a model?
 # Time to see how it performs on the test set!
 # ...
+
+## 2. Sub-sample performance -------------------------------------
+# Slicing / fairness analyses
+
+# We can also look are group performance indices:
+
+# Add the original variable back in:
+Auto.train |>
+  slice(linreg2_predictions$.row) |>
+  select(-mpg) |>
+  bind_cols(linreg2_predictions) |>
+  group_by(origin, mpg >= median(mpg)) |>
+  rsq(mpg, .pred) |>
+  arrange(.estimate)
+
+Auto.train |>
+  slice(linreg2_predictions$.row) |>
+  select(-mpg) |>
+  bind_cols(linreg2_predictions) |>
+  ggplot(
+    aes(origin, mpg - .pred, fill = mpg >= median(mpg))
+  ) +
+  geom_hline(yintercept = 0) +
+  geom_violin()
+# We can seen that the model tends to fail the most for cars from Europe with
+# high MPG, and least for American cars with low MPG.
+
+# etc...
+Auto.train |>
+  slice(linreg2_predictions$.row) |>
+  select(-mpg) |>
+  bind_cols(linreg2_predictions) |>
+  group_by(cut_number(horsepower, 3)) |>
+  rsq(mpg, .pred)

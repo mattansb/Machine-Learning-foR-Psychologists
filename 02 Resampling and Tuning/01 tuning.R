@@ -4,35 +4,17 @@ library(tidymodels)
 
 # The data and problem ----------------------------------------------------
 
-# Smarket dataset contains daily percentage returns for the S&P 500 stock index
-# between 2001 and 2005 (1,250 days).
-data(Smarket, package = "ISLR")
-?ISLR::Smarket
-# For each date, the following vars were recorded:
-# - Lag1--Lag5 - percentage returns for each of the five previous trading days.
-# - Volume - the number of shares traded on the previous day(in billions).
-# - Today - the percentage return on the date in question.
-# - Direction - whether the market was Up or Down on this date.
-
-# To make life easier, we will relevel the factor so that the positive class is
-# FIRST (which is the default behavior in {yardstick}).
-Smarket$Direction <- relevel(Smarket$Direction, ref = "Up")
-
-# Assume the following classification task on the Smarket data:
-# predict Direction (Up/Down) using the features Lag1 and Lag2.
-# If we are not sure how Direction is coded we can use levels():
-levels(Smarket$Direction)
-
-table(Smarket$Direction)
-# The base rate probability:
-table(Smarket$Direction) |> proportions()
+# Wage dataset contains information about wage and other characteristics of 3000
+# male workers in the Mid-Atlantic region.
+data(Wage, package = "ISLR")
+?ISLR::Wage
 
 
 # Data Splitting (70%):
 set.seed(20251201)
-splits <- initial_split(Smarket, prop = 0.7)
-Smarket.train <- training(splits)
-Smarket.test <- testing(splits)
+splits <- initial_split(Wage, prop = 0.7)
+Wage.train <- training(splits)
+Wage.test <- testing(splits)
 
 
 # We'll use KNN - but we will use resampling methods to find K!
@@ -45,16 +27,18 @@ Smarket.test <- testing(splits)
 # Note: we are stting neighbors (k) to tune(). This is a placeholder for the
 # tuning grid, and will later be replaced by the actual selected value.
 knn_spec <- nearest_neighbor(
-  mode = "classification",
+  mode = "regression",
   engine = "kknn",
   neighbors = tune()
 )
 
 
 # Define the recipe
-rec <- recipe(Direction ~ ., data = Smarket.train) |>
-  # Keep only Lag predictors
-  step_rm(Volume, Today) |>
+rec <- recipe(wage ~ ., data = Wage.train) |>
+  # Oops - we wouldn't want this! (why?)
+  step_rm(logwage) |>
+  # Dummy code categorical predictors
+  step_dummy(all_nominal_predictors()) |>
   # KNN requires standardization of predictors
   step_normalize(all_numeric_predictors())
 
@@ -75,9 +59,9 @@ knn_wf
 # We will use 10-fold CV.
 
 # Define the resampling method (10-fold CV)
-cv_folds <- vfold_cv(Smarket.train, v = 10)
+cv_folds <- vfold_cv(Wage.train, v = 10)
 cv_folds
-# In each "set" we have ~788 obs. for training, and ~87 obs. for validation.
+# In each "set" we have 1890 obs. for training, and 210 obs. for validation.
 
 # See more methods:
 # https://rsample.tidymodels.org/reference/index.html
@@ -91,8 +75,8 @@ cv_folds
 # For each fold we will compute the out-of-sample performance using the
 # following metrics:
 
-mset_class <- metric_set(sensitivity, specificity, f_meas, roc_auc, kap)
-mset_class
+mset_reg <- metric_set(rsq, rmse, mae)
+mset_reg
 
 
 ### Tuning method -------------------------------
@@ -114,16 +98,21 @@ knn_grid <- grid_regular(
 
 # We can also generate a random grid
 ?grid_random
-# help.search("^grid_", package = "dials") # See more options here
+help.search("^grid_", package = "dials") # See more options here
 
 ### Model tuning ----------------------------------
+
+# Running many models can be time consuming. We can use parallel processing to
+# speed this up with the {mirai} package.
+# See: https://tune.tidymodels.org/articles/extras/optimizations.html#parallel-processing
+mirai::daemons(4)
 
 # Tune the model
 knn_tuned <- tune_grid(
   knn_wf, # the model to re-fit
   resamples = cv_folds,
   grid = knn_grid,
-  metrics = mset_class
+  metrics = mset_reg
 )
 
 
@@ -138,12 +127,11 @@ collect_metrics(knn_tuned, summarize = FALSE) # for each fold
 
 #### Select hyperparameter values ---------------------
 # Select best model
-best_knn <- select_best(knn_tuned, metric = "roc_auc")
-best_knn
+(best_knn <- select_best(knn_tuned, metric = "rmse"))
 
 # Or use the one-SE rule
-select_by_one_std_err(knn_tuned, desc(neighbors), metric = "roc_auc")
-select_by_one_std_err(knn_tuned, desc(neighbors), metric = "specificity")
+select_by_one_std_err(knn_tuned, desc(neighbors), metric = "rmse")
+select_by_one_std_err(knn_tuned, desc(neighbors), metric = "rsq")
 
 # Finalize workflow
 knn_final_wf <- finalize_workflow(knn_wf, best_knn)
@@ -153,33 +141,23 @@ knn_final_wf
 ## 3) Fit the final model -------------------------------------
 # Using the full training set
 
-knn_final_fit <- fit(knn_final_wf, data = Smarket.train)
+knn_final_fit <- fit(knn_final_wf, data = Wage.train)
 
 
 ## 4) Predict and evaluate -------------------------------------------------
 # On the test set.
 
-Smarket.test_predictions <- augment(knn_final_fit, new_data = Smarket.test)
-glimpse(Smarket.test_predictions)
+Wage.test_predictions <- augment(knn_final_fit, new_data = Wage.test)
+glimpse(Wage.test_predictions)
 
 
-Smarket.test_predictions |>
-  conf_mat(truth = Direction, estimate = .pred_class)
-
-
-Smarket.test_predictions |>
-  mset_class(truth = Direction, estimate = .pred_class, .pred_Up)
+Wage.test_predictions |>
+  mset_reg(truth = wage, estimate = .pred)
 # Overall, not amazing...
-
-# Since this is a probabilistic model, we can also look at the ROC curve and AUC:
-Smarket.test_predictions |>
-  roc_curve(truth = Direction, .pred_Up) |>
-  autoplot()
-
 
 # Exercises ----------------------------------------------------------------------
 
-# - Fit a KNN model - this time include all predictors!
+# - Fit a KNN model - this time include all predictors (except...?)!
 #   Use the FULL dataset (without splitting to train/test sets.)
 # - Tune the model
 #   A. define a grid of K values
@@ -187,9 +165,9 @@ Smarket.test_predictions |>
 #     https://yardstick.tidymodels.org/reference/index.html
 #   C. Use the following resampling methods:
 #     1. With 50 bootstrap samples
-(bootstrap_samps <- bootstraps(Smarket, times = 50))
+(bootstrap_samps <- bootstraps(Wage, times = 50))
 # (Note that the validation set is not always of the same size!)
 #     2. 10 repeated 5-fold CV:
-(cv_repeated_folds <- vfold_cv(Smarket, v = 5, repeats = 10))
+(cv_repeated_folds <- vfold_cv(Wage, v = 5, repeats = 10))
 #   D. Select K using best / one-SE rule.
 #     How did the resampling methods differ in their results?

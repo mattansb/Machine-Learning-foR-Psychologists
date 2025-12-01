@@ -1,5 +1,7 @@
 library(tidymodels)
 
+mirai::daemons(4) # Load parallel backend
+
 # https://rsample.tidymodels.org/articles/Common_Patterns.html
 
 # We will use the hotel_rates dataset from the modeldata package
@@ -91,12 +93,12 @@ linreg_rset <- fit_resamples(linreg_wf, resamples = folds10, metrics = mset_reg)
 ## Grouped CV -----------------------------
 
 set.seed(20251201)
-folds10.g <- group_vfold_cv(hr.train, group = country, v = 10)
+folds5.g <- group_vfold_cv(hr.train, group = country, v = 5)
 # Each fold and has a different set of countries
 
 linreg_rset.g <- fit_resamples(
   linreg_wf,
-  resamples = folds10.g,
+  resamples = folds5.g,
   metrics = mset_reg
 )
 

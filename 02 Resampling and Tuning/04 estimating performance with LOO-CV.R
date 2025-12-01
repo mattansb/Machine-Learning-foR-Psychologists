@@ -1,6 +1,8 @@
 library(tidymodels)
 library(patchwork)
 
+mirai::daemons(4) # Load parallel backend
+
 # Note that loo_cv() does not (yet?) play nicely with resampling methods as
 # implemented throughout {tidymodels}. You can still use it -- e.g., for OOS
 # performance estimation -- but it requires manual code writing.
