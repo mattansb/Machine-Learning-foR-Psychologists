@@ -3,6 +3,8 @@ library(tidymodels)
 # library(randomForest)
 # library(xgboost)
 
+mirai::daemons(4) # For parallel processing
+
 # The Boston housing data ----------------------------------------------------
 
 data(Boston, package = "MASS")
@@ -17,8 +19,8 @@ Boston.train <- training(splits)
 Boston.test <- testing(splits)
 
 # Split again for CV
-Bostin.tune_splits <- vfold_cv(Boston.train, v = 10) # Make 10-folds for CV
-Bostin.comp_splits <- vfold_cv(Boston.test, v = 10) # Make 10-folds for CV
+Bostin.tune_splits <- vfold_cv(Boston.train, v = 10) # Make 10-folds for tuning
+Bostin.comp_splits <- vfold_cv(Boston.test, v = 10) # And 10-folds for comparing
 
 mset_reg <- metric_set(rsq, mae)
 
@@ -227,23 +229,6 @@ vip::vip(boost_eng, method = "model", num_features = 13)
 
 # Comparing ---------------------------------------------------------------
 
-## Test set performance -----------------------------------
-
-Boston.test_bag.pred <- augment(bag_fit, Boston.test)
-Boston.test_rf.pred <- augment(rf_fit, Boston.test)
-Boston.test_boost.pred <- augment(boost_fit, Boston.test)
-
-bind_rows(
-  "bagging" = Boston.test_bag.pred,
-  "rf" = Boston.test_rf.pred,
-  "boosting" = Boston.test_boost.pred,
-
-  .id = "Model"
-) |>
-  group_by(Model) |>
-  mset_reg(medv, .pred)
-
-
 ## Compare with resampling --------------------------------
 
 ensemble_metrics <- bind_rows(
@@ -273,21 +258,28 @@ ensemble_metrics |>
   geom_point() +
   geom_line(aes(group = id, color = best_model))
 # bagging and rf look to be better than boosting in this case.
-# But can we say which is better?
 
 ensemble_metrics |>
-  filter(Model != "boosting", .metric == "mae") |>
   pivot_wider(names_from = "Model", values_from = ".estimate") |>
   mutate(
     diff = rf - bagging
   ) |>
   summarise(
     mean_diff = mean(diff),
-    std_err = sd(diff),
+    std_err = sd(diff) / sqrt(n()),
     .lower = mean_diff - 2 * std_err,
-    .upper = mean_diff + 2 * std_err
+    .upper = mean_diff + 2 * std_err,
+
+    .by = .metric
   )
-# Nope, the difference in MAE is in the range of -0.9--+1.2.
+# Nope...
+
+## Test set performance -----------------------------------
+
+Boston.test_rf.pred <- augment(rf_fit, Boston.test)
+
+Boston.test_rf.pred |>
+  mset_reg(medv, .pred)
 
 ggplot(Boston.test_rf.pred, aes(.pred, medv)) +
   geom_point() +
@@ -301,12 +293,12 @@ ggplot(Boston.test_rf.pred, aes(.pred, medv)) +
 
 # Notes: when preparing the data:
 # - deal with missing values.
-# - split to train and test with p=0.5
+# - split to train and test with p=0.6
 
 # A) Fit *regression* trees to predict Salary from the other variables
-# 1. Basic tree - find the optimal cp with CV.
+# 1. Basic tree - tune the optimal cp with CV.
 #    What was the best cp?
-# 2. Random Forrest - find the optimal mtry with CV (include the max possible
+# 2. Random Forrest - tune the optimal mtry with CV (include the max possible
 #    mrty as one of the candidate values).
 #    What was the best mtry?
 # 3. Boosting - tune at least one of Complexity and one of the Gradient
@@ -315,5 +307,5 @@ ggplot(Boston.test_rf.pred, aes(.pred, medv)) +
 
 # B) Compare the models:
 # 1. Which predictor was most "important" in each method?
-# 2. Which has the best test RMSE?
-# 3. Use CV to see if the two best models differ.
+# 2. Use CV to see if the two best models differ.
+#    - What was the test-set performance of the best model?

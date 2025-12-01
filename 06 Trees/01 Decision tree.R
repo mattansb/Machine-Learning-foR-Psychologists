@@ -2,6 +2,7 @@ library(tidymodels)
 # library(rpart)
 library(rpart.plot) # For plotting the decision trees
 
+mirai::daemons(4) # For parallel processing
 
 # Classification trees -----------------------------------------------
 
@@ -21,8 +22,8 @@ OJ.train <- training(splits)
 OJ.test <- testing(splits)
 
 # Spliting
-OJ.tune_splits <- vfold_cv(OJ.train, v = 10) # Make 10-folds for CV
-OJ.comp_splits <- vfold_cv(OJ.test, v = 10) # Make 10-folds for CV
+OJ.comp_splits <- vfold_cv(OJ.train, v = 10) # Make 10-folds for tuning
+OJ.tune_splits <- vfold_cv(OJ.train, v = 10) # Make 10-folds for comparisons
 
 # We will use these metric:
 # (For some reason, recall of MM is more important than sensitivity/precision.)
@@ -172,33 +173,7 @@ vip::vip(pruned.OJ.tree_eng, method = "model", num_features = 20)
 # We will discuss a general framework for estimating variables' importance later
 # in the semester.
 
-## Compare ---------------------------------
-
-OJ.test_predictions.tree <- augment(OJ.tree_fit, new_data = OJ.test)
-OJ.test_predictions.pruned.tree <- augment(
-  pruned.OJ.tree_fit,
-  new_data = OJ.test
-)
-
-OJ.test_predictions.tree |> conf_mat(Purchase, .pred_class)
-OJ.test_predictions.pruned.tree |> conf_mat(Purchase, .pred_class)
-# Models seem to give different predictions...
-
-OJ.test_predictions.tree |>
-  OJ_metrics(Purchase, estimate = .pred_class, .pred_CH)
-OJ.test_predictions.pruned.tree |>
-  OJ_metrics(Purchase, estimate = .pred_class, .pred_CH)
-
-
-bind_rows(
-  "tree" = OJ.test_predictions.tree,
-  "pruned" = OJ.test_predictions.pruned.tree,
-  .id = "Model"
-) |>
-  group_by(Model) |>
-  roc_curve(Purchase, .pred_CH) |>
-  autoplot()
-# It seems the pruned tree is better on all metrics.
+## Select a model ---------------------------------
 
 # Let's use CV to compare the trees:
 OJ.tree_resamps <- fit_resamples(
@@ -238,6 +213,25 @@ ggplot(OJ_resamps_metrics, aes(Model, .estimate, color = Model)) +
     color = "black"
   )
 # We can see that the pruned tree was better across most folds/metrics!
+
+## Test set -----------------------------------
+
+OJ.test_predictions.pruned.tree <- augment(
+  pruned.OJ.tree_fit,
+  new_data = OJ.test
+)
+
+OJ.test_predictions.pruned.tree |> conf_mat(Purchase, .pred_class)
+# Models seem to give different predictions...
+
+OJ.test_predictions.pruned.tree |>
+  OJ_metrics(Purchase, estimate = .pred_class, .pred_CH)
+
+
+OJ.test_predictions.pruned.tree |>
+  roc_curve(Purchase, .pred_CH) |>
+  autoplot()
+
 
 # Regression trees --------------------------------------------------
 
