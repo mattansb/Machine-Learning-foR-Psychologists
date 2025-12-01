@@ -1,6 +1,8 @@
 library(tidymodels)
 # library(glmnet)
 
+mirai::daemons(4) # Enable parallel processing
+
 # Hitters DATA and the PROBLEM ---------------------------------
 
 data("Hitters", package = "ISLR")
@@ -97,9 +99,12 @@ coef(ridge_eng, s = best_ridge$penalty)
 # E.g. for lambda = 0.0000, (this result should be similar to OLS result)
 coef(ridge_eng, s = 0)
 
+# Generally, as lambda increases, the coefficients shrink towards zero:
+plot(ridge_eng, sign.lambda = 1)
+
 # Build a function to plot the coefficients with different lambda (s) values
 plot_glmnet_coef <- function(mod, s = 0, show_intercept = FALSE) {
-  b <- glmnet::coef.glmnet(mod, s = c(s, 0), exact = FALSE) |>
+  b <- glmnet::coef.glmnet(mod, s = unique(c(0, s)), exact = FALSE) |>
     as.matrix() |>
     as.data.frame() |>
     tibble::rownames_to_column("Coef")
@@ -108,10 +113,11 @@ plot_glmnet_coef <- function(mod, s = 0, show_intercept = FALSE) {
     b <- b |> filter(Coef != "(Intercept)")
   }
 
-  ggplot2::ggplot(b, ggplot2::aes(Coef, s1)) +
+  ggplot2::ggplot(b, ggplot2::aes(Coef, .data[[tail(colnames(b), 1)]])) +
+    ggplot2::geom_blank(ggplot2::aes(y = .data[[colnames(b)[2]]])) +
     ggplot2::geom_hline(yintercept = 0) +
     ggplot2::geom_point(
-      ggplot2::aes(shape = s1 == 0),
+      ggplot2::aes(shape = .data[[tail(colnames(b), 1)]] == 0),
       fill = "red",
       size = 2,
       show.legend = c(shape = TRUE)
@@ -124,7 +130,6 @@ plot_glmnet_coef <- function(mod, s = 0, show_intercept = FALSE) {
       limits = c(FALSE, TRUE)
     ) +
     ggplot2::scale_x_discrete(guide = ggplot2::guide_axis(angle = 30)) +
-    ggplot2::coord_cartesian(ylim = range(b[, -1])) +
     ggplot2::labs(y = "Coef", x = NULL) +
     ggplot2::ggtitle(bquote(lambda == .(s)))
 }
@@ -134,7 +139,7 @@ plot_glmnet_coef(ridge_eng)
 plot_glmnet_coef(ridge_eng, s = 1000)
 plot_glmnet_coef(ridge_eng, s = 10000)
 
-plot_glmnet_coef(ridge_eng, s = best_ridge$penalty) # some coefs are exactly 0!
+plot_glmnet_coef(ridge_eng, s = best_ridge$penalty) # No coefs are exactly 0!
 
 # We can also plot the coefficients with the sign of the coefficients using the
 # {vip} package:
@@ -218,6 +223,9 @@ lasso_fit <- lasso_wf |>
 # will be EXACTLY equal to zero:
 lasso_eng <- extract_fit_engine(lasso_fit)
 
+# unlike ridge, coefs eventually hit 0
+plot(lasso_eng, sign.lambda = 1)
+
 plot_glmnet_coef(lasso_eng)
 plot_glmnet_coef(lasso_eng, s = 10)
 plot_glmnet_coef(lasso_eng, s = 100)
@@ -285,8 +293,9 @@ enet_fit <- enet_wf |>
   finalize_workflow(parameters = best_enet) |>
   fit(data = Hitters.train)
 
-extract_fit_engine(enet_fit) |>
-  plot_glmnet_coef(s = best_enet$penalty)
+enet_eng <- extract_fit_engine(enet_fit)
+plot_glmnet_coef(enet_eng, s = best_enet$penalty)
+plot(enet_eng, sign.lambda = 1)
 
 
 # Compare performance ---------------------------------------------------------
@@ -302,31 +311,36 @@ augment(enet_fit, new_data = Hitters.test) |> mset_reg(Salary, .pred)
 
 # Exercise--------------------------------------------------------------
 
-# Use the "U.S. News and World Report’s College Data" dataset ('College' in
-# ISLR). this dataset contains 777 observations of US colleges with the
-# following variables:
+# The attrition dataset dataset contains information about employees in a
+# company and whether they left the company (Attrition: Yes/No). The goal is to
+# predict Attrition using the other variables in the dataset.
+data("attrition", package = "modeldata")
+?modeldata::attrition
+head(attrition)
 
-data("College", package = "ISLR")
-head(College)
+# Lets predict Attrition from these 30 variables (Note that regularization
+# methods can be used for datasets with many more variables than this one).
+table(attrition$Attrition) |> prop.table()
 
-?College
-# Lets predict Grad.Rate (Graduation rate) from these 17 variables.
+# Relevel the outcome so "Yes" is the first level (for convenience)
+attrition$Attrition <- relevel(attrition$Attrition, ref = "Yes")
 
 # 1) Split to train and test. use 0.7 for the train data
 
 # 2) Then, use each of the learned methods to answer this task. That is:
-#   i.   Best Subset Selection
-#   ii.  Ridge regression
-#   iii. Lasso
-#   iv.  Elastic net
+#   i.   Ridge regression
+#   ii.  Lasso
+#   iii. Elastic net
 
-# Notes for the last 3 methods, you should use the same lambda values - make
-# sure they are broad enough to capture a desired RMSE minima. You can do this
-# by plotting RMSE vs lambda and see if there is a "valley".
-# Use 10-folds CV to tune alpha/lambda.
+# Make sure you use a broad enough range of lambda values for all three methods.
+# You can do this by plotting a metric vs lambda and see if there is a "valley"
+# / "hill".
+
+# - Use an appropriate recipe to preprocess the data
+# - Use appropriate metrics to evaluate the performance of the models
+# - Use 10-folds CV to tune alpha/lambda.
 
 # 3) Compare:
-# - Did the method diverged from each other in their performance on test data
-#   (look at R2)? Which one preformed best on the test set?
-# - Compare the Best Subset Selection, LASSO and Elastic net - did they all
-#   "choose" similar predictors?
+# - Did the method diverged from each other in their performance on test data?
+#   Which one preformed best on the test set?
+# - Did LASSO and Elastic net "choose" similar predictors?

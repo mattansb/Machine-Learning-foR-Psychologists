@@ -1,6 +1,8 @@
 library(tidymodels)
 # library(kknn)
 
+mirai::daemons(4) # Enable parallel processing
+
 # The data ----------------------------------------------------------------
 
 data("Hitters", package = "ISLR")
@@ -87,7 +89,7 @@ extract_fit_engine(pcr_fit) |> coef()
 extract_pcr_coef <- function(x, which = c("coef", "vcov")) {
   stopifnot(
     "x is not a workflow" = inherits(x, "workflow"),
-    "the model spec is not linear_reg" = inherits(
+    "the model spec is not linear_reg / logistic_reg" = inherits(
       x_spec <- extract_spec_parsnip(x),
       c("linear_reg", "logistic_reg")
     ),

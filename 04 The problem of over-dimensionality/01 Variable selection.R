@@ -1,6 +1,6 @@
 library(tidymodels)
 
-library(leaps)
+library(leaps) # ONLY AVAILABLE FOR REGRESSION
 
 # Recommendation: read "Feature Selection Overview" on caret website:
 # https://topepo.github.io/caret/feature-selection-overview.html
