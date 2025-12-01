@@ -1,12 +1,13 @@
 library(tidymodels)
 # library(kknn)
 
+mirai::daemons(4) # Use 4 CPU cores for parallel processing
+
 # This script demonstrates how we might asses a multiclass-classification model.
 
 # Data and problem ----------------------------------------------------------
 
-data("penguins", package = "palmerpenguins")
-?palmerpenguins::penguins
+data("penguins")
 # This data set contains info on penguins from the Palmer Archipelago,
 # Antarctica. We will predict the species of penguins based on their bill length
 # and depth, using a KNN model.
@@ -17,12 +18,13 @@ penguins.train <- training(splits)
 penguins.test <- testing(splits)
 
 
-# Fit ---------------------------------------------------------------------
+# Tune ---------------------------------------------------------------------
 
+# We will be tuning the number of neighbors (k) in the KNN model.
 knn_spec <- nearest_neighbor(
   mode = "classification",
   engine = "kknn",
-  neighbors = 5
+  neighbors = tune()
 )
 
 rec <- recipe(species ~ body_mass_g + sex, data = penguins.train) |>
@@ -37,29 +39,58 @@ rec <- recipe(species ~ body_mass_g + sex, data = penguins.train) |>
 
 knn_wf <- workflow(preprocessor = rec, spec = knn_spec)
 
-knn_fit <- fit(knn_wf, data = penguins.train)
+# Unlike binary classification, we don't typically have a "positive" class, so
+# we can't really compute a single sensitivity or specificity ( etc.) value.
+# Instead, we can use several methods to summarize the performance of a
+# multiclass model - with the default being the "macro" method, which simply
+# computes the metric for each class, and then averages them.
+#
+# Note, however that accuracy does not require a "positive" class, and so it can
+# be used without issue in multiclass problems.
+mset_class <- metric_set(sensitivity, specificity, accuracy)
 
+# Setup the tuning grid:
+knn_grid <- grid_regular(
+  neighbors(range = c(5, 100)),
+  levels = 4
+)
+
+# Setup 10-fold CV:
+folds10 <- vfold_cv(penguins.train, v = 10)
+
+# Perform the tuning:
+tune_results <- tune_grid(
+  knn_wf,
+  resamples = folds10,
+  grid = knn_grid,
+  metrics = mset_class
+)
+
+autoplot(tune_results)
+
+## Finalize the model ----------------------------------------------------
+
+knn_fit <- knn_wf |>
+  finalize_workflow(
+    parameters = select_by_one_std_err(
+      tune_results,
+      neighbors,
+      metric = "accuracy"
+    )
+  ) |>
+  fit(data = penguins.train)
 
 # Predict -----------------------------------------------------------------
 
 penguins.test_predictions <- augment(knn_fit, new_data = penguins.test)
 head(penguins.test_predictions)
 
-# Unlike binary classification, we don't typically have a "positive" class, so
-# we can't really compute sensitivity, specificity, etc. Instead, we can use
-# several methods to summarize the performance of a multiclass model.
-#
-# Note, however that accuracy does not require a "positive" class, and so it can
-# be used without issue in multiclass problems.
-mset_class <- metric_set(sensitivity, specificity, accuracy)
-
-
 # {yardstick} provids 3 methods for dealing with multiclass predictions, all of
 # them effectively compute such metrics for each class, and them average them.
 # You can read about these here:
 # https://yardstick.tidymodels.org/articles/multiclass.html
 
-## Macro (standard averaging)
+## Macro (standard averaging) (default)
 penguins.test_predictions |>
   mset_class(truth = species, estimate = .pred_class, estimator = "macro")
 

@@ -1,6 +1,8 @@
 library(tidymodels)
 # library(kknn)
 
+mirai::daemons(4) # Use 4 CPU cores for parallel processing
+
 # The Data & Problem --------------------------------------------------------
 
 data("Caravan", package = "ISLR")
@@ -70,7 +72,7 @@ Caravan.test_predictions_NULL |>
 knn_spec <- nearest_neighbor(
   mode = "classification",
   engine = "kknn",
-  neighbors = 10
+  neighbors = 10 # chosen arbitrarily for this example
 )
 
 knn_wf <- workflow(preprocessor = rec, spec = knn_spec)
@@ -101,6 +103,7 @@ rec_down <- rec |> themis::step_downsample(Purchase)
 knn_fit.up <- knn_wf |>
   update_recipe(rec_up) |>
   fit(data = Caravan.train)
+
 knn_fit.down <- knn_wf |>
   update_recipe(rec_down) |>
   fit(data = Caravan.train)
