@@ -8,7 +8,7 @@ ISLR::Hitters
 Hitters <- tidyr::drop_na(Hitters, Salary)
 
 # Split:
-set.seed(123)
+set.seed(20251201)
 splits <- initial_split(Hitters, prop = 0.7)
 Hitters.train <- training(splits)
 Hitters.test <- testing(splits)
@@ -57,7 +57,7 @@ ridge_grid <- grid_regular(
 )
 
 # Using 5-fold CV:
-set.seed(12)
+set.seed(20251201)
 cv_5folds <- vfold_cv(Hitters.train, v = 5)
 
 

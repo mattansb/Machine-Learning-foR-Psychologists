@@ -37,7 +37,7 @@ Auto$origin <- factor(Auto$origin)
 
 # because we will use random sampling we need to set a random seed in order to
 # replicate the results
-set.seed(1111)
+set.seed(20251201)
 
 i <- sample.int(nrow(Auto), size = 0.7 * nrow(Auto))
 Auto.train <- Auto[i, ]

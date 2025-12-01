@@ -14,7 +14,7 @@ data("Hitters", package = "ISLR")
 ?ISLR::Hitters
 
 # split the data
-set.seed(111)
+set.seed(20251201)
 splits <- initial_split(Hitters, prop = 0.7)
 Hitters.train <- training(splits)
 Hitters.test <- testing(splits)

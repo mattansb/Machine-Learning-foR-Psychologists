@@ -13,7 +13,7 @@ levels(Caravan$Purchase)
 # This way we won't have to set `event_level = "second"` everywhere.
 
 # Data Splitting
-set.seed(1234)
+set.seed(20251201)
 splits <- initial_split(Caravan, prop = 0.7, strata = Purchase)
 Caravan.train <- training(splits)
 Caravan.test <- testing(splits)

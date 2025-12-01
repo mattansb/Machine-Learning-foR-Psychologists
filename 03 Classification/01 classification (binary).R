@@ -27,7 +27,7 @@ table(Smarket$Direction) |> proportions()
 
 
 # Data Splitting (70%):
-set.seed(1234)
+set.seed(20251201)
 splits <- initial_split(Smarket, prop = 0.7)
 Smarket.train <- training(splits)
 Smarket.test <- testing(splits)

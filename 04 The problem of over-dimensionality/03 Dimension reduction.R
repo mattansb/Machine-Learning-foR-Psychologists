@@ -8,7 +8,7 @@ ISLR::Hitters
 Hitters <- tidyr::drop_na(Hitters, Salary)
 
 # Split:
-set.seed(123)
+set.seed(20251201)
 splits <- initial_split(Hitters, prop = 0.7)
 Hitters.train <- training(splits)
 Hitters.test <- testing(splits)
@@ -52,7 +52,7 @@ linreg_wf <- workflow(preprocessor = pcr_rec, spec = linreg_spec)
 ## Tune ------------------------------------
 
 # Using 5-fold CV:
-set.seed(12)
+set.seed(20251201)
 cv_10folds <- vfold_cv(Hitters.train, v = 10)
 
 pcr_grid <- grid_regular(

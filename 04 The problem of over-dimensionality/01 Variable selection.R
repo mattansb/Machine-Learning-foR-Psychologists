@@ -24,7 +24,7 @@ names(Hitters)
 # Which 19 predictors will be best for predicting Salary?
 
 # Split:
-set.seed(123442)
+set.seed(20251201)
 splits <- initial_split(Hitters, prop = 0.7)
 Hitters.train <- training(splits)
 Hitters.test <- testing(splits)

@@ -22,7 +22,7 @@ hotel_rates <- hotel_rates |>
 # Initial split --------------------------------------------------------------
 
 # Typically, we would use
-set.seed(111)
+set.seed(20251201)
 splits <- initial_split(hotel_rates, prop = 2 / 3)
 hr.trainX <- training(splits)
 hr.testX <- testing(splits)
@@ -40,7 +40,7 @@ hotel_rates |>
 
 
 # Instead, we will use a grouped split:
-set.seed(111)
+set.seed(20251201)
 splits <- group_initial_split(hotel_rates, group = country, prop = 2 / 3)
 hr.train <- training(splits)
 hr.test <- testing(splits)
@@ -81,7 +81,7 @@ linreg_wf <- workflow(preprocessor = rec, spec = linreg_spec)
 
 ## Standard CV -----------------------------
 
-set.seed(111)
+set.seed(20251201)
 folds5 <- vfold_cv(hr.train, v = 5)
 # Data from each country are now scattered across folds.
 
@@ -90,7 +90,7 @@ linreg_rset <- fit_resamples(linreg_wf, resamples = folds5, metrics = mset_reg)
 
 ## Grouped CV -----------------------------
 
-set.seed(111)
+set.seed(20251201)
 folds5.g <- group_vfold_cv(hr.train, group = country, v = 5)
 # Each fold and has a different set of countries
 

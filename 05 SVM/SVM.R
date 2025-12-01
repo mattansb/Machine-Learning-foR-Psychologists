@@ -14,7 +14,7 @@ levels(OJ$Purchase)
 oj_metrics <- metric_set(accuracy, f_meas, roc_auc)
 
 
-set.seed(1)
+set.seed(20251201)
 splits <- initial_split(OJ, prop = 0.8)
 OJ.train <- training(splits)
 OJ.test <- testing(splits)
@@ -206,7 +206,7 @@ svmrad_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
 data("penguins", package = "palmerpenguins")
 ?palmerpenguins::penguins
 
-set.seed(1)
+set.seed(20251201)
 splits <- initial_split(penguins, prop = 0.7)
 penguins.train <- training(splits)
 penguins.test <- testing(splits)

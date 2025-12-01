@@ -11,7 +11,7 @@ glimpse(Boston)
 
 
 # Split the data:
-set.seed(1)
+set.seed(20251201)
 splits <- initial_split(Boston, prop = 0.6)
 Boston.train <- training(splits)
 Boston.test <- testing(splits)

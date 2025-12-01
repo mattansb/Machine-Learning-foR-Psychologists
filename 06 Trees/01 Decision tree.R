@@ -15,7 +15,7 @@ table(OJ$Purchase) |> proportions()
 # There's a preference for CH!
 
 # Split the data:
-set.seed(1)
+set.seed(20251201)
 splits <- initial_split(OJ, prop = 0.6)
 OJ.train <- training(splits)
 OJ.test <- testing(splits)

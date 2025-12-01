@@ -11,7 +11,7 @@ data("penguins", package = "palmerpenguins")
 # Antarctica. We will predict the species of penguins based on their bill length
 # and depth, using a KNN model.
 
-set.seed(111)
+set.seed(20251201)
 splits <- initial_split(penguins, prop = 0.8, strata = species)
 penguins.train <- training(splits)
 penguins.test <- testing(splits)
