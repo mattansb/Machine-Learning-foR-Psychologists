@@ -36,7 +36,7 @@ rec <- recipe(Purchase ~ PriceDiff + LoyalCH, data = OJ.train) |>
 # Note: We're only using 2 predictors because it allowed us to visualize the
 # "space". But SVM can of course use many predictors.
 
-folds <- vfold_cv(OJ.train, v = 5)
+folds <- vfold_cv(OJ.train, v = 10)
 
 
 # Support Vector Classifier --------------------------------------------------
@@ -297,7 +297,7 @@ svrlin_wf <- workflow(preprocessor = rec3, spec = svrlin_spec)
 
 
 # Tune the model...
-folds <- vfold_cv(penguins.train, v = 5)
+folds <- vfold_cv(penguins.train, v = 10)
 
 svrlin_grid <- grid_regular(
   cost(),

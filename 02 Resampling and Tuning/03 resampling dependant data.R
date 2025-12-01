@@ -82,21 +82,21 @@ linreg_wf <- workflow(preprocessor = rec, spec = linreg_spec)
 ## Standard CV -----------------------------
 
 set.seed(20251201)
-folds5 <- vfold_cv(hr.train, v = 5)
+folds10 <- vfold_cv(hr.train, v = 10)
 # Data from each country are now scattered across folds.
 
-linreg_rset <- fit_resamples(linreg_wf, resamples = folds5, metrics = mset_reg)
+linreg_rset <- fit_resamples(linreg_wf, resamples = folds10, metrics = mset_reg)
 
 
 ## Grouped CV -----------------------------
 
 set.seed(20251201)
-folds5.g <- group_vfold_cv(hr.train, group = country, v = 5)
+folds10.g <- group_vfold_cv(hr.train, group = country, v = 10)
 # Each fold and has a different set of countries
 
 linreg_rset.g <- fit_resamples(
   linreg_wf,
-  resamples = folds5.g,
+  resamples = folds10.g,
   metrics = mset_reg
 )
 

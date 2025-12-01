@@ -58,13 +58,13 @@ ridge_grid <- grid_regular(
 
 # Using 5-fold CV:
 set.seed(20251201)
-cv_5folds <- vfold_cv(Hitters.train, v = 5)
+cv_10folds <- vfold_cv(Hitters.train, v = 10)
 
 
 # Tune the model
 ridge_tuned <- tune_grid(
   ridge_wf,
-  resamples = cv_5folds,
+  resamples = cv_10folds,
   grid = ridge_grid,
   # Default metrics: rsq, rmse
 )
@@ -189,7 +189,7 @@ lasso_grid <- grid_regular(
 # Tune the model
 lasso_tuned <- tune_grid(
   lasso_wf,
-  resamples = cv_5folds,
+  resamples = cv_10folds,
   grid = lasso_grid,
   # Default metrics: rsq, rmse
 )
@@ -261,7 +261,7 @@ head(enet_grid)
 # Tune the model
 enet_tuned <- tune_grid(
   enet_wf,
-  resamples = cv_5folds,
+  resamples = cv_10folds,
   grid = enet_grid,
   # Default metrics: rsq, rmse
 )

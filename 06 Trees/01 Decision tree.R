@@ -21,7 +21,7 @@ OJ.train <- training(splits)
 OJ.test <- testing(splits)
 
 # Spliting
-OJ.tune_splits <- vfold_cv(OJ.train, v = 5) # Make 5-folds for CV
+OJ.tune_splits <- vfold_cv(OJ.train, v = 10) # Make 10-folds for CV
 OJ.comp_splits <- vfold_cv(OJ.test, v = 10) # Make 10-folds for CV
 
 # We will use these metric:
