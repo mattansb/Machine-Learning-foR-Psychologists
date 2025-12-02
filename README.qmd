@@ -53,8 +53,8 @@ These topics were taught in the graduate-level course ***Machine Learning for Ps
 
 You will need:
 
-1. A fresh installation of [**`R`**](https://cran.r-project.org/) (preferably version 4.3.2 or above).
-2. [RStudio IDE](https://www.rstudio.com/products/rstudio/download/) (optional, but recommended).
+1. A fresh installation of [**`R`**](https://cran.r-project.org/) (preferably version 4.5.0 or above).
+2. [RStudio IDE](https://www.rstudio.com/products/rstudio/download/) or [Positron](https://positron.posit.co/download) (optional, but recommended).
 3. The following packages, listed by lesson:
 
 

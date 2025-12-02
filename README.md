@@ -33,19 +33,20 @@ Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psyc
 You will need:
 
 1.  A fresh installation of [**`R`**](https://cran.r-project.org/)
-    (preferably version 4.3.2 or above).
-2.  [RStudio IDE](https://www.rstudio.com/products/rstudio/download/)
-    (optional, but recommended).
+    (preferably version 4.5.0 or above).
+2.  [RStudio IDE](https://www.rstudio.com/products/rstudio/download/) or
+    [Positron](https://positron.posit.co/download) (optional, but
+    recommended).
 3.  The following packages, listed by lesson:
 
 | Lesson | Packages |
 |:---|:---|
-| [01 Intro with Regression](/01%20Intro%20with%20Regression) | `ISLR`, `tidymodels`, `stats`, `patchwork`, `kknn` |
-| [02 Resampling and Tuning](/02%20Resampling%20and%20Tuning) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `mirai`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |
-| [03 Classification](/03%20Classification) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `mirai`, `themis`, `patchwork`, `tailor`, `modeldata`, `probably`, `desirability2` |
-| [04 The problem of over-dimensionality](/04%20The%20problem%20of%20over-dimensionality) | `tidymodels`, `leaps`, `ISLR`, `stats`, `MASS`, `insight`, `glmnet`, `mirai`, `tidyr`, `scales`, `tibble`, `ggplot2`, `vip`, `modeldata`, `kknn`, `BiocManager`, `mixOmics`, `plsmod` |
-| [05 SVM](/05%20SVM) | `tidymodels`, `kernlab`, `mirai`, `ISLR` |
-| [06 Trees](/06%20Trees) | `tidymodels`, `rpart`, `rpart.plot`, `mirai`, `ISLR`, `scales`, `vip`, `MASS`, `tidymodels`, `baguette`, `randomForest`, `xgboost`, `mirai`, `MASS`, `forcats`, `vip` |
+| [01 intro with regression](/01%20intro%20with%20regression) | `ISLR`, `tidymodels`, `stats`, `patchwork`, `kknn` |
+| [02 resampling](/02%20resampling) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `mirai`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |
+| [03 classification](/03%20classification) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `mirai`, `themis`, `patchwork`, `tailor`, `modeldata`, `probably`, `desirability2` |
+| [04 the problem of over-dimensionality](/04%20the%20problem%20of%20over-dimensionality) | `tidymodels`, `leaps`, `ISLR`, `stats`, `MASS`, `insight`, `glmnet`, `mirai`, `tidyr`, `scales`, `tibble`, `ggplot2`, `vip`, `modeldata`, `kknn`, `BiocManager`, `mixOmics`, `plsmod` |
+| [05 svm](/05%20svm) | `tidymodels`, `kernlab`, `mirai`, `ISLR` |
+| [06 trees](/06%20trees) | `tidymodels`, `rpart`, `rpart.plot`, `mirai`, `ISLR`, `scales`, `vip`, `MASS`, `tidymodels`, `baguette`, `randomForest`, `xgboost`, `mirai`, `MASS`, `forcats`, `vip` |
 | [07 explanatory model analysis](/07%20explanatory%20model%20analysis) | `tidymodels`, `kknn`, `randomForest`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `vip` |
 | [08 unsupervised learning](/08%20unsupervised%20learning) | `tidyverse`, `patchwork`, `recipes`, `Rtsne`, `factoextra`, `ggrepel`, `cluster`, `randomForest`, `modeldata`, `psych`, `parameters`, `performance`, `datasets`, `GPArotation`, `dplyr`, `tidyr`, `psychTools` |
 
