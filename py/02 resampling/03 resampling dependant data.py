@@ -47,32 +47,41 @@ hotel_rates = hotel_rates.loc[
 
 # Initial split --------------------------------------------------------------
 
-# Typically, we would use
-ht_trainX, ht_testX = train_test_split(
+# PROBLEM: Standard train/test split ignores grouping structure
+# Using a standard split:
+ht_train_standard, ht_test_standard = train_test_split(
     hotel_rates, train_size=(2 / 3), random_state=111
 )
 
-# When this would mean we have some information from the test countries in our
-# training set:
-print(any(ht_testX["country"].isin(ht_trainX["country"])))
+# Check if test countries appear in training set
+has_overlap = any(
+    ht_test_standard["country"].isin(ht_train_standard["country"])
+)
+print(f"Countries overlap between train and test: {has_overlap}")
+# This is a problem! We have data leakage.
 
 # https://scikit-learn.org/stable/auto_examples/model_selection/plot_cv_indices.html#sphx-glr-auto-examples-model-selection-plot-cv-indices-py
 
 
-# Instead, we will use a grouped split:
+# SOLUTION: Use grouped split to respect data structure
+# GroupShuffleSplit ensures entire groups (countries) are kept together
 splitter_grouped = GroupShuffleSplit(
     n_splits=1, train_size=(2 / 3), random_state=111
 )
 
-train_idx_g, test_idx_g = next(
+# Get indices for train/test split that respect country grouping
+train_idx, test_idx = next(
     splitter_grouped.split(hotel_rates, groups=hotel_rates["country"])
 )
 
-ht_train = hotel_rates.iloc[train_idx_g].copy()
-ht_test = hotel_rates.iloc[test_idx_g].copy()
+# Create train and test sets
+ht_train = hotel_rates.iloc[train_idx].copy()
+ht_test = hotel_rates.iloc[test_idx].copy()
 
-# Non of the country in the test set appear in the training set!
-print(any(ht_test["country"].isin(ht_train["country"])))
+# Verify no country overlap
+has_overlap_grouped = any(ht_test["country"].isin(ht_train["country"]))
+print(f"Countries overlap with grouped split: {has_overlap_grouped}")
+# Perfect! No countries in the test set appear in the training set.
 
 
 # Assessing OOS performance using CV -----------------------------------------
@@ -126,10 +135,12 @@ scorers_reg = {
     "rmse": make_scorer(root_mean_squared_error, greater_is_better=False),
 }
 
-## Standard CV -----------------------------
+## Standard CV (IGNORING grouping structure) -----------------------------
 
+# Standard K-Fold CV - doesn't consider grouping
 folds_standard = KFold(n_splits=5, shuffle=True, random_state=111)
 
+# Run cross-validation
 linreg_cv_standard = cross_validate(
     estimator=linreg_pipe,
     X=ht_train[predictors],
@@ -139,71 +150,94 @@ linreg_cv_standard = cross_validate(
     return_train_score=False,
     n_jobs=-1,
 )
-# Data from each country are now scattered across folds.
+# PROBLEM: Data from each country are scattered across folds
+# This can lead to overoptimistic performance estimates
 
-## Grouped CV -----------------------------
+## Grouped CV (RESPECTING grouping structure) -----------------------------
 
-folds_g = GroupKFold(n_splits=5, shuffle=True, random_state=111)
+# GroupKFold CV - keeps entire groups together
+folds_grouped = GroupKFold(n_splits=5)
 
-linreg_cv_g = cross_validate(
+# Run cross-validation with grouped folds
+linreg_cv_grouped = cross_validate(
     estimator=linreg_pipe,
     X=ht_train[predictors],
     y=ht_train[outcome],
-    cv=folds_g,
-    groups=ht_train["country"],
+    cv=folds_grouped,
+    groups=ht_train["country"],  # Specify the grouping variable
     scoring=scorers_reg,
     return_train_score=False,
     n_jobs=-1,
 )
+# SOLUTION: Each country appears in only one fold
+# This gives more realistic performance estimates
 
 
-## Compare -------------------------------
+## Compare standard vs grouped CV -------------------------------
 
 
 def std_err(x):
+    """Calculate standard error of the mean"""
     return x.std() / np.sqrt(len(x))
 
 
+# Combine results from both CV approaches
+cv_standard_df = pd.DataFrame(linreg_cv_standard).assign(
+    Approach="Grouping Ignored"
+)
+cv_grouped_df = pd.DataFrame(linreg_cv_grouped).assign(
+    Approach="Grouping Respected"
+)
+
 cv_results = (
-    pd.concat(
-        [
-            pd.DataFrame(linreg_cv_standard).assign(Group="Ignored"),
-            pd.DataFrame(linreg_cv_g).assign(Group="Accounted for"),
-        ]
-    )
-    .groupby(["Group"])[["test_rsq", "test_rmse"]]
+    pd.concat([cv_standard_df, cv_grouped_df])
+    .groupby(["Approach"])[["test_rsq", "test_rmse"]]
     .agg([np.mean, std_err])
 )
+
+print("\nComparison of CV approaches:")
 print(cv_results)
-# When ignoring the grouping the data we both over estimate the models
-# performance with CV, but we're also over confident in the out-of-sample
-# performance by ignoring the dependency (looks at the difference in the std_err
-# of our metrics)!
+# - Ignoring grouping leads to OVERESTIMATION of model performance
+# - Ignoring grouping leads to UNDERESTIMATION of uncertainty (smaller SE)
+# - The grouped approach gives more realistic estimates!
 
 # True OOS Performance --------------------------------------------------
 
-linreg_mod = clone(linreg_pipe).fit(ht_trainX[predictors], ht_trainX[outcome])
-linreg_mod_g = clone(linreg_pipe).fit(ht_train[predictors], ht_train[outcome])
+# Train models using both splitting approaches
+linreg_standard = clone(linreg_pipe).fit(
+    ht_train_standard[predictors], ht_train_standard[outcome]
+)
+linreg_grouped = clone(linreg_pipe).fit(ht_train[predictors], ht_train[outcome])
 
-y_pred = linreg_mod.predict(ht_test)
-y_pred_g = linreg_mod_g.predict(ht_test)
+# Get predictions on test set
+y_pred_standard = linreg_standard.predict(ht_test[predictors])
+y_pred_grouped = linreg_grouped.predict(ht_test[predictors])
 
-r2_score(ht_test[outcome], y_pred)
-r2_score(ht_test[outcome], y_pred_g)
+# Calculate performance metrics
+print("\nTest set performance (Grouping Ignored):")
+print(f"  Rsq: {r2_score(ht_test[outcome], y_pred_standard):.4f}")
+print(
+    f"  RMSE: {root_mean_squared_error(ht_test[outcome], y_pred_standard):.4f}"
+)
 
-root_mean_squared_error(ht_test[outcome], y_pred)
-root_mean_squared_error(ht_test[outcome], y_pred_g)
-# Again - we are over estimating our out of sample performance :(
+print("\nTest set performance (Grouping Respected):")
+print(f"  Rsq: {r2_score(ht_test[outcome], y_pred_grouped):.4f}")
+print(
+    f"  RMSE: {root_mean_squared_error(ht_test[outcome], y_pred_grouped):.4f}"
+)
+# Again: ignoring grouping overestimates true OOS performance!
 
-# Create dataframe for plotting
+# Create dataframe for plotting predictions
+n_pred = len(y_pred_standard)
 pred_df = pd.DataFrame(
     {
-        "predicted": np.concatenate([y_pred, y_pred_g]),
+        "predicted": np.concatenate([y_pred_standard, y_pred_grouped]),
         "actual": np.concatenate(
             [ht_test[outcome].values, ht_test[outcome].values]
         ),
-        "grouping": ["Ignored Grouping"] * len(y_pred)
-        + ["Accounted for Grouping"] * len(y_pred_g),
+        "approach": (
+            ["Grouping Ignored"] * n_pred + ["Grouping Respected"] * n_pred
+        ),
     }
 )
 
@@ -212,19 +246,19 @@ min_val = ht_test[outcome].min()
 max_val = ht_test[outcome].max()
 
 p_predictions = (
-    ggplot(pred_df, aes(x="predicted", y="actual", color="grouping"))
+    ggplot(pred_df, aes(x="predicted", y="actual", color="approach"))
     + geom_point(alpha=0.6, size=2)
     + geom_abline(intercept=0, slope=1, color="grey", linetype="dashed", size=1)
     + labs(
-        x="Predicted",
-        y="Actual",
-        title="Predicted vs Actual Values",
-        color="Grouping",
+        x="Predicted Average Daily Rate",
+        y="Actual Average Daily Rate",
+        title="Predicted vs Actual: Comparing Split Approaches",
+        color="Split Approach",
     )
     + scale_color_manual(
         values={
-            "Ignored Grouping": "skyblue",
-            "Accounted for Grouping": "lightcoral",
+            "Grouping Ignored": "skyblue",
+            "Grouping Respected": "lightcoral",
         }
     )
     + theme_minimal()

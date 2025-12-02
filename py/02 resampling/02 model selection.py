@@ -427,7 +427,7 @@ group_performance = (
     )
     .reset_index(name="r2_linreg2")
 )
-print("\nR² by origin and MPG level (Linear Reg 2):")
+print("\nRsq by origin and MPG level (Linear Reg 2):")
 print(group_performance.sort_values("r2_linreg2"))
 
 # Visualize errors by group
@@ -467,5 +467,5 @@ group_performance_hp = (
     )
     .reset_index(name="r2_linreg2")
 )
-print("\nR² by horsepower group (Linear Reg 2):")
+print("\nRsq by horsepower group (Linear Reg 2):")
 print(group_performance_hp)

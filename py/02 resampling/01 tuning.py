@@ -170,7 +170,7 @@ results_long["value"] = results_long.apply(
 
 # Rename metrics for better labels
 metric_labels = {
-    "mean_test_r2": "R²",
+    "mean_test_r2": "Rsq",
     "mean_test_rmse": "RMSE",
     "mean_test_mae": "MAE",
 }
@@ -239,7 +239,7 @@ y_pred_test = knn_final_fit.predict(X_test)
 print("\n" + "=" * 60)
 print("Test set performance:")
 print("=" * 60)
-print(f"R²: {r2_score(y_test, y_pred_test):.3f}")
+print(f"Rsq: {r2_score(y_test, y_pred_test):.3f}")
 print(f"RMSE: {root_mean_squared_error(y_test, y_pred_test):.3f}")
 print(f"MAE: {mean_absolute_error(y_test, y_pred_test):.3f}")
 # Overall, not amazing...
