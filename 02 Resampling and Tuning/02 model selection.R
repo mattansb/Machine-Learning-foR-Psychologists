@@ -64,7 +64,7 @@ linreg1_oos <- fit_resamples(
 
 # get a summary of the metrics across resamples:
 collect_metrics(linreg1_oos)
-# We can also get the raw data:c data (per-resample):
+# We can also get the raw data (per-resample):
 collect_metrics(linreg1_oos, summarize = FALSE)
 collect_metrics(linreg1_oos, summarize = FALSE, type = "wide")
 
