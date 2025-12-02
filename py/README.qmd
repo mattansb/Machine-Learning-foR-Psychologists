@@ -1,0 +1,121 @@
+---
+format: gfm
+execute:
+  echo: false
+  warning: false
+---
+
+```{r}
+#| include: false
+
+library(tidyverse)
+library(glue)
+
+extract_modules <- function(fl) {
+  if (length(fl) == 1) {
+    txt <- read.delim(fl, header = FALSE)[[1]]
+
+    mods <- str_extract_all(
+      string = txt,
+      pattern = "(?<=^(import|from)\\s)[a-zA-Z0-9_]{1,}"
+    )
+
+    mods <- unlist(mods)
+
+    dir_py_files <- dirname(fl) |>
+      list.files(pattern = "\\.py$", full.names = TRUE) |>
+      basename() |>
+      str_remove(pattern = "\\.py$")
+
+    mods <- setdiff(mods, dir_py_files)
+
+  } else if (length(fl) > 1) {
+    mods <- sapply(fl, extract_modules)
+  }
+
+  mods |>
+    unlist(recursive = TRUE) |>
+    unique()
+}
+```
+
+# Machine Learning foR Psychologists
+
+[![](https://img.shields.io/badge/Open%20Educational%20Resources-Compatable-brightgreen)](https://creativecommons.org/about/program-areas/education-oer/)
+[![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
+![](https://img.shields.io/badge/Languages-Python-blue)
+
+<sub>*Last updated `r Sys.Date()`.*</sub>
+
+This folder contains Python translations of the R tutorials in the main repo.
+
+## Setup
+
+You will need:
+
+1. A fresh installation of [**Python**](https://www.python.org/downloads/) (preferably version 3.13 or above).
+2. [Positron IDE](https://positron.posit.co/download.html) (optional, but recommended).
+3. The following modules, listed by lesson:
+
+```{r}
+py_files <- list.files(pattern = ".py$", recursive = TRUE, full.names = TRUE)
+
+py_files <- py_files[str_detect(py_files, "^\\./\\d{2}")]
+
+py_lesson_names <- str_extract(py_files, pattern = "(?<=(/)).{1,}(?=(/))")
+
+py_list <- split(py_files, py_lesson_names)
+
+py_mdls <- lapply(py_list, extract_modules)
+
+py_df <- tibble(
+  Lesson = names(py_mdls),
+  Modules = py_mdls
+)
+
+py_df |>
+  mutate(
+    Lesson = glue("[{Lesson}](//{Lesson})"),
+    Modules = sapply(Modules, \(x) glue('`{x}`') |> glue_collapse(sep = ", ")),
+  ) |>
+  knitr::kable()
+```
+
+<details>
+<summary><i>Installing Python Modules</i></summary>
+
+You can install all the Python modules used by saving a `requirements.txt` file:
+
+```{r}
+reticulate::use_python("C:/Users/user/AppData/Local/Programs/Python/Python313/python.exe", required = TRUE)
+
+imp <- reticulate::import("importlib.metadata")
+
+py_version <- possibly(imp$version, otherwise = "")
+
+py_mdls <- py_mdls |>
+  unlist(recursive = TRUE) |>
+  unique() |> sort()
+
+
+py_mdl_info <- tibble(
+  module = case_match(py_mdls,
+                      "sklearn" ~ "scikit-learn",
+                      "imblearn" ~ "imbalanced-learn",
+                      .default = py_mdls),
+  version = sapply(module, py_version)
+) |>
+  arrange(module)
+
+py_mdl_info |>
+  glue_data("{module}{ifelse(nzchar(py_mdl_info$version), '>=', '')}{version}") |>
+  glue_collapse(sep = "\n") |>
+  cat()
+```
+And then running
+
+```
+pip install -r requirements.txt
+```
+
+</details>
