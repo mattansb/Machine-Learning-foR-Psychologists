@@ -227,13 +227,6 @@ p_roc = (
 p_roc.draw(show=True)
 
 # Calculate AUC for each method
-print("\nAUC by method:")
-for method in ["NULL", "None", "Up", "Down"]:
-    method_data = Caravan_test_predictions[
-        Caravan_test_predictions["Method"] == method
-    ]
-
-
 for pred_proba, method in zip(
     [y_pred_proba_null, y_pred_proba_none, y_pred_proba_up, y_pred_proba_down],
     ["NULL", "None", "Up", "Down"],

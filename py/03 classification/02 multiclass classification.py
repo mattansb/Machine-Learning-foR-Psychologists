@@ -174,6 +174,7 @@ p_tune = (
         color="Metric",
         title="Tuning Results",
     )
+    + expand_limits(y=[0, 1])
     + theme_minimal()
     + theme(figure_size=(10, 6))
 )
@@ -196,7 +197,7 @@ y_pred_proba = knn_fit.predict_proba(X_test)
 
 print("\nFirst rows of predictions:")
 print(y_pred_class[:5])
-print(y_pred_proba[:5, :])
+print(y_pred_proba[:5,])
 
 # scikit-learn provides 3 averaging methods for dealing with multiclass
 # predictions:
