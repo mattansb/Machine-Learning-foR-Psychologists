@@ -10,7 +10,7 @@ ISLR::Hitters
 Hitters <- tidyr::drop_na(Hitters, Salary)
 
 # Split:
-set.seed(20251201)
+set.seed(20260119)
 splits <- initial_split(Hitters, prop = 0.7)
 Hitters.train <- training(splits)
 Hitters.test <- testing(splits)
@@ -26,21 +26,15 @@ rec <- recipe(Salary ~ ., data = Hitters.train) |>
 # IMPORTANT! scale the variable pre-fitting
 
 # PCR ---------------------------------------------------------------------
-# This is a method that use PCA as a first step for predicting y.
-# IMPORTANT- this is an UNSUPERVISED method for dimension reduction - since PCA
-# don't uses a response variable when building the components. There are other
-# methods, which uses the response (hence, SUPERVISED), for using a similar
-# goal- predicting y from components
-
-rec
-# Already has a scaling step and centering step
-# If we didn't we would have to add
-# step_pca(..., options = list(center = TRUE, scale. = TRUE))
+# This is a method that uses PCA as a first step for predicting y.
 
 # There are two arguments that can be used to control how many PCs to save:
 # - num_comp: the number of components
 # - threshold: what proportion of variance should be saved?
 # * Note that the predictors should be all be re-scaled _prior_ to the PCA step.
+rec # * Already has a scaling step and centering step
+# * If we didn't we would have to add
+# * step_pca(..., options = list(center = TRUE, scale. = TRUE))
 pcr_rec <- rec |>
   # We will tune the PCA step!
   step_pca(all_numeric_predictors(), num_comp = tune())
@@ -54,7 +48,6 @@ linreg_wf <- workflow(preprocessor = pcr_rec, spec = linreg_spec)
 ## Tune ------------------------------------
 
 # Using 10-fold CV:
-set.seed(20251201)
 cv_10folds <- vfold_cv(Hitters.train, v = 10)
 
 pcr_grid <- grid_regular(
@@ -157,7 +150,6 @@ pls_tuned <- tune_grid(
   # Default metrics: rsq, rmse
 )
 
-
 autoplot(pls_tuned)
 
 (best_pls <- select_best(pls_tuned, metric = "rmse"))
@@ -173,7 +165,7 @@ pls_fit <- pls_wf |>
 extract_pls_coef <- function(x) {
   stopifnot(
     "x is not a workflow" = inherits(x, "workflow"),
-    "the model spec is not linear_reg" = inherits(
+    "the model spec is not plsmod::pls()" = inherits(
       x_eng <- extract_fit_engine(x),
       "mixo_spls"
     )
