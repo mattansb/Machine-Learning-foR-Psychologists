@@ -17,24 +17,52 @@ Hitters.test <- testing(splits)
 # Our data is REALLY SMALL such that splitting the data to train and test might
 # leave us with very small datasets.
 
-rec <- recipe(Salary ~ ., data = Hitters.train) |>
-  step_dummy(all_factor_predictors(), one_hot = TRUE) |>
-  # Let's add an interaction here:
-  step_interact(~ HmRun:starts_with("League")) |>
-  step_center(all_numeric_predictors()) |>
-  step_scale(all_numeric_predictors())
-# IMPORTANT! scale the variable pre-fitting
+# PCA --------------------------------------------------------------------
+
+# Before we dive into PCR and PLS, let's do a quick PCA on the data to see
+# how it works.
+#
+# In R we can perform PCA using the prcomp() or princomp() functions:
+?prcomp
+?princomp
+
+# But we will do it with recipes!
+
+pca_rec <- recipe(~., data = Hitters.train) |>
+  # Don't want to include Salary in the PCA
+  step_rm(Salary) |>
+  step_dummy(all_nominal_predictors(), one_hot = TRUE) |>
+  step_normalize(all_numeric_predictors()) |>
+  # There are two arguments that can be used to control how many PCs to save:
+  # - num_comp: the number of components
+  # - threshold: what proportion of variance should be saved?
+  # ! Predictors should all be standardized _prior_ to the PCA step.
+  # We already did that above, but we could also add
+  # step_pca(..., options = list(center = TRUE, scale. = TRUE))
+  step_pca(all_numeric_predictors(), num_comp = 5)
+
+# Prepare and bake
+pca_rec <- prep(pca_rec)
+bake(pca_rec, new_data = Hitters.train)
+# This data can then be used in any model we like, plotting, clustering, further
+# processed in any way, etc.
+
+# Our PCA accounts for ~85% of the variance in the first 5 components (of 22!)
+vars <- pca_rec$steps[[4]]$res$sdev^2
+length(vars)
+sum(vars[1:5]) / sum(vars)
+
 
 # PCR ---------------------------------------------------------------------
 # This is a method that uses PCA as a first step for predicting y.
 
-# There are two arguments that can be used to control how many PCs to save:
-# - num_comp: the number of components
-# - threshold: what proportion of variance should be saved?
-# * Note that the predictors should be all be re-scaled _prior_ to the PCA step.
-rec # * Already has a scaling step and centering step
-# * If we didn't we would have to add
-# * step_pca(..., options = list(center = TRUE, scale. = TRUE))
+rec <- recipe(Salary ~ ., data = Hitters.train) |>
+  step_dummy(all_nominal_predictors(), one_hot = TRUE) |>
+  # Let's add an interaction here:
+  step_interact(~ HmRun:starts_with("League")) |>
+  step_normalize(all_numeric_predictors())
+# IMPORTANT! scale the variables pre-fitting
+
 pcr_rec <- rec |>
   # We will tune the PCA step!
   step_pca(all_numeric_predictors(), num_comp = tune())
@@ -209,7 +237,7 @@ augment(pcr_fit, new_data = Hitters.test) |> rsq(Salary, .pred)
 augment(pls_fit, new_data = Hitters.test) |> rsq(Salary, .pred)
 # In this case pls out performed pcr.
 
-# Using PCA in other methods ----------------------------------
+# Using PCA / PLS in other methods ----------------------------------
 
 # What if I want to use KNN??
 # We can still use PCA as part of our recipe.
