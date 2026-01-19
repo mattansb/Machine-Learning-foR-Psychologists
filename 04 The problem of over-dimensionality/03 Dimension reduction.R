@@ -100,7 +100,7 @@ extract_pcr_coef <- function(x, which = c("coef", "vcov")) {
   loadings_pcr <- rotation[, 1:x_step_pca$num_comp]
 
   # get the coefficients and standard errors on the PC scales:
-  pcr_eng <- extract_fit_engine(pcr_fit)
+  pcr_eng <- extract_fit_engine(x)
   b <- coef(pcr_eng)
   V <- vcov(pcr_eng)
 
@@ -119,20 +119,21 @@ extract_pcr_coef(pcr_fit)
 
 # PLS ---------------------------------------------------------------------
 # We will now address the same problem using another dimension reduction method-
-# PLS. Importantly, PCR is an UNSUPERVISED method and PLS is a SUPERVISED
-# method. PLS counts for *Partial Least Squares*.
+# PLS (Partial Least Squares). Importantly, PCR is an UNSUPERVISED method and
+# PLS is a SUPERVISED method.
 
 # install.packages("BiocManager", repos = "https://cloud.r-project.org")
 # BiocManager::install("mixOmics")
 # library(mixOmics)
-library(plsmod)
+# See also ?parsnip::pls()
 
-pls_spec <- pls(
-  mode = "regression",
-  num_comp = tune()
-)
+# Instead of step_pca() we will use step_pls().
+# We need to specify the outcome variable here since this is a supervised
+# dimension reduction method (unlike PCR).
+pls_rec <- rec |>
+  step_pls(all_numeric_predictors(), outcome = "Salary", num_comp = tune())
 
-pls_wf <- workflow(preprocessor = rec, spec = pls_spec)
+pls_wf <- workflow(preprocessor = pls_rec, spec = linreg_spec)
 
 ## Tune ---------------------------------------------
 
@@ -162,21 +163,39 @@ pls_fit <- pls_wf |>
   fit(data = Hitters.train)
 
 # Here too we need a little help
-extract_pls_coef <- function(x) {
+extract_pls_coef <- function(x, which = c("coef", "vcov")) {
   stopifnot(
     "x is not a workflow" = inherits(x, "workflow"),
-    "the model spec is not plsmod::pls()" = inherits(
-      x_eng <- extract_fit_engine(x),
-      "mixo_spls"
+    "the model spec is not linear_reg / logistic_reg" = inherits(
+      extract_spec_parsnip(x),
+      c("linear_reg", "logistic_reg")
+    ),
+    "last step in recipe is not step_pls()" = inherits(
+      x_step_pls <- tail(extract_recipe(x)$steps, 1)[[1]],
+      "step_pls"
     )
   )
 
-  sd_y <- attr(x_eng$Y, "scaled:scale")
+  which <- match.arg(which)
 
-  pr <- predict(x_eng, newdata = x_eng$X[1, , drop = FALSE])
+  res <- x_step_pls$res
+  sd_x <- res$sd
+  loadings_pls <- mapply("*", as.data.frame(res$coefs), res$col_norms)
+  # we only want the first k of these:
+  loadings_pls <- loadings_pls[, 1:x_step_pls$num_comp, drop = FALSE]
 
-  B.hat <- pr$B.hat
-  B.hat[,, dim(B.hat)[3]] * sd_y
+  # get the coefficients and standard errors on the PC scales:
+  pls_eng <- extract_fit_engine(x)
+  b <- coef(pls_eng)
+  V <- vcov(pls_eng)
+
+  if (which == "coef") {
+    # These are the coefficients on the original scale
+    drop(b[-1] %*% t(loadings_pls)) / sd_x
+  } else {
+    # These are the standard errors
+    ((loadings_pls %*% V[-1, -1] %*% t(loadings_pls))) * (sd_x %*% t(sd_x))
+  }
 }
 
 extract_pls_coef(pls_fit)
@@ -186,10 +205,9 @@ extract_pls_coef(pls_fit)
 
 cbind(PCR = extract_pcr_coef(pcr_fit), PLS = extract_pls_coef(pls_fit))
 
-
 augment(pcr_fit, new_data = Hitters.test) |> rsq(Salary, .pred)
 augment(pls_fit, new_data = Hitters.test) |> rsq(Salary, .pred)
-# In this case pcr out performed pls.
+# In this case pls out performed pcr.
 
 # Using PCA in other methods ----------------------------------
 
