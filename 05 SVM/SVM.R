@@ -84,14 +84,14 @@ collect_metrics(svmlin_tune) |>
 ## The final model ------------------------------------------------------
 
 svmlin_fit <- svmlin_wf |>
-  finalize_workflow(svmlin_const) |>
+  finalize_workflow(parameters = svmlin_const) |>
   fit(data = OJ.train)
 
 
 # We can explore the model but extracting the underlying model object:
 (svmlin_eng <- extract_fit_engine(svmlin_fit))
-# training error is 0.17 (for the cost 0.13)
-# Number of Support Vectors : 382!
+# training error is 0.17 (for the cost 0.232)
+# Number of Support Vectors : 376!
 
 # Here we demonstrated the use of this function on a two-dimensional example so
 # that we can plot the resulting decision boundary.
@@ -148,13 +148,13 @@ svmpoly_tune <- tune_grid(
 
 
 svmpoly_fit <- svmpoly_wf |>
-  finalize_workflow(svmpoly_params) |>
+  finalize_workflow(parameters = svmpoly_params) |>
   fit(data = OJ.train)
 
 
 (svmpoly_eng <- extract_fit_engine(svmpoly_fit))
-# best training error is 0.17 (for the cost 0.13)
-# Number of Support Vectors : 356!
+# best training error is 0.17 (for the cost 0.045)
+# Number of Support Vectors : 370!
 plot(svmpoly_eng, data = X_train)
 
 
@@ -173,7 +173,7 @@ plot(svmpoly_eng, data = X_train)
 svmrad_spec <- svm_rbf(
   "classification",
   engine = "kernlab",
-  cost = 0.13, # we get it...
+  cost = tune(),
   rbf_sigma = 2
 )
 # rbf_sigma is the sigma parameter for the radial basis kernel, which controls
@@ -183,29 +183,38 @@ translate(svmrad_spec)
 
 svmrad_wf <- workflow(preprocessor = rec, spec = svmrad_spec)
 
-svmrad_fit <- fit(svmrad_wf, data = OJ.train)
+svmrad_tune <- tune_grid(
+  svmrad_wf,
+  resamples = folds,
+  grid = svmlin_grid, # reuse cost grid
+  metrics = oj_metrics
+)
+
+svmrad_fit <- svmrad_wf |>
+  finalize_workflow(parameters = select_best(svmrad_tune, metric = "f_meas")) |>
+  fit(data = OJ.train)
 
 
 (svmrad_eng <- extract_fit_engine(svmrad_fit))
-# best training error is 0.17 (for the cost 0.1)
-# Number of Support Vectors : 469!
+# best training error is 0.17 (for the cost 0.045)
+# Number of Support Vectors : 574!
 plot(svmrad_eng, data = X_train)
-
 
 ## Compare models ----------------------------------------------------------
 
-svmpoly_predictions <- augment(svmpoly_fit, new_data = OJ.test)
-svmrad_predictions <- augment(svmrad_fit, new_data = OJ.test)
+bind_rows(
+  "Linear" = svmlin_predictions,
+  "Polynomial" = augment(svmpoly_fit, new_data = OJ.test),
+  "Radial" = augment(svmrad_fit, new_data = OJ.test),
 
-
-# These are all basically the same...
-svmlin_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
-svmpoly_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
-svmrad_predictions |> oj_metrics(Purchase, estimate = .pred_class, .pred_CH)
-
+  .id = "Model"
+) |>
+  group_by(Model) |>
+  oj_metrics(Purchase, estimate = .pred_class, .pred_CH) |>
+  arrange(.metric, Model)
+# All models seem to perform similarly on this dataset...
 
 # Multi-classes SVM -------------------------------------------------
-
 data("penguins")
 ?penguins
 
@@ -243,7 +252,7 @@ penguins.test$pred_lin <- predict(
 )
 
 # 3 classes-confusion matrix:
-penguins.test |> conf_mat(species, pred_lin)
+penguins.test |> conf_mat(species, pred_lin) |> autoplot("heatmap")
 penguins.test |> accuracy(species, pred_lin)
 # penguins.test |> sens(species, pred_lin, estimator = "macro_weighted")
 
@@ -251,13 +260,20 @@ pred_grid <- expand.grid(
   bill_length_mm = seq(30, 60, len = 101),
   body_mass_g = seq(2500, 6100, len = 101)
 ) |>
-  augment(x = svmlin_fit2)
+  augment(x = svmlin_fit2) |>
+  mutate(
+    p = pmax(.pred_Adelie, .pred_Chinstrap, .pred_Gentoo)
+  )
 
 # Is this surprising? Not really, considering our predictors..
 ggplot(pred_grid, aes(bill_length_mm, body_mass_g)) +
-  geom_raster(aes(alpha = .pred_Chinstrap, fill = "Chinstrap")) +
-  geom_raster(aes(alpha = .pred_Adelie, fill = "Adelie")) +
-  geom_raster(aes(alpha = .pred_Gentoo, fill = .pred_class)) +
+  geom_raster(aes(alpha = p, fill = .pred_class), interpolate = TRUE) +
+  geom_contour(
+    aes(z = p),
+    binwidth = 0.15,
+    linetype = "dashed",
+    color = "black"
+  ) +
   geom_point(
     aes(fill = species),
     data = penguins.test,
@@ -268,12 +284,9 @@ ggplot(pred_grid, aes(bill_length_mm, body_mass_g)) +
   ) +
   scale_alpha_continuous(
     name = expression(P(Species[c])),
-    limits = c(0, 1),
     range = c(0, 1)
   ) +
-  labs(
-    fill = "Species"
-  )
+  labs(fill = "Species")
 
 
 # SVR --------------------------------------------------------------------
@@ -321,7 +334,7 @@ autoplot(svrlin_tune)
 # Finalize the model
 svrlin_fit <-
   svrlin_wf |>
-  finalize_workflow(select_best(svrlin_tune, metric = "rmse")) |>
+  finalize_workflow(parameters = select_best(svrlin_tune, metric = "rmse")) |>
   fit(data = College.train)
 
 
@@ -341,7 +354,17 @@ ggplot(College.test_preds, aes(Expend, Grad.Rate, color = Private)) +
 
 # Exercise ---------------------------------------------------------------
 
-# 1. Take one of the College dataset and predict the outcome with 4 variables of
-#    your choice.
-# 2. Use two method (linear, poly, radial) and compare their performance using
-#    CV model comparison (see "02 Resampling and Tuning/02 model selection.R").
+# 1. We saw that for radial SVM, the number of support vectors is quite high
+#    compared to the linear and polynomial SVM. Does having more support vectors
+#    always lead to better performance? Higher bias? Higher variance?
+data("Publication", package = "ISLR2")
+?ISLR2::Publication
+Publication$status <-
+  factor(
+    Publication$status,
+    levels = 1:0,
+    labels = c("Published", "Not Yet Published")
+  )
+# 2. Predict `status` from 3 variables of your choice - use two methods (linear,
+#    poly, radial) and compare their performance using CV model comparison (see
+#    "02 resampling/02 model selection.R").
