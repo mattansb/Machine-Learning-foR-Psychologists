@@ -104,13 +104,15 @@ var_imp(bag_eng) |>
 
 rf_spec <- rand_forest(
   mode = "regression",
-  engine = "randomForest",
+  engine = "ranger",
   mtry = tune(),
   min_n = 2,
-  trees = 100
-)
+  trees = 200
+) |>
+  # We'll need this to be able to look at variable importance later:
+  set_args(importance = "impurity")
 
-?details_rand_forest_randomForest
+?details_rand_forest_ranger
 translate(rf_spec)
 
 
@@ -122,7 +124,7 @@ rf_wf <- workflow(preprocessor = rec, spec = rf_spec)
 # - p/3 variables for regression trees,
 # - sqrt(p) for classification trees.
 # Source:
-?randomForest::randomForest
+?randomForest::randomForest # (original RF implementation)
 # But we should tune mtry! Let's try the following values (note that we only
 # have 13 predictors, so mtry=13 is equivalent to bagging).
 
@@ -149,7 +151,6 @@ rf_fit <- rf_wf |>
     parameters = select_by_one_std_err(rf_tuner, mtry, metric = "mae")
   ) |>
   fit(data = Boston.train)
-rf_fit # mtry = 4
 
 
 # We'll use this later for comparisons
@@ -163,13 +164,18 @@ rf_resamps <- fit_resamples(
 ## Explore the final model ---------------------------------------
 
 rf_eng <- extract_fit_engine(rf_fit)
-plot(rf_eng) # See how the error decreased with re-sampling (# of trees)
+rf_eng
+# Like with bagging, we have OOB model performance baked-in!
 
+n_trees_rmse <- sapply(seq(rf_eng$num.trees), function(n) {
+  pred <- predict(rf_eng, data = Boston.train, num.trees = n)$predictions
+  rmse_vec(Boston.train$medv, pred)
+})
+plot(n_trees_rmse) # See how the error decreased # of trees
 
 # Again, we can plot a VIP for the importance of variables *across* all trees.
 # This time we will again use the {vip} package:
 vip::vip(rf_eng, method = "model", num_features = 13)
-
 
 # Boosting --------------------------------------------------------------------
 
@@ -257,7 +263,8 @@ ensemble_metrics |>
   stat_summary(size = 1, position = position_nudge(0.1), show.legend = FALSE) +
   geom_point() +
   geom_line(aes(group = id, color = best_model))
-# bagging and rf look to be better than boosting in this case.
+# bagging and rf look to be better than boosting in this case, with rf being
+# slightly better than bagging.
 
 ensemble_metrics |>
   pivot_wider(names_from = "Model", values_from = ".estimate") |>
@@ -298,8 +305,7 @@ ggplot(Boston.test_rf.pred, aes(.pred, medv)) +
 # A) Fit *regression* trees to predict Salary from the other variables
 # 1. Basic tree - tune the optimal cp with CV.
 #    What was the best cp?
-# 2. Random Forrest - tune the optimal mtry with CV (include the max possible
-#    mrty as one of the candidate values).
+# 2. Random Forest - tune the optimal mtry with CV.
 #    What was the best mtry?
 # 3. Boosting - tune at least one of Complexity and one of the Gradient
 #    hyperparameters with CV.

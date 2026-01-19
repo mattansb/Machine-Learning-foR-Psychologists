@@ -21,7 +21,7 @@ splits <- initial_split(OJ, prop = 0.6)
 OJ.train <- training(splits)
 OJ.test <- testing(splits)
 
-# Spliting
+# Splitting
 OJ.comp_splits <- vfold_cv(OJ.train, v = 10) # Make 10-folds for tuning
 OJ.tune_splits <- vfold_cv(OJ.train, v = 10) # Make 10-folds for comparisons
 
@@ -63,7 +63,7 @@ OJ.tree_fit <- fit(OJ.tree_wf, data = OJ.train)
 
 # One of the most attractive properties of trees is that they can be graphically
 # displayed:
-extract_fit_engine(OJ.tree_fit) |> rpart.plot(uniform = TRUE)
+extract_fit_engine(OJ.tree_fit) |> rpart.plot(uniform = FALSE)
 # The color of the nodes indicates the class prediction at that node, and it's
 # saturation indicates how "pure" it is.
 # It is quite hard to understand this tree - we need to prune it!
