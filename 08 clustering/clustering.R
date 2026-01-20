@@ -1,9 +1,10 @@
 ### Tutorial 6- Clustering  ###
 
-library(tidyverse)
-library(patchwork)
-library(recipes)
+library(tidymodels)
 
+library(patchwork)
+
+library(cluster)
 library(Rtsne)
 library(factoextra) # https://rpkgs.datanovia.com/factoextra/index.html
 
@@ -60,9 +61,9 @@ p_tSNE <- data.frame(USArrests_z_tSNE$Y) |>
 p_tSNE
 # It seems like there are 3 or 4 clumps of high-D (4D in out case) data.
 
-# K-Means Clustering --------------------------------------------------------
+# Partitioning Clustering --------------------------------------------------------
 
-# k-means clustering tries to classify observations into mutually exclusive
+# Partitioning clustering tries to classify observations into mutually exclusive
 # clusters, such that observations within the same cluster are as similar as
 # possible (i.e., high intra-class similarity), whereas observations from
 # different clusters are as dissimilar as possible (i.e., low inter-class
@@ -71,50 +72,13 @@ p_tSNE
 # This is a "Top Down" approach - cluster observations on the basis of the
 # features. Prior selection of K - number of clusters.
 
-## Finding Clusters ------------------------------
-
-# The function kmeans() performs K-means clustering.
-km <- kmeans(
-  USArrests_z, # Features to guide clustering
-  centers = 4, # K
-  nstart = 20
-) # how many random starting centers
-# NOTE: If nstart > 1, then K-means clustering will be performed using multiple
-# random assignments in Step 1 of the Algorithm, and kmeans() will report only
-# the best results.
-# It is recommended always running K-means clustering with a large start, such
-# as 20 or 50, since otherwise an undesirable local optimum may be obtained
-
-km$centers # the two clusters' centers
-km$size # obs. num in each cluster
-
-km$cluster # vector which assigns obs. to each cluster
-
-
-# Plotting each observation colored according to its cluster assignment:
-plot(USArrests, col = km$cluster, pch = 20, cex = 2)
-
-# How does this look on our t-SNE plot?
-p_tSNE + aes(color = factor(km$cluster))
-
-# Maybe K=3 will be better?
-# If we don't have any prior knowledge about k... we can use fviz_nbclust() from
-# factoextra lib.
-
-# Let's save these results for later:
-dta_clust <- tibble(
-  state.name,
-  state.abb,
-  kmeans = factor(km$cluster[state.name])
-)
-
-
 ## Choosing number of clusters ---------------------
+# https://www.datanovia.com/en/lessons/determining-the-optimal-number-of-clusters-3-must-know-methods/
 
 ## Elbow method: drop in within-cluster variance:
 fviz_nbclust(
   USArrests_z,
-  FUNcluster = kmeans,
+  FUNcluster = kmeans, # we will use kmeans for clustering
   method = "wss",
   k.max = 20
 ) +
@@ -134,15 +98,63 @@ fviz_nbclust(
   labs(subtitle = "Silhouette method")
 
 
-## Gap statistic (using bootstrap sampling)
-# Read about it here:
-# https://www.datanovia.com/en/lessons/determining-the-optimal-number-of-clusters-3-must-know-methods/
+## Gap statistic (using bootstrap sampling): measures how far is the observed
+# within intra-cluster variation is from a random uniform distribution of the
+# data?
+fviz_nbclust(
+  USArrests_z,
+  FUNcluster = kmeans,
+  method = "gap_stat",
+  k.max = 20
+) +
+  labs(subtitle = "Gap statistic method")
+# Suggests k=2 or k=4
 
-## PAM ---------------------------
+## Finding Clusters with k-means ------------------------------
 
-# A similar algorithm to k-mean is PAM (Partitioning Around Medoids), which can
-# be considered a robust alternative to k-mean:
-# cluster::pam(USArrests_z, k = 4)
+# The function kmeans() performs K-means clustering.
+km <- kmeans(
+  USArrests_z, # Features to guide clustering
+  centers = 4, # K
+  nstart = 20 # how many random starting centers
+)
+# NOTE: If nstart > 1, then K-means clustering will be performed using multiple
+# random assignments in Step 1 of the Algorithm, and kmeans() will report only
+# the best results.
+# It is recommended always running K-means clustering with a large start, such
+# as 20 or 50, since otherwise an undesirable local optimum may be obtained
+
+km$cluster # vector which assigns obs. to each cluster
+km$size # obs. num in each cluster
+
+km$centers # the two clusters' centers
+# We can also find the centers on the original scale:
+USArrests |>
+  group_by(km = km$cluster) |>
+  summarise(across(everything(), mean))
+# Can now label the clusters based on these centers:
+cluster_km <- factor(
+  km$cluster,
+  labels = c("High Rural", "Low Rural", "High Urban", "Low Urban")
+)
+
+
+# Plotting each observation colored according to its cluster assignment:
+plot(USArrests, col = cluster_km, pch = 20, cex = 2)
+
+# How does this look on our t-SNE plot?
+p_tSNE + aes(color = cluster_km)
+
+
+# Let's save these results for later:
+dta_clust <- tibble(state.name, state.abb, kmeans = cluster_km)
+
+
+## More partitioning methods ---------------------------
+
+# The {cluster} package provides several other clustering algorithms, such as
+# PAM and CLARA. See:
+# https://cran.r-project.org/web/packages/cluster/refman/cluster.html
 
 # Hierarchical Clustering ---------------------------------------------------------
 
@@ -171,14 +183,15 @@ rf <- randomForest::randomForest(
 USArrests_d_rf <- as.dist(1 - rf$proximity)
 
 # Which should we use?
-
+fviz_dist(USArrests_d_euc)
+fviz_dist(USArrests_d_cor)
 fviz_dist(USArrests_d_rf)
 
 
 ## Build dendrogram -----------------
 # The hclust() function implements hierarchical clustering.
 
-hc.complete <- hclust(, method = "complete")
+hc.complete <- hclust(USArrests_d_euc, method = "complete")
 # Or method = "average"
 # Or method = "single"
 # Or method = "centroid"
@@ -189,13 +202,12 @@ plot(hc.complete)
 
 # We can also use:
 fviz_dend(hc.complete)
-
-fviz_dend(hc.complete, h = 1)
-
 fviz_dend(hc.complete, k = 4)
+fviz_dend(hc.complete, h = 3) +
+  geom_hline(yintercept = 3, linetype = 2)
 
 # See also:
-# cluster::bannerplot(hc.complete)
+# bannerplot(hc.complete)
 
 ## Cut the tree! -----------------------------------
 
@@ -211,21 +223,106 @@ plot(USArrests, col = hc_cut.k4, pch = 20, cex = 2)
 # How does this look on our t-SNE plot?
 p_tSNE + aes(color = factor(hc_cut.k4))
 
-
 # Save the results:
 dta_clust$hclust_k4 <- factor(hc_cut.k4[state.name])
 
-# Note that:
-table("H-Clust" = dta_clust$hclust_k4, "K-mean" = dta_clust$kmeans) # Do the methods agree?
 
+# Do the methods agree?
+USArrests_z |>
+  group_by(km = hc_cut.k4) |>
+  summarise(across(everything(), mean))
+# This looks very similar to k-means results...
+
+table(
+  "H-Clust" = dta_clust$hclust_k4,
+  "K-mean" = dta_clust$kmeans
+)
 
 # Model based clustering -----------------------------------
 #
 # See the {mclust} package
 # https://mclust-org.github.io/mclust/
 
-# External Validation? -------------------------------------------------
-# Are these clusters useful?
+# Understanding Clusters ------------------------------------------------------
+# All clustering methods will produce clusters, even if there is no real
+# structure in the data. So, it is important to validate the clusters.
+
+## Internal Validation? -------------------------------------------------
+# How "good" is the clustering?
+# There are several metrics to evaluate clustering quality on the training data.
+
+### Cluster stability ----------------------------
+# Are the clusters stable to small perturbations in the data? In other words,
+# if we re-sample the data, will we get similar clusters?
+
+library(fpc)
+
+jac_kmeans <- clusterboot(
+  USArrests_z,
+  B = 200,
+
+  clustermethod = kmeansCBI,
+  k = 4
+)
+
+jac_hclust <- clusterboot(
+  USArrests_d_euc,
+  B = 200,
+
+  clustermethod = hclustCBI,
+  k = 4,
+  method = "complete"
+)
+
+# Jaccard values larger than 0.75 indicate stable clusters, while values below
+# 0.5 indicate highly unstable clusters.
+
+jac_kmeans # all clusters are stable
+jac_hclust # cluster 2 and (4?) are unstable
+
+
+### Compare cluster means ---------------
+# Do the clusters differ on the variables that went into the clustering?
+
+# Let's use k-means clusters for this example. Recall:
+km$centers
+# Do clusters 1 and 3 differ on these variables?
+# We cant just compute t-tests, because that would be doing post-selection
+# inference!
+# Thankfully, the {clusterpval} package provides functions to test for
+# differences between clusters while accounting for the fact that the clusters
+# were formed based on the distance on these same variables:
+
+# pak::pak("lucylgao/clusterpval")
+library(clusterpval)
+
+# Make a function to obtain clusters:
+cl_fun = \(X) kmeans(X, centers = 4, nstart = 20)$cluster
+
+test_clusters_approx(
+  X = as.matrix(USArrests_z),
+  # Clusters to compare
+  k1 = 1,
+  k2 = 3,
+
+  cl_fun = cl_fun,
+  cl = km$cluster
+)
+
+# How about clusters 1 and 4?
+test_clusters_approx(
+  X = as.matrix(USArrests_z),
+  # Clusters to compare
+  k1 = 1,
+  k2 = 4,
+
+  cl_fun = cl_fun,
+  cl = km$cluster
+)
+
+
+## External Validation? -------------------------------------------------
+# Are these clusters *useful*?
 # So far we've seen how the clusters map *back onto* the variables that went
 # into the clustering - but these results are trivial. The question is can these
 # clusters be used to tell us something new about other variables?
@@ -265,5 +362,7 @@ data("oils", package = "modeldata")
 #   - choose a linkage method
 #   - plot the dendrogram - and choose the number of clusters
 #   - plot the clusters on a t-SNE plot.
-# 2. Validate the clusters - how do they map onto "class"?
-#   - Answer visually.
+# 2. Validate the clusters:
+#   - Are the results stable?
+#   - Do the clusters differ on the variables used to create them?
+#   - Do the clusters map nicely onto the "class" variable?

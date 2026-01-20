@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2026-01-19.*</sub>
+<sub>*Last updated 2026-01-20.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
@@ -45,10 +45,10 @@ You will need:
 | [02 resampling](/02%20resampling) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `mirai`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |
 | [03 classification](/03%20classification) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `mirai`, `themis`, `patchwork`, `tailor`, `modeldata`, `probably`, `desirability2` |
 | [04 the problem of over-dimensionality](/04%20the%20problem%20of%20over-dimensionality) | `tidymodels`, `leaps`, `ISLR`, `stats`, `MASS`, `insight`, `glmnet`, `mirai`, `tidyr`, `scales`, `tibble`, `ggplot2`, `vip`, `modeldata`, `kknn`, `BiocManager`, `mixOmics`, `parsnip` |
-| [05 svm](/05%20svm) | `tidymodels`, `kernlab`, `mirai`, `ISLR` |
-| [06 trees](/06%20trees) | `tidymodels`, `rpart`, `rpart.plot`, `mirai`, `ISLR`, `scales`, `vip`, `MASS`, `tidymodels`, `baguette`, `randomForest`, `xgboost`, `mirai`, `MASS`, `forcats`, `vip` |
-| [07 explanatory model analysis](/07%20explanatory%20model%20analysis) | `tidymodels`, `kknn`, `randomForest`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `vip` |
-| [08 unsupervised learning](/08%20unsupervised%20learning) | `tidyverse`, `patchwork`, `recipes`, `Rtsne`, `factoextra`, `ggrepel`, `cluster`, `randomForest`, `modeldata`, `psych`, `parameters`, `performance`, `datasets`, `GPArotation`, `dplyr`, `tidyr`, `psychTools` |
+| [05 svm](/05%20svm) | `tidymodels`, `kernlab`, `mirai`, `ISLR`, `ISLR2` |
+| [06 trees](/06%20trees) | `tidymodels`, `rpart`, `rpart.plot`, `mirai`, `ISLR`, `scales`, `vip`, `MASS`, `baguette`, `ranger`, `xgboost`, `forcats`, `randomForest` |
+| [07 explanatory model analysis](/07%20explanatory%20model%20analysis) | `tidymodels`, `kknn`, `ranger`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `vip`, `randomForest` |
+| [08 clustering](/08%20clustering) | `tidymodels`, `patchwork`, `cluster`, `Rtsne`, `factoextra`, `ggrepel`, `randomForest`, `fpc`, `pak`, `clusterpval`, `modeldata` |
 
 <details>
 
@@ -67,17 +67,18 @@ You can install all the R packages used by running:
         "cran::BiocManager", # 1.30.27
         "cran::DALEX", # 2.5.3
         "cran::DALEXtra", # 2.3.1
-        "cran::GPArotation", # 2025.3-1
         "cran::ISLR", # 1.4
+        "cran::ISLR2", # 1.3-2
         "cran::MASS", # 7.3-65
         "cran::Rtsne", # 0.17
         "cran::baguette", # 1.1.0
         "cran::cluster", # 2.1.8.1
+        "github::lucylgao/clusterpval", # 1.0.1
         "cran::desirability2", # 0.2.0
-        "cran::dplyr", # 1.1.4
         "cran::factoextra", # 1.0.7
         "cran::finetune", # 1.2.1
         "cran::forcats", # 1.0.1
+        "cran::fpc", # 2.2-14
         "cran::ggplot2", # 4.0.1
         "cran::ggrepel", # 0.9.6
         "cran::glmnet", # 4.1-10
@@ -86,19 +87,18 @@ You can install all the R packages used by running:
         "cran::kernlab", # 0.9-33
         "cran::kknn", # 1.4.1
         "cran::leaps", # 3.2
-        "cran::marginaleffects", # 0.30.0
+        "cran::marginaleffects", # 0.31.0
         "cran::mirai", # 2.5.3
         "mixOmics", # 6.34.0
         "cran::modeldata", # 1.5.1
-        "parameters", # 0.28.2.10
+        "cran::pak", # 0.9.2
+        "parameters", # 0.28.3
         "cran::parsnip", # 1.4.1
         "cran::patchwork", # 1.3.2
         "cran::performance", # 0.15.3
         "cran::probably", # 1.2.0
-        "cran::psych", # 2.5.6
-        "cran::psychTools", # 2.5.7.22
         "cran::randomForest", # 4.7-1.2
-        "cran::recipes", # 1.3.1
+        "cran::ranger", # 0.18.0
         "cran::rpart", # 4.1.24
         "cran::rpart.plot", # 3.1.4
         "cran::scales", # 1.4.0
@@ -107,7 +107,6 @@ You can install all the R packages used by running:
         "cran::tibble", # 3.3.1
         "cran::tidymodels", # 1.4.1
         "cran::tidyr", # 1.3.2
-        "cran::tidyverse", # 2.0.0
         "cran::tune", # 2.0.1
         "cran::vip", # 0.4.5
         "cran::xgboost" # 3.1.3.1
