@@ -1,6 +1,6 @@
 library(tidymodels)
 # library(kknn)
-# library(randomForest)
+# library(ranger)
 
 library(patchwork)
 
@@ -37,10 +37,8 @@ knn_spec <- nearest_neighbor(
   neighbors = 5
 )
 
-knn_fit <- workflow(
-  preprocessor = rec,
-  spec = knn_spec
-) |>
+knn_fit <-
+  workflow(preprocessor = rec, spec = knn_spec) |>
   fit(data = Hitters.train)
 
 
@@ -255,7 +253,7 @@ penguins.test <- testing(splits)
 
 # We'll fit a random forest model:
 rec <- recipe(species ~ ., data = penguins.train) |>
-  step_rm(year, island) |>
+  step_rm(island) |>
   step_impute_mean(all_numeric_predictors()) |>
   step_impute_mode(all_factor_predictors())
 
@@ -284,16 +282,16 @@ rf_xplnr <- explain(
 
 ### Explain a single prediction ------------------------------
 # Why does the model think that obs 61 has a high chance of being a Gentoo?
-predict(rf_fit, new_data = penguins.test[61, ], type = "prob")
+predict(rf_fit, new_data = penguins.test[98, ], type = "prob")
 
 
 # We can look at his SHAP values:
-shap_61 <- predict_parts(
+shap_98 <- predict_parts(
   rf_xplnr,
-  new_observation = penguins.test[61, ],
+  new_observation = penguins.test[98, ],
   type = "shap"
 )
-plot(shap_61)
+plot(shap_98)
 # We get the SHAP values for each class!
 
 ### Variable importance ----------------------
