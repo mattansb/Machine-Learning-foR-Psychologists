@@ -34,6 +34,8 @@ rownames(USArrests_z) <- rownames(USArrests) # we need to re-add rownames :/
 
 head(USArrests_z)
 
+plot(USArrests_z, pch = 20, cex = 2)
+# there are some associations between variables, but are there CLUSTERS?
 
 ## t-SNE plot -------------------------------------------------
 
@@ -250,6 +252,22 @@ table(
 ## Internal Validation? -------------------------------------------------
 # How "good" is the clustering?
 # There are several metrics to evaluate clustering quality on the training data.
+
+### Silhouette width ----------------------------
+# Silhouette width measures how similar an observation is to its own cluster
+# compared to other clusters. The silhouette value ranges from -1 to 1, where a
+# value close to 1 indicates that the observation is well clustered, a value
+# close to 0 indicates that the observation is on the boundary between two
+# clusters, and a value close to -1 indicates that the observation may have been
+# assigned to the wrong cluster.
+
+sil_km <- silhouette(
+  km$cluster,
+  dist = USArrests_d_euc # k-means uses euclidean distance
+)
+plot(sil_km, col = sample(colors(TRUE), 4))
+summary(sil_km)
+# Overall the values are adequate, but not amazing...
 
 ### Cluster stability ----------------------------
 # Are the clusters stable to small perturbations in the data? In other words,
