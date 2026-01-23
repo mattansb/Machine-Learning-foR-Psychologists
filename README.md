@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2026-01-20.*</sub>
+<sub>*Last updated 2026-01-23.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
@@ -47,7 +47,7 @@ You will need:
 | [04 the problem of over-dimensionality](/04%20the%20problem%20of%20over-dimensionality) | `tidymodels`, `leaps`, `ISLR`, `stats`, `MASS`, `insight`, `glmnet`, `mirai`, `tidyr`, `scales`, `tibble`, `ggplot2`, `vip`, `modeldata`, `kknn`, `BiocManager`, `mixOmics`, `parsnip` |
 | [05 svm](/05%20svm) | `tidymodels`, `kernlab`, `mirai`, `ISLR`, `ISLR2` |
 | [06 trees](/06%20trees) | `tidymodels`, `rpart`, `rpart.plot`, `mirai`, `ISLR`, `scales`, `vip`, `MASS`, `baguette`, `ranger`, `xgboost`, `forcats`, `randomForest` |
-| [07 explanatory model analysis](/07%20explanatory%20model%20analysis) | `tidymodels`, `kknn`, `ranger`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `vip`, `randomForest` |
+| [07 explanatory model analysis](/07%20explanatory%20model%20analysis) | `tidymodels`, `kknn`, `ranger`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `datawizard`, `vip`, `randomForest` |
 | [08 clustering](/08%20clustering) | `tidymodels`, `patchwork`, `cluster`, `Rtsne`, `factoextra`, `ggrepel`, `randomForest`, `fpc`, `pak`, `clusterpval`, `modeldata` |
 
 <details>
@@ -74,6 +74,7 @@ You can install all the R packages used by running:
         "cran::baguette", # 1.1.0
         "cran::cluster", # 2.1.8.1
         "github::lucylgao/clusterpval", # 1.0.1
+        "datawizard", # 1.3.0
         "cran::desirability2", # 0.2.0
         "cran::factoextra", # 1.0.7
         "cran::finetune", # 1.2.1
@@ -83,7 +84,7 @@ You can install all the R packages used by running:
         "cran::ggrepel", # 0.9.6
         "cran::glmnet", # 4.1-10
         "cran::glue", # 1.8.0
-        "cran::insight", # 1.4.4
+        "insight", # 1.4.4.3
         "cran::kernlab", # 0.9-33
         "cran::kknn", # 1.4.1
         "cran::leaps", # 3.2

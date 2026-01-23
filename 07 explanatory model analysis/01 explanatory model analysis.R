@@ -230,7 +230,7 @@ plot_predictions(
     grid_type = "counterfactual",
 
     Walks = unique,
-    Years = \(v) as.integer(mean(v) + c(-1, 0, 1) * sd(v))
+    Years = \(v) as.integer(datawizard::mean_sd(v))
   )
 )
 
@@ -333,7 +333,7 @@ plot_predictions(
     grid_type = "counterfactual",
 
     body_mass_g = unique,
-    bill_length_mm = \(v) range(v, na.rm = TRUE)
+    bill_length_mm = fivenum
   )
 ) +
   coord_cartesian(ylim = c(0, 1))
