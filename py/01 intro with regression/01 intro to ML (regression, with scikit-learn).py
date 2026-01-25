@@ -192,9 +192,10 @@ ct = ColumnTransformer(
 def f_interact(x):
     """
     This function takes a data frame, then adds a column
-    that is the product of and remainder__horsepower
+    that is the product of z__weight and remainder__horsepower
     """
-    x["int"] = x["z__weight"] * x["remainder__horsepower"]
+    x_out = x.copy()
+    x_out["int"] = x_out["z__weight"] * x_out["remainder__horsepower"]
     return x
 
 
