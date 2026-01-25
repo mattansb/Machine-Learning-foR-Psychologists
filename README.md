@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2026-01-23.*</sub>
+<sub>*Last updated 2026-01-25.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
@@ -15,10 +15,9 @@ evaluate and compare various **machine learning models, using
 
 These topics were taught in the graduate-level course ***Machine
 Learning for Psychologists*** (Psych Dep., Ben-Gurion University of the
-Negev; Psych Dep., Tel-Aviv University). (Materials developed with Yael
-Bar-Shachar.) This course assumes basic competence in R (importing,
-regression modeling, plotting, etc.), along the lines of [*Practical
-Applications in R for
+Negev; Psych Dep., Tel-Aviv University). This course assumes basic
+competence in R (importing, regression modeling, plotting, etc.), along
+the lines of [*Practical Applications in R for
 Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psychologists).
 
 **Notes:**
@@ -119,6 +118,17 @@ You can install all the R packages used by running:
 
 ------------------------------------------------------------------------
 
-Prior to 2025, this course was based on the `{caret}` package - this
-version can still be found
-[here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).
+### Additional Versions
+
+- Prior to 2025, this course was based on the `{caret}` package - this
+  version can still be found
+  [here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).
+
+- Partial parallel `python` lessons can be found in the [`py`
+  folder](.\py).
+
+------------------------------------------------------------------------
+
+### Acknowledgements
+
+Materials developed with Yael Bar-Shachar.
