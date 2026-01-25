@@ -164,18 +164,18 @@ plot(vi_perm, bar_width = 5, max_vars = Inf, show_boxplots = FALSE)
 # https://ema.drwhy.ai/partialDependenceProfiles.html
 # https://marginaleffects.com/chapters/ml.html
 
-pdp_hits <- model_profile(
+pdp_years <- model_profile(
   knn_xplnr,
   variables = "Years",
   # default is to plot results of 100 randomly sampled
   # observations.
   N = NULL
 )
-plot(pdp_hits) # average
+plot(pdp_years) # average
 # Note that this is a KNN model - it has no structure, and yet, this plot is
 # fairly easy to understand!
-plot(pdp_hits, geom = "profiles") # each line is a single outcome
-plot(pdp_hits, geom = "points", variables = "Years")
+plot(pdp_years, geom = "profiles") # each line is a single outcome
+plot(pdp_years, geom = "points", variables = "Years")
 
 
 # If you're not inserted in individual profiles, the {marginaleffects} package
@@ -307,8 +307,7 @@ extract_fit_engine(rf_fit) |>
 # function is a measure of entropy):
 vi_perm <- model_parts(rf_xplnr, B = 10, variables = NULL)
 plot(vi_perm, max_vars = Inf)
-# This matches the plot above very well!
-# What's going on with year / island?
+# What's going on with island?
 
 ### Understand a variables contribution ---------
 
