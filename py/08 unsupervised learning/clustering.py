@@ -9,9 +9,14 @@ from plotnine import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, silhouette_samples
+from sklearn.datasets import load_wine
 from sklearn import set_config
+from scipy.spatial.distance import pdist, squareform
+from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+
 from helpers import *
+
 from palmerpenguins import load_penguins
 
 # Configure sklearn to output pandas DataFrames
@@ -173,3 +178,145 @@ plt.show()
 
 # How does this look on our t-SNE plot?
 (p_tSNE + aes(color=cluster_km)).show()
+
+
+# Hierarchical Clustering ---------------------------------------------------------
+
+# This is a "Bottom Up" approach- cluster features on the basis of the
+# observations. NO prior selection of num. of clusters.
+
+# We will use the same data to plot the hierarchical clustering dendrogram using
+# complete, single, and average linkage clustering, with Euclidean distance as
+# the dissimilarity measure.
+
+## Distance metric -----------------------------------
+# There are several to choose from....
+# ! NEW PY: scipy.spatial.distance.pdist
+
+penguins_d_euc = pdist(penguins_z, metric="euclidean")
+penguins_d_cor = pdist(penguins_z, metric="correlation")
+# and many more...
+help(pdist)
+
+
+# Which should we use?
+def plot_distance_matrix(d_matrix):
+    d_square = squareform(d_matrix)
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(d_square, cmap="viridis")
+    plt.title("Distance Matrix")
+    plt.show()
+
+
+plot_distance_matrix(penguins_d_euc)
+plot_distance_matrix(penguins_d_cor)
+
+
+## Build dendrogram -----------------
+# The linkage() function implements hierarchical clustering.
+
+hc_complete = linkage(penguins_d_euc, method="complete")
+# Or method='average'
+# Or method='single'
+# Or method='centroid'
+
+# plotting the dendrograms (with small-ish samples) and determining clusters:
+plt.figure(figsize=(10, 5))
+dendrogram(hc_complete)
+plt.show()
+
+
+## Cut the tree! -----------------------------------
+
+# To determine the cluster labels for each observation associated with a given
+# cut of the dendrogram, we can use the fcluster() function:
+hc_cut_k6 = fcluster(hc_complete, t=6, criterion="maxclust")
+hc_cut_h5 = fcluster(hc_complete, t=5, criterion="distance")
+
+# Plotting each observation colored according to its cluster assignment:
+penguins_plot["hclust"] = pd.Categorical(hc_cut_h5)
+sns.pairplot(penguins_plot, hue="hclust")
+plt.show()
+
+# How does this look on our t-SNE plot?
+(p_tSNE + aes(color=penguins_plot["hclust"])).show()
+
+
+# Do the methods agree?
+print(pd.crosstab(hc_cut_h5, cluster_km))
+
+
+# Model based clustering -----------------------------------
+#
+# See sklearn.mixture.GaussianMixture
+# https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html
+
+# Understanding Clusters ------------------------------------------------------
+# All clustering methods will produce clusters, even if there is no real
+# structure in the data. So, it is important to validate the clusters.
+
+## Internal Validation? -------------------------------------------------
+# How "good" is the clustering?
+# There are several metrics to evaluate clustering quality on the training data.
+
+### Silhouette width ----------------------------
+# Silhouette width measures how similar an observation is to its own cluster
+# compared to other clusters.
+
+sil_values = silhouette_samples(penguins_z, cluster_km)
+sil_data = pd.DataFrame({"silhouette_width": sil_values, "cluster": cluster_km})
+(
+    ggplot(sil_data, aes("silhouette_width", fill="cluster"))
+    + geom_histogram(alpha=0.6, position="identity")
+)
+
+print("Average Silhouette Score:")
+print(pd.Series(sil_values).groupby(cluster_km).mean())
+# Overall the values are adequate, but not amazing...
+
+### Cluster stability ----------------------------
+# Are the clusters stable to small perturbations in the data? In other words,
+# if we re-sample the data, will we get similar clusters?
+
+# ! cluster stability analysis not imlpamented in python :(
+
+
+### Compare cluster means ---------------
+# Do the clusters differ on the variables that went into the clustering?
+
+# ! selective inference not imlpamented in python :(
+
+
+## External Validation? -------------------------------------------------
+# Are these clusters *useful*?
+# So far we've seen how the clusters map *back onto* the variables that went
+# into the clustering - but these results are trivial. The question is can these
+# clusters be used to tell us something new about other variables?
+
+# For example... how about species in the penguin data?
+print(pd.crosstab(penguins.species, cluster_km))
+# Not perfect, but pretty good!
+
+# Ideally we would have other variables not used in the clustering to
+# validate the clusters. See R examples.
+
+
+# Exercise ----------------------------------------------------------------
+
+wine = load_wine(as_frame=True)
+wine_data = wine.data
+wine_data["target"] = wine.target.astype("category")
+print(wine_data.info())
+
+# 0. Build a t-SNE plot based on all columns (minus "target").
+#   - Color the point by target
+# 1. Cluster wines into groups based on these data
+#   - use hclust
+#   - decide on a distance metric
+#   - choose a linkage method
+#   - plot the dendrogram - and choose the number of clusters
+#   - plot the clusters on a t-SNE plot.
+# 2. Validate the clusters:
+#   - Are the results stable?
+#   - Do the clusters differ on the variables used to create them?
+#   - Do the clusters map nicely onto the "target" variable?

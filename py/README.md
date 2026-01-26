@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 ![](https://img.shields.io/badge/Languages-Python-blue.png)
 
-<sub>*Last updated 2026-01-25.*</sub>
+<sub>*Last updated 2026-01-26.*</sub>
 
 This folder contains Python translations of the R tutorials in the main
 repo.
@@ -24,10 +24,11 @@ You will need:
 
 | Lesson | Modules |
 |:---|:---|
-| [01 Intro with regression](/01%20Intro%20with%20regression) | `numpy`, `pandas`, `plotnine`, `patsy`, `statsmodels`, `scipy`, `ISLP`, `sklearn` |
+| [01 Intro with Regression](/01%20Intro%20with%20Regression) | `numpy`, `pandas`, `plotnine`, `patsy`, `statsmodels`, `scipy`, `ISLP`, `sklearn` |
 | [02 resampling](/02%20resampling) | `pandas`, `plotnine`, `sklearn`, `ISLP`, `numpy` |
 | [03 classification](/03%20classification) | `numpy`, `pandas`, `plotnine`, `sklearn`, `ISLP`, `numpy`, `pandas`, `matplotlib`, `sklearn`, `palmerpenguins`, `pandas`, `plotnine`, `sklearn`, `imblearn`, `ISLP`, `numpy`, `pandas`, `plotnine`, `sklearn`, `ISLP` |
 | [07 explanatory model analysis](/07%20explanatory%20model%20analysis) | `numpy`, `pandas`, `matplotlib`, `plotnine`, `sklearn`, `dalex`, `ISLP`, `palmerpenguins` |
+| [08 unsupervised learning](/08%20unsupervised%20learning) | `pandas`, `numpy`, `matplotlib`, `seaborn`, `plotnine`, `sklearn`, `scipy`, `palmerpenguins` |
 
 <details>
 
@@ -50,6 +51,7 @@ You can install all the Python modules used by saving a
     plotnine>=0.15.0
     scikit-learn>=1.6.1
     scipy>=1.16.0
+    seaborn>=0.13.2
     statsmodels>=0.14.5
 
 And then running
