@@ -187,12 +187,8 @@ results_knn_long = results_knn.melt(
 )
 
 # Invert MAE for plotting (so higher is better)
-results_knn_long["score"] = results_knn_long.apply(
-    lambda row: -row["score"]
-    if row["metric"] == "mean_test_mae"
-    else row["score"],
-    axis=1,
-)
+mask = results_knn_long["metric"] == "mean_test_mae"
+results_knn_long.loc[mask, "score"] = -results_knn_long.loc[mask, "score"]
 
 # Create readable metric labels
 results_knn_long["metric_label"] = results_knn_long["metric"].map(
@@ -210,7 +206,6 @@ p_tune = (
     + theme_minimal()
     + theme(figure_size=(12, 4))
 )
-
 p_tune.draw(show=True)
 
 # Selecting by the one-SE rule also protects us from overfitting:

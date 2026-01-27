@@ -14,7 +14,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn import set_config
 
-set_config(display="diagram")
+set_config(display="diagram", transform_output="pandas")
 
 from ISLP import load_data
 
@@ -101,8 +101,8 @@ preprocessor = Pipeline(steps=[("coltrans", ct), ("z", StandardScaler())])
 
 
 # Visualize distribution before and after transformation
-hp_original = X_train.iloc[:, 2]
-hp_transformed = preprocessor.fit_transform(X_train)[:, 2]
+hp_original = X_train["horsepower"].values
+hp_transformed = preprocessor.fit_transform(X_train)["yj__horsepower"].values
 
 plot_df = pd.DataFrame(
     {
@@ -111,7 +111,6 @@ plot_df = pd.DataFrame(
         + ["Standardized\nYeo-Johnson"] * len(hp_transformed),
     }
 )
-# Set order for faceting
 plot_df["Type"] = pd.Categorical(
     plot_df["Type"], categories=["Original", "Standardized\nYeo-Johnson"]
 )

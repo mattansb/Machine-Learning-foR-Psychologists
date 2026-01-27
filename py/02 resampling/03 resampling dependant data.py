@@ -19,7 +19,6 @@ from sklearn.metrics import (
     r2_score,
     root_mean_squared_error,
     make_scorer,
-    #     mean_absolute_error,
 )
 
 # We will use the hotel_rates dataset from {tidytuesday}:

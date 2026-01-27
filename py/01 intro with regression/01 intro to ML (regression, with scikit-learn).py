@@ -53,8 +53,9 @@ np.random.seed(1111)
 i = np.random.choice(
     Auto.shape[0], size=int(0.7 * Auto.shape[0]), replace=False
 )
-Auto_train = Auto.iloc[i]
-Auto_test = Auto.iloc[[ix for ix in range(len(Auto)) if ix not in i]]  # ew
+mask = np.isin(np.arange(len(Auto)), i)
+Auto_train = Auto.loc[mask]
+Auto_test = Auto.loc[~mask]
 
 
 ## 2) Specify the model and Preprocessing ---------------------------
@@ -146,7 +147,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn import set_config
 
-set_config(display="diagram")
+set_config(display="diagram", transform_output="pandas")
 
 # It also provides various tools for model fitting, data preprocessing, model
 # selection, model evaluation, and many other utilities...
@@ -186,7 +187,7 @@ ct = ColumnTransformer(
         ("z", StandardScaler(), ["weight"]),
     ],
     remainder="passthrough",
-).set_output(transform="pandas")
+)
 
 
 def f_interact(x):
@@ -196,7 +197,7 @@ def f_interact(x):
     """
     x_out = x.copy()
     x_out["int"] = x_out["z__weight"] * x_out["remainder__horsepower"]
-    return x
+    return x_out
 
 
 # CHAIN them all together:

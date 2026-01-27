@@ -248,21 +248,18 @@ for cls in range(len(classes)):
 
 # We can get a sense for this using a ROC curve:
 # For multiclass, we compute ROC for each class vs rest
-
-# We can get a sense for this using a ROC curve:
 y_test_onehot = LabelBinarizer().fit_transform(y_test)
 
 fig, ax = plt.subplots(figsize=(6, 6))
-for class_id in range(3):
+for class_id, name in enumerate(classes):
     RocCurveDisplay.from_predictions(
         y_test_onehot[:, class_id],
         y_pred_proba[:, class_id],
-        name=classes[class_id],
-        # curve_kwargs=dict(color=color),
+        name=name,
         ax=ax,
-        plot_chance_level=(class_id == 2),
+        plot_chance_level=(class_id == len(classes) - 1),
     )
-fig.show()
+plt.show()
 
 # We can get an "average" AUC:
 auc = roc_auc_score(y_test, y_pred_proba, multi_class="ovr")

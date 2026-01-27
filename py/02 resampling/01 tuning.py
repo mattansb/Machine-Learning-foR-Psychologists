@@ -161,12 +161,8 @@ results_long = results_df.melt(
 )
 
 # Adjust RMSE and MAE to be positive for plotting (since they were negative for scoring)
-results_long["value"] = results_long.apply(
-    lambda x: -x["value"]
-    if x["metric"] in ["mean_test_rmse", "mean_test_mae"]
-    else x["value"],
-    axis=1,
-)
+mask = results_long["metric"].isin(["mean_test_rmse", "mean_test_mae"])
+results_long.loc[mask, "value"] = -results_long.loc[mask, "value"]
 
 # Rename metrics for better labels
 metric_labels = {
