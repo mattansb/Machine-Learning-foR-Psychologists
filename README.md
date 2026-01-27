@@ -6,12 +6,14 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2026-01-25.*</sub>
+<sub>*Last updated 2026-01-28.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
 evaluate and compare various **machine learning models, using
-[`tidymodels`](https://www.tidymodels.org/)**.
+[`tidymodels`](https://www.tidymodels.org/)**, based on [*An
+Introduction to Statistical Learning: with applications in
+R*](https://www.statlearning.com/).
 
 These topics were taught in the graduate-level course ***Machine
 Learning for Psychologists*** (Psych Dep., Ben-Gurion University of the

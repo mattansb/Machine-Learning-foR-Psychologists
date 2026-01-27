@@ -40,7 +40,8 @@ extract_pkgs <- function(fl) {
 <sub>*Last updated `r Sys.Date()`.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
-The goal is to impart students with the basic tools to construct, evaluate and compare various **machine learning models, using [`tidymodels`](https://www.tidymodels.org/)**.
+The goal is to impart students with the basic tools to construct, evaluate and compare various **machine learning models, using [`tidymodels`](https://www.tidymodels.org/)**,
+based on [_An Introduction to Statistical Learning: with applications in R_](https://www.statlearning.com/).
 
 These topics were taught in the graduate-level course ***Machine Learning for Psychologists*** (Psych Dep., Ben-Gurion University of the Negev; Psych Dep., Tel-Aviv University). This course assumes basic competence in R (importing, regression modeling, plotting, etc.), along the lines of [*Practical Applications in R for Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psychologists).
 
