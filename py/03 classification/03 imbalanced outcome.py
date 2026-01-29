@@ -9,6 +9,7 @@ from sklearn.metrics import (
     roc_curve,
     roc_auc_score,
 )
+from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.dummy import DummyClassifier
 from sklearn.preprocessing import StandardScaler
@@ -154,7 +155,23 @@ knn_down_pipe.fit(X_train, y_train)
 knn_up_pipe.fit(X_train, y_train)
 
 
-# Comparing Results -------------------------------------------------------
+# Importance weights ----------------------------------------------------
+
+# Some models (e.g., decision trees, glm, etc.) can also accept importance
+# weights during training. This is another way to handle imbalanced data:
+# telling the model that some classes (e.g., the rare, target classes) are more
+# important than others.
+# (Importance weights can be used for balanced data as well, and even for
+# regression tasks, e.g., to# prioritize some cases over others.)
+
+# For example, we can decide that the target class ("Yes") is 10x more important
+# than the majority class ("No") (in our training data, the odds are about 1:15,
+# so).
+# Unfortunately, knn does not support importance weights, so we will use a
+# simple logistic regression model instead:
+logit_fit = LogisticRegression(penalty=None, class_weight={"Yes": 10, "No": 1})
+logit_fit.fit(X_train, y_train)
+
 
 # Comparing Results -------------------------------------------------------
 
@@ -168,12 +185,15 @@ y_pred_proba_up = knn_up_pipe.predict_proba(X_test)
 y_pred_down = knn_down_pipe.predict(X_test)
 y_pred_proba_down = knn_down_pipe.predict_proba(X_test)
 
+y_pred_weights = logit_fit.predict(X_test)
+y_pred_proba_weights = logit_fit.predict_proba(X_test)
+
 
 # Calculate metrics for each method
 metrics_by_method = []
 for pred_class, method in zip(
-    [y_pred_null, y_pred_none, y_pred_up, y_pred_down],
-    ["NULL", "None", "Up", "Down"],
+    [y_pred_null, y_pred_none, y_pred_up, y_pred_down, y_pred_weights],
+    ["NULL", "None", "Up", "Down", "Weights"],
 ):
     metrics_by_method.append(
         {
@@ -201,8 +221,14 @@ print("=" * 60)
 # We can also compare ROC curves and AUCs:
 roc_data = []
 for pred_proba, method in zip(
-    [y_pred_proba_null, y_pred_proba_none, y_pred_proba_up, y_pred_proba_down],
-    ["NULL", "None", "Up", "Down"],
+    [
+        y_pred_proba_null,
+        y_pred_proba_none,
+        y_pred_proba_up,
+        y_pred_proba_down,
+        y_pred_proba_weights,
+    ],
+    ["NULL", "None", "Up", "Down", "Weights"],
 ):
     fpr, tpr, _ = roc_curve(y_test, pred_proba[:, 1], pos_label="Yes")
     roc_data.append(pd.DataFrame({"fpr": fpr, "tpr": tpr, "Method": method}))
@@ -228,8 +254,14 @@ p_roc.draw(show=True)
 
 # Calculate AUC for each method
 for pred_proba, method in zip(
-    [y_pred_proba_null, y_pred_proba_none, y_pred_proba_up, y_pred_proba_down],
-    ["NULL", "None", "Up", "Down"],
+    [
+        y_pred_proba_null,
+        y_pred_proba_none,
+        y_pred_proba_up,
+        y_pred_proba_down,
+        y_pred_proba_weights,
+    ],
+    ["NULL", "None", "Up", "Down", "Weights"],
 ):
     auc = roc_auc_score(y_test, pred_proba[:, 1])
     print(f"  {method}: {auc:.3f}")

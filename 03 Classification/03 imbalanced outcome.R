@@ -109,20 +109,57 @@ knn_fit.down <- knn_wf |>
   fit(data = Caravan.train)
 
 
+# Importance weights ----------------------------------------------------
+
+# Some models (e.g., decision trees, glm, etc.) can also accept importance
+# weights during training. This is another way to handle imbalanced data:
+# telling the model that some classes (e.g., the rare, target classes) are more
+# important than others.
+# (Importance weights can be used for balanced data as well, and even for
+# regression tasks, e.g., to# prioritize some cases over others.)
+
+# For example, we can decide that the target class ("Yes") is 10x more important
+# than the majority class ("No") (in our training data, the odds are about 1:15,
+# so):
+Caravan.train <- Caravan.train |>
+  mutate(
+    weight = if_else(Purchase == "Yes", 10, 1),
+    weight = importance_weights(weight) # mark as importance weights
+  )
+
+# Unfortunately, kknn does not support importance weights:
+?details_nearest_neighbor_kknn # see "Case weights"
+
+# So we will use a simple logistic regression model instead:
+logit_spec <- logistic_reg(mode = "classification", engine = "glm")
+
+logit_wf <- workflow(
+  preprocessor = recipe(Purchase ~ ., data = Caravan.train),
+  spec = logit_spec
+) |>
+  add_case_weights(weight) # Name of the column in the training data
+
+logit_fit <- fit(logit_wf, data = Caravan.train)
+
+
 # Comparing Results -------------------------------------------------------
 
 # Get raw predictions
 Caravan.test_predictions <-
   bind_rows(
     "NULL" = Caravan.test_predictions_NULL,
-    None = augment(knn_fit, new_data = Caravan.test),
-    Up = augment(knn_fit.up, new_data = Caravan.test),
-    Down = augment(knn_fit.down, new_data = Caravan.test),
+    "None" = augment(knn_fit, new_data = Caravan.test),
+    "Up" = augment(knn_fit.up, new_data = Caravan.test),
+    "Down" = augment(knn_fit.down, new_data = Caravan.test),
+    "Weights (logit)" = augment(logit_fit, new_data = Caravan.test),
 
     .id = "Method"
   ) |>
   mutate(
-    Method = factor(Method, levels = c("NULL", "None", "Up", "Down"))
+    Method = factor(
+      Method,
+      levels = c("NULL", "None", "Up", "Down", "Weights (logit)")
+    )
   )
 
 # Let's look at the predictions made by the different methods for the first test
@@ -130,13 +167,15 @@ Caravan.test_predictions <-
 Caravan.test_predictions |>
   select(Method, Purchase, starts_with(".pred")) |>
   slice(1, .by = Method)
-
+# We can see that down-sampling and importance weights make more balanced
+# predictions (less certain to the "No" class).
 
 Caravan.test_predictions |>
   group_by(Method) |>
   mset_class(truth = Purchase, estimate = .pred_class)
-# As we can see, the accuracy (and specificity) have dropped, but sensitivity is
-# higher.
+# As we can see, the accuracy (and specificity) have dropped compared to the
+# null model (which always predicts "No") and the unbalanced kNN model but
+# sensitivity is higher.
 
 # We can also compare ROC curves and AUCs:
 Caravan.test_predictions |>
