@@ -124,6 +124,7 @@ knn_fit.down <- knn_wf |>
 Caravan.train <- Caravan.train |>
   mutate(
     weight = if_else(Purchase == "Yes", 10, 1),
+    # weight = 1 / as.vector(table(Purchase)[Purchase]), # inverse class frequency
     weight = importance_weights(weight) # mark as importance weights
   )
 

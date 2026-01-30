@@ -170,6 +170,8 @@ knn_up_pipe.fit(X_train, y_train)
 # Unfortunately, knn does not support importance weights, so we will use a
 # simple logistic regression model instead:
 logit_fit = LogisticRegression(penalty=None, class_weight={"Yes": 10, "No": 1})
+# Use class_weight="balanced" to automatically use weights that are *inversely*
+# proportional to class frequencies.
 logit_fit.fit(X_train, y_train)
 
 
