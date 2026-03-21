@@ -177,7 +177,7 @@ prep(rec) |> bake(new_data = Auto.train)
 # {parsnip} package (or one if its extensions).
 linreg_spec <- linear_reg(mode = "regression", engine = "lm")
 
-# This spec will then we "translated" to use the correct underlying fitting
+# This spec will then be "translated" to use the correct underlying fitting
 # function:
 translate(linreg_spec)
 
