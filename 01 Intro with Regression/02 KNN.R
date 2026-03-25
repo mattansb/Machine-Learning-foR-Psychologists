@@ -150,4 +150,5 @@ rec2 <- recipe(
 # 3. Evaluate the new model on the test set.
 #   How does it compare to the k=5 model with 3 predictors?
 
-# 4. Repeat steps 2 and 3 with k=10. What can we expect to happen?
+# 4. Repeat steps 2 and 3 with k=10.
+# What can we expect to happen?
