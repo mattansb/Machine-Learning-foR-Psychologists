@@ -75,41 +75,31 @@ You can install all the R packages used by running:
         "cran::baguette", # 1.1.0
         "cran::cluster", # 2.1.8.2
         "github::lucylgao/clusterpval", # 1.0.1
-        "datawizard", # 1.3.0
         "cran::desirability2", # 0.2.0
+        "cran::easystats", # 0.7.5
         "cran::factoextra", # 2.0.0
         "cran::finetune", # 1.2.1
-        "cran::forcats", # 1.0.1
         "cran::fpc", # 2.2-14
-        "cran::ggplot2", # 4.0.2
         "cran::ggrepel", # 0.9.7
         "cran::glmnet", # 4.1-10
         "cran::glue", # 1.8.0
-        "cran::insight", # 1.4.6
         "cran::kernlab", # 0.9-33
         "cran::kknn", # 1.4.1
         "cran::leaps", # 3.2
         "cran::marginaleffects", # 0.32.0
         "cran::mirai", # 2.6.1
         "mixOmics", # 6.34.0
-        "cran::modeldata", # 1.5.1
         "cran::pak", # 0.9.2
-        "parameters", # 0.28.3.3
-        "cran::parsnip", # 1.4.1
         "cran::patchwork", # 1.3.2
-        "performance", # 0.16.0
         "cran::probably", # 1.2.0
         "cran::randomForest", # 4.7-1.2
         "cran::ranger", # 0.18.0
         "cran::rpart", # 4.1.24
         "cran::rpart.plot", # 3.1.4
         "cran::scales", # 1.4.0
-        "cran::tailor", # 0.1.0
         "cran::themis", # 1.0.3
-        "cran::tibble", # 3.3.1
         "cran::tidymodels", # 1.4.1
-        "cran::tidyr", # 1.3.2
-        "cran::tune", # 2.0.1
+        "cran::tidyverse", # 2.0.0
         "cran::vip", # 0.4.5
         "cran::xgboost" # 3.2.0.1
 
