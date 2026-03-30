@@ -28,7 +28,6 @@ extract_modules <- function(fl) {
       str_remove(pattern = "\\.py$")
 
     mods <- setdiff(mods, dir_py_files)
-
   } else if (length(fl) > 1) {
     mods <- sapply(fl, extract_modules)
   }
@@ -75,7 +74,7 @@ py_df <- tibble(
 
 py_df |>
   mutate(
-    Lesson = glue("[{Lesson}](//{Lesson})"),
+    Lesson = glue("[{Lesson}]({Lesson}//)"),
     Modules = sapply(Modules, \(x) glue('`{x}`') |> glue_collapse(sep = ", ")),
   ) |>
   knitr::kable()
@@ -87,7 +86,10 @@ py_df |>
 You can install all the Python modules used by saving a `requirements.txt` file:
 
 ```{r}
-reticulate::use_python("C:/Users/user/AppData/Local/Programs/Python/Python313/python.exe", required = TRUE)
+reticulate::use_python(
+  "C:/Users/user/AppData/Local/Programs/Python/Python313/python.exe",
+  required = TRUE
+)
 
 imp <- reticulate::import("importlib.metadata")
 
@@ -95,23 +97,29 @@ py_version <- possibly(imp$version, otherwise = "")
 
 py_mdls <- py_mdls |>
   unlist(recursive = TRUE) |>
-  unique() |> sort()
+  unique() |>
+  sort()
 
 
 py_mdl_info <- tibble(
-  module = case_match(py_mdls,
-                      "sklearn" ~ "scikit-learn",
-                      "imblearn" ~ "imbalanced-learn",
-                      .default = py_mdls),
+  module = case_match(
+    py_mdls,
+    "sklearn" ~ "scikit-learn",
+    "imblearn" ~ "imbalanced-learn",
+    .default = py_mdls
+  ),
   version = sapply(module, py_version)
 ) |>
   arrange(module)
 
 py_mdl_info |>
-  glue_data("{module}{ifelse(nzchar(py_mdl_info$version), '>=', '')}{version}") |>
+  glue_data(
+    "{module}{ifelse(nzchar(py_mdl_info$version), '>=', '')}{version}"
+  ) |>
   glue_collapse(sep = "\n") |>
   cat()
 ```
+
 And then running
 
 ```
