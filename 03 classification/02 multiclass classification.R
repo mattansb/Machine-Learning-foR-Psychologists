@@ -47,7 +47,7 @@ knn_wf <- workflow(preprocessor = rec, spec = knn_spec)
 #
 # Note, however that accuracy does not require a "positive" class, and so it can
 # be used without issue in multiclass problems.
-mset_class <- metric_set(sensitivity, specificity, accuracy)
+mset_class <- metric_set(accuracy, sensitivity, specificity, roc_auc)
 
 # Setup the tuning grid:
 knn_grid <- grid_regular(
@@ -85,44 +85,64 @@ knn_fit <- knn_wf |>
 penguins.test_predictions <- augment(knn_fit, new_data = penguins.test)
 head(penguins.test_predictions)
 
-# {yardstick} provids 3 methods for dealing with multiclass predictions, all of
+# {yardstick} provides 3 methods for dealing with multiclass predictions, all of
 # them effectively compute such metrics for each class, and them average them.
 # You can read about these here:
 # https://yardstick.tidymodels.org/articles/multiclass.html
 
-## Macro (standard averaging) (default)
-penguins.test_predictions |>
-  mset_class(truth = species, estimate = .pred_class, estimator = "macro")
-
-## Weighted Macro (weight by class frequancy)
+## Macro (standard averaging)
 penguins.test_predictions |>
   mset_class(
     truth = species,
     estimate = .pred_class,
+    .pred_Adelie,
+    .pred_Chinstrap,
+    .pred_Gentoo,
+    estimator = "macro"
+  )
+
+## Weighted Macro (weight by class frequency)
+penguins.test_predictions |>
+  mset_class(
+    truth = species,
+    estimate = .pred_class,
+    .pred_Adelie,
+    .pred_Chinstrap,
+    .pred_Gentoo,
     estimator = "macro_weighted"
   )
 
-## Micro (sort of observation wise averaging)
+## Micro (sort of observation-wise averaging)
 penguins.test_predictions |>
-  mset_class(truth = species, estimate = .pred_class, estimator = "micro")
-
+  mset_class(
+    truth = species,
+    estimate = .pred_class,
+    .pred_Adelie,
+    .pred_Chinstrap,
+    .pred_Gentoo,
+    estimator = "micro"
+  )
+# (ROC-AUC is averaged using Hand & Till method.)
 
 # I also provide here a function to produce event-wise - not averaging!
 source(".metric_by_event.R")
 
 penguins.test_predictions |>
-  metric_by_event(mset_class, truth = species, estimate = .pred_class)
+  metric_by_event(
+    mset_class,
+    truth = species,
+    estimate = .pred_class,
+    .pred_Adelie,
+    .pred_Chinstrap,
+    .pred_Gentoo
+  )
 # We can see we have great sensitivity and specificity Gentoo, while having poor
 # sensitivity for Chinstrap / specificity for Adelie. This is because the model
 # is very good at predicting Gentoo, but not so good at predicting the other
 # classes.
 
-# We can get a sense for this using a ROC curve:
+# We can get a sense for this using a (class-wise) ROC curve:
 penguins.test_predictions |>
   roc_curve(truth = species, .pred_Adelie, .pred_Chinstrap, .pred_Gentoo) |>
   autoplot() +
   aes(color = .level)
-
-# We can get an "average" AUC (using Hand & Till method):
-penguins.test_predictions |>
-  roc_auc(truth = species, .pred_Adelie, .pred_Chinstrap, .pred_Gentoo)
