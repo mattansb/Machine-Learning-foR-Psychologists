@@ -2,6 +2,14 @@ library(tidymodels)
 # library(kknn)
 # library(finetune)
 
+order_rows_by_fold <- function(Row, Fold, Data) {
+  Fold.id <- split(data.frame(Data, Fold), Row) |>
+    lapply(\(x) x$Fold[x$Data == "Assessment"]) |>
+    unsplit(Row)
+  Fold.id <- regmatches(Fold.id, m = regexpr("[0-9]+", Fold.id))
+  reorder(factor(Row), as.integer(Fold.id))
+}
+
 # The data and problem ----------------------------------------------------
 
 # Wage dataset contains information about wage and other characteristics of 3000
@@ -24,7 +32,7 @@ Wage.test <- testing(splits)
 ## 1) Specify the model -------------------------------------------
 
 # Define the model
-# Note: we are stting neighbors (k) to tune(). This is a placeholder for the
+# Note: we are setting neighbors (k) to tune(). This is a placeholder for the
 # tuning grid, and will later be replaced by the actual selected value.
 knn_spec <- nearest_neighbor(
   mode = "regression",
@@ -39,6 +47,8 @@ rec <- recipe(wage ~ ., data = Wage.train) |>
   step_rm(logwage) |>
   # Dummy code categorical predictors
   step_dummy(all_nominal_predictors()) |>
+  # Remove zero-variance predictors (why?)
+  step_zv(all_predictors()) |>
   # KNN requires standardization of predictors
   step_normalize(all_numeric_predictors())
 
@@ -62,6 +72,16 @@ knn_wf
 cv_folds <- vfold_cv(Wage.train, v = 10)
 cv_folds
 # In each "set" we have 1890 obs. for training, and 210 obs. for validation.
+
+# Rows are distributed across folds, and each row is exactly one assessment set
+# and 9 analysis sets.
+tidy(cv_folds) |>
+  mutate(
+    Row = order_rows_by_fold(Row, Fold, Data)
+  ) |>
+  ggplot(aes(Fold, Row, fill = Data)) +
+  geom_tile()
+
 
 # See more methods:
 # https://rsample.tidymodels.org/reference/index.html
@@ -88,13 +108,14 @@ mset_reg
 help.search("^tune_", package = c("tune", "finetune")) # See more options here
 
 
-# Define the tuning grid
+# Define the tuning grid:
 knn_grid <- expand_grid(neighbors = c(5, 10, 50, 200))
-# Or
-knn_grid <- grid_regular(
+# Or we can use the {dials} package to generate the grid for us:
+grid_regular(
   neighbors(range = c(5, 200)),
   levels = 4
 )
+
 
 # We can also generate a random grid
 ?grid_random
@@ -121,7 +142,7 @@ autoplot(knn_tuned)
 
 # We can extract the OOS results:
 collect_metrics(knn_tuned)
-collect_metrics(knn_tuned, type = "wide")
+collect_metrics(knn_tuned, type = "wide") # mean metrics
 collect_metrics(knn_tuned, summarize = FALSE) # for each fold
 
 
@@ -131,7 +152,6 @@ collect_metrics(knn_tuned, summarize = FALSE) # for each fold
 
 # Or use the one-SE rule
 select_by_one_std_err(knn_tuned, desc(neighbors), metric = "rmse")
-select_by_one_std_err(knn_tuned, desc(neighbors), metric = "rsq")
 
 # Finalize workflow
 knn_final_wf <- finalize_workflow(knn_wf, best_knn)

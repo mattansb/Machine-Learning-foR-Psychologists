@@ -19,11 +19,16 @@ Auto$origin <- factor(Auto$origin)
 
 ## Data splitting ----------------------------------------
 
-# We will be using the training set for bot tuning (within-model comparison) and
-# model comparison (between-model comparison). The test set will be used only at
-# the end to get a final estimate of selected model performance.
 splits <- initial_split(Auto, prop = 0.7)
+
+# We will be using the training set for both tuning (within-model comparison)
+# and model comparison (between-model comparison). From an overfitting
+# perspective, this is fine if we view both as part of a "falt" selection
+# process.
 Auto.train <- training(splits)
+
+# The test set will be used only at the end to get a final estimate of selected
+# model performance.
 Auto.test <- testing(splits)
 
 ## Get resampled results --------------------------------------------------
@@ -144,7 +149,10 @@ knn_oos <- fit_resamples(
   wf_knn,
   # Note we're using the same splits!
   resamples = cv_compare,
-  metrics = mset_reg
+  metrics = mset_reg,
+
+  # We might want these for later analysis/plots
+  control = control_resamples(save_pred = TRUE)
 )
 
 # # If we used the same folds for tuning and selection, we can also get the resampled results
@@ -164,8 +172,7 @@ knn_oos <- fit_resamples(
 cv_results <- bind_rows(
   linear1 = collect_metrics(linreg1_oos, summarize = FALSE),
   linear2 = collect_metrics(linreg2_oos, summarize = FALSE),
-  KNN = collect_metrics(knn_tuner, summarize = FALSE) |>
-    semi_join(k_1SE, by = ".config"),
+  KNN = collect_metrics(knn_oos, summarize = FALSE),
 
   .id = "model"
 ) |>
@@ -176,7 +183,7 @@ cv_results <- bind_rows(
 cv_summary <- bind_rows(
   linear1 = collect_metrics(linreg1_oos),
   linear2 = collect_metrics(linreg2_oos),
-  KNN = collect_metrics(knn_tuner) |>
+  KNN = collect_metrics(knn_oos) |>
     semi_join(k_1SE, by = ".config"),
   .id = "model"
 )
@@ -238,9 +245,7 @@ cv_compareare_lin2.knn |>
 # Here we're still looking at the OOS predictions from the training set, but
 # we can look at the distribution of errors for the test set as well.
 linreg2_predictions <- collect_predictions(linreg2_oos)
-
-knn_predictions <- collect_predictions(knn_tuner) |>
-  semi_join(k_1SE, by = ".config")
+knn_predictions <- collect_predictions(knn_oos)
 
 ## 1. Comparing error distributions --------------------------------
 
@@ -299,3 +304,6 @@ Auto.train |>
   bind_cols(linreg2_predictions) |>
   group_by(cut_number(horsepower, 3)) |>
   rsq(mpg, .pred)
+
+# See also:
+# https://yardstick.tidymodels.org/reference/index.html#fairness-metrics
