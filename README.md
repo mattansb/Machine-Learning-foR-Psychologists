@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2026-03-30.*</sub>
+<sub>*Last updated 2026-04-17.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
@@ -43,7 +43,7 @@ You will need:
 | Lesson | Packages |
 |:---|:---|
 | [01 intro with regression](01%20intro%20with%20regression//) | `ISLR`, `tidymodels`, `stats`, `patchwork`, `kknn` |
-| [02 resampling](02%20resampling//) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `mirai`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |
+| [02 cross validation](02%20cross%20validation//) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `mirai`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |
 | [03 classification](03%20classification//) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `mirai`, `themis`, `patchwork`, `tailor`, `modeldata`, `probably`, `desirability2` |
 | [04 the problem of over-dimensionality](04%20the%20problem%20of%20over-dimensionality//) | `tidymodels`, `leaps`, `ISLR`, `stats`, `MASS`, `insight`, `glmnet`, `mirai`, `tidyr`, `scales`, `tibble`, `ggplot2`, `vip`, `modeldata`, `kknn`, `BiocManager`, `mixOmics`, `parsnip` |
 | [05 svm](05%20svm//) | `tidymodels`, `kernlab`, `mirai`, `ISLR`, `ISLR2` |

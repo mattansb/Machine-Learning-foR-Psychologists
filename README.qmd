@@ -7,7 +7,6 @@ execute:
 
 ```{r}
 #| include: false
-
 library(tidyverse)
 library(glue)
 

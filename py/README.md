@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 ![](https://img.shields.io/badge/Languages-Python-blue.png)
 
-<sub>*Last updated 2026-03-30.*</sub>
+<sub>*Last updated 2026-04-17.*</sub>
 
 This folder contains Python translations of the R tutorials in the main
 repo.
@@ -25,7 +25,7 @@ You will need:
 | Lesson | Modules |
 |:---|:---|
 | [01 intro with regression](01%20intro%20with%20regression//) | `numpy`, `pandas`, `plotnine`, `patsy`, `statsmodels`, `scipy`, `ISLP`, `sklearn` |
-| [02 resampling](02%20resampling//) | `pandas`, `plotnine`, `sklearn`, `ISLP`, `numpy` |
+| [02 cross validation](02%20cross%20validation//) | `pandas`, `plotnine`, `sklearn`, `ISLP`, `numpy` |
 | [03 classification](03%20classification//) | `numpy`, `pandas`, `plotnine`, `sklearn`, `ISLP`, `numpy`, `pandas`, `matplotlib`, `sklearn`, `palmerpenguins`, `pandas`, `plotnine`, `sklearn`, `imblearn`, `ISLP`, `numpy`, `pandas`, `plotnine`, `sklearn`, `ISLP` |
 | [07 explanatory model analysis](07%20explanatory%20model%20analysis//) | `numpy`, `pandas`, `matplotlib`, `plotnine`, `sklearn`, `dalex`, `ISLP`, `palmerpenguins` |
 | [08 unsupervised learning](08%20unsupervised%20learning//) | `pandas`, `numpy`, `matplotlib`, `seaborn`, `plotnine`, `sklearn`, `scipy`, `palmerpenguins` |
