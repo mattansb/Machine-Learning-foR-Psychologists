@@ -24,7 +24,6 @@ str(Auto)
 #     Model year (modulo 100)
 # - origin
 #     Origin of car (1. American, 2. European, 3. Japanese)
-Auto$origin <- factor(Auto$origin)
 # - name
 #     Vehicle name
 
@@ -73,6 +72,7 @@ translate(knn_spec)
 # here's one.
 
 rec <- recipe(mpg ~ origin + weight + horsepower, data = Auto.train) |>
+  step_num2factor(origin, levels = c("American", "European", "Japanese")) |>
   step_dummy(origin) |>
   # The Yeo–Johnson transformation (a generalization of the Box-Cox
   # transformation) can be used to make highly skewed variables resemble a more

@@ -17,7 +17,6 @@ str(Auto)
 #     Model year (modulo 100)
 # - origin
 #     Origin of car (1. American, 2. European, 3. Japanese)
-Auto$origin <- factor(Auto$origin)
 # - name
 #     Vehicle name
 
@@ -50,7 +49,7 @@ Auto.test <- Auto[-i, ]
 # iii. How will the predictors be used to predict the outcome?
 
 # In base R, steps i+ii are typically done with a formula:
-mpg ~ origin + scale(weight) * horsepower
+mpg ~ factor(origin) + scale(weight) * horsepower
 
 # Outcome: mpg
 # Predictors: origin, weight, horsepower
@@ -60,7 +59,10 @@ mpg ~ origin + scale(weight) * horsepower
 # - adding an interaction between (standardized) weight and horsepower
 
 # We can see that all this happens by using the model.matrix() function:
-model.matrix(mpg ~ origin + scale(weight) * horsepower, data = Auto.train) |>
+model.matrix(
+  mpg ~ factor(origin) + scale(weight) * horsepower,
+  data = Auto.train
+) |>
   head(n = 10)
 
 
@@ -76,7 +78,7 @@ model.matrix(mpg ~ origin + scale(weight) * horsepower, data = Auto.train) |>
 # finding the coefficients that minimize the sum of squared errors.
 
 # We combine the formula, and data and the fitting function as defined above:
-fit <- lm(mpg ~ origin + scale(weight) * horsepower, data = Auto.train)
+fit <- lm(mpg ~ factor(origin) + scale(weight) * horsepower, data = Auto.train)
 
 
 ## 4) Evaluate the model ------------------------------------------
@@ -147,7 +149,9 @@ rec
 # https://recipes.tidymodels.org/reference/index.html
 # For example, here we want:
 rec <- rec |>
-  # - origin is a factor, so will produce dummy coding
+  # - origin is a categorical variable, so we need to (1) convert it to a
+  # factor, and (2) dummy code it
+  step_num2factor(origin, levels = c("American", "European", "Japanese")) |>
   step_dummy(origin) |>
   # - weight is standardized
   step_normalize(weight) |>
