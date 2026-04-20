@@ -14,8 +14,6 @@ library(tidymodels)
 
 data(Auto, package = "ISLR")
 ?ISLR::Auto
-Auto$cylinders <- factor(Auto$cylinders)
-Auto$origin <- factor(Auto$origin)
 
 ## Data splitting ----------------------------------------
 
@@ -23,7 +21,7 @@ splits <- initial_split(Auto, prop = 0.7)
 
 # We will be using the training set for both tuning (within-model comparison)
 # and model comparison (between-model comparison). From an overfitting
-# perspective, this is fine if we view both as part of a "falt" selection
+# perspective, this is fine if we view both as part of a "flat" selection
 # process.
 Auto.train <- training(splits)
 
@@ -78,7 +76,7 @@ collect_metrics(linreg1_oos, summarize = FALSE, type = "wide")
 
 rec2 <- recipe(mpg ~ ., data = Auto.train) |>
   step_rm(name) |>
-  step_novel(cylinders, origin) |>
+  step_num2factor(origin, levels = c("American", "European", "Japanese")) |>
   step_dummy(all_nominal_predictors()) |>
   step_zv(all_numeric_predictors())
 
@@ -183,8 +181,7 @@ cv_results <- bind_rows(
 cv_summary <- bind_rows(
   linear1 = collect_metrics(linreg1_oos),
   linear2 = collect_metrics(linreg2_oos),
-  KNN = collect_metrics(knn_oos) |>
-    semi_join(k_1SE, by = ".config"),
+  KNN = collect_metrics(knn_oos),
   .id = "model"
 )
 

@@ -61,7 +61,7 @@ knn_wf
 ## 2) Tune the hyperparameters --------------------------------------------
 
 # To tune a hyperparameters using resampling methods, we need to define:
-# 1) A resmapling method
+# 1) A resampling method
 # 2) What metrics to use for validation
 # 3) How to search for different values of hyperparameters.
 
