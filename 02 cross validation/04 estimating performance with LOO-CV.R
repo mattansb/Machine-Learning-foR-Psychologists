@@ -9,15 +9,14 @@ mirai::daemons(4) # Load parallel backend
 # Let's do just that.
 
 # The data ----------------------------------------------------------------
-# The most famous data set in R.
 
-data("mtcars")
-?datasets::mtcars
+data("attitude")
+?datasets::attitude
 
-nrow(mtcars)
+nrow(attitude)
 # The dataset is too small for splitting...
-vfold_cv(mtcars, v = 10) # gives only 3 obs. in the validation sets.
-bootstraps(mtcars, times = 200) # also give small validation sets.
+vfold_cv(attitude, v = 10) # gives only 3 obs. in the validation sets.
+bootstraps(attitude, times = 200) # also give small validation sets.
 
 # The solution - use the WHOLE set as a validation set.
 # 1. Fit N models on a subset of size (N-1).
@@ -26,7 +25,7 @@ bootstraps(mtcars, times = 200) # also give small validation sets.
 # This method gives highly variable results, but is often better than nothing in
 # small samples.
 
-splits <- loo_cv(mtcars)
+splits <- loo_cv(attitude)
 splits
 # We can see each split has 31 samples for training, and 1 left out.
 
@@ -40,7 +39,7 @@ mset_reg <- metric_set(rsq, rmse)
 
 linreg_spec <- linear_reg(mode = "regression", engine = "lm")
 
-rec <- recipe(mpg ~ ., data = mtcars)
+rec <- recipe(rating ~ ., data = attitude)
 
 linreg_wf <- workflow(preprocessor = rec, spec = linreg_spec)
 
@@ -67,9 +66,9 @@ results <- fit_resamples(
 preds <- collect_predictions(results)
 
 # If we want to see the predictions with the original data:
-mtcars_preds <- bind_cols(
+attitude_preds <- bind_cols(
   # get original data in the same order as in `preds`:
-  mtcars[preds$.row, ],
+  attitude[preds$.row, ],
   .pred = preds$.pred
 )
 # For each row, we have the original data + a `.pred` column for the OOS
@@ -77,30 +76,27 @@ mtcars_preds <- bind_cols(
 
 # Estimate performance ----------------------------------------------------
 
-mtcars_preds |>
-  mset_reg(truth = mpg, estimate = .pred)
+attitude_preds |>
+  mset_reg(truth = rating, estimate = .pred)
 # Not bad.
 # How does this compare to the rsq and the adjusted rsq of the model trained on
 # the full data?
 
-linreg_fit <- fit(linreg_wf, data = mtcars)
+linreg_fit <- fit(linreg_wf, data = attitude)
 extract_fit_engine(linreg_fit) |>
   performance::model_performance(metrics = c("R2", "R2_adj", "RMSE"))
 # We can see that even the adjusted rsq gives an over-estimates...
 
-(ggplot(mtcars_preds, aes(.pred, mpg)) +
+p_loo <- ggplot(attitude_preds, aes(.pred, rating)) +
   geom_abline() +
   geom_point() +
-  coord_obs_pred(xlim = c(5, 35)) +
-  ggtitle("LOO-CV predictions")) +
+  coord_obs_pred(xlim = c(40, 90)) +
+  ggtitle("LOO-CV predictions")
 
-  (augment(linreg_fit, new_data = mtcars) |>
-    ggplot(aes(.pred, mpg)) +
-    geom_abline() +
-    geom_point() +
-    coord_obs_pred(xlim = c(5, 35)) +
+p_loo +
+  (p_loo +
+    augment(linreg_fit, new_data = attitude) +
     ggtitle("In-sample predictions")) +
-
   plot_annotation(
-    caption = "LOO-CV looks worse, but in-sample is actually overfitting."
+    title = "LOO-CV looks worse, but in-sample is actually overfitting."
   )
