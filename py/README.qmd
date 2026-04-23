@@ -85,8 +85,9 @@ py_df |>
 You can install all the Python modules used by saving a `requirements.txt` file:
 
 ```{r}
+# fmt: skip
 reticulate::use_python(
-  "C:/Users/user/AppData/Local/Programs/Python/Python313/python.exe",
+  fs::path_home("AppData", "Local", "Programs", "Python", "Python313", "python.exe"),
   required = TRUE
 )
 
