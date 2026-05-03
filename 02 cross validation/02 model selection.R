@@ -214,11 +214,11 @@ cv_compareare_lin2.knn <- cv_results |>
     values_from = .estimate,
     id_cols = c(id, .metric)
   ) |>
-  group_by(.metric) |>
   mutate(
     # Because these are paired (fold-wise) we can do this:
     diff = linear2 - KNN
   ) |>
+  group_by(.metric) |>
   summarise(
     mean_diff = mean(diff),
     se_diff = sd(diff) / sqrt(n()),

@@ -96,7 +96,6 @@ tidy(cv_folds) |>
 # following metrics:
 
 mset_reg <- metric_set(rsq, rmse, mae)
-mset_reg
 
 
 ### Tuning method -------------------------------
