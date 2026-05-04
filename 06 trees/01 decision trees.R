@@ -19,7 +19,6 @@ table(OJ$Purchase) |> proportions()
 set.seed(20251201)
 splits <- initial_split(OJ, prop = 0.6)
 OJ.train <- training(splits)
-OJ.test <- testing(splits)
 
 # Splitting
 OJ.comp_splits <- vfold_cv(OJ.train, v = 10) # Make 10-folds for tuning
@@ -218,7 +217,7 @@ ggplot(OJ_resamps_metrics, aes(Model, .estimate, color = Model)) +
 
 OJ.test_predictions.pruned.tree <- augment(
   pruned.OJ.tree_fit,
-  new_data = OJ.test
+  new_data = testing(splits) # Get the test set
 )
 
 OJ.test_predictions.pruned.tree |> conf_mat(Purchase, .pred_class)

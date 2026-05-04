@@ -22,7 +22,6 @@ data(Wage, package = "ISLR")
 set.seed(20251201)
 splits <- initial_split(Wage, prop = 0.7)
 Wage.train <- training(splits)
-Wage.test <- testing(splits)
 
 
 # We'll use KNN - but we will use resampling methods to find K!
@@ -165,6 +164,8 @@ knn_final_fit <- fit(knn_final_wf, data = Wage.train)
 
 ## 4) Predict and evaluate -------------------------------------------------
 # On the test set.
+
+Wage.test <- testing(splits) # Extract the test set
 
 Wage.test_predictions <- augment(knn_final_fit, new_data = Wage.test)
 glimpse(Wage.test_predictions)

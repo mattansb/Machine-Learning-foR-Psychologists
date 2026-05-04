@@ -35,8 +35,7 @@ str(Auto)
 
 splits <- initial_split(Auto, prop = 0.7) # create a splits object
 Auto.train <- training(splits) # Extract the training set
-Auto.test <- testing(splits) # Extract the test set
-
+# Auto.test <- testing(splits) # We won't we extracting the test set just yet...
 
 # 2) Specify the model -------------------------------------------
 
@@ -110,6 +109,9 @@ knn_fit <- fit(knn_wf, data = Auto.train)
 
 
 ## 4) Predict and Evaluate the model -------------------------------
+
+# Now we can finally (safely!) extract the test set:
+Auto.test <- testing(splits)
 
 # Generate predictions:
 Auto.test_predictions <- augment(knn_fit, new_data = Auto.test)

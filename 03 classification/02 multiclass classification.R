@@ -15,7 +15,6 @@ data("penguins")
 set.seed(20251201)
 splits <- initial_split(penguins, prop = 0.8, strata = species)
 penguins.train <- training(splits)
-penguins.test <- testing(splits)
 
 
 # Tune ---------------------------------------------------------------------
@@ -81,6 +80,8 @@ knn_fit <- knn_wf |>
   fit(data = penguins.train)
 
 # Predict -----------------------------------------------------------------
+
+penguins.test <- testing(splits) # Extract the test set from the initial split
 
 penguins.test_predictions <- augment(knn_fit, new_data = penguins.test)
 head(penguins.test_predictions)

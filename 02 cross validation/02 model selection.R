@@ -26,8 +26,8 @@ splits <- initial_split(Auto, prop = 0.7)
 Auto.train <- training(splits)
 
 # The test set will be used only at the end to get a final estimate of selected
-# model performance.
-Auto.test <- testing(splits)
+# model performance (which we actually won't do in this script):
+# Auto.test <- testing(splits)
 
 ## Get resampled results --------------------------------------------------
 

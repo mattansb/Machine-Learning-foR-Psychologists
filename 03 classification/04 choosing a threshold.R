@@ -19,7 +19,7 @@ levels(ad_data$Class)
 set.seed(20251201)
 splits <- initial_split(ad_data, prop = 0.7, strata = Class)
 Alz.train <- training(splits)
-Alz.test <- testing(splits)
+
 
 mset_class <- metric_set(sensitivity, specificity, accuracy, j_index, roc_auc)
 # J index = sensitivity + specificity - 1
@@ -45,6 +45,8 @@ knn_fit1 <- fit(knn_wf1, data = Alz.train)
 
 
 ## Evaluate on hold-out set ---------------------------------
+
+Alz.test <- testing(splits) # Extract the test set from the initial split
 
 Alz.test_pred0.50 <- augment(knn_fit1, new_data = Alz.test)
 Alz.test_pred0.50 |>

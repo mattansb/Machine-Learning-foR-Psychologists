@@ -13,7 +13,6 @@ Hitters <- tidyr::drop_na(Hitters, Salary)
 set.seed(20251201)
 splits <- initial_split(Hitters, prop = 0.7)
 Hitters.train <- training(splits)
-Hitters.test <- testing(splits)
 # Our data is REALLY SMALL such that splitting the data to train and test might
 # leave us with very small datasets.
 
@@ -301,6 +300,7 @@ plot(enet_eng, sign.lambda = 1)
 # Compare performance ---------------------------------------------------------
 
 # EVALUATE the RMSE on the TEST set, associated with this value of lambda:
+Hitters.test <- testing(splits)
 
 mset_reg <- metric_set(rsq, mae)
 

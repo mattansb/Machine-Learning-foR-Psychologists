@@ -27,7 +27,6 @@ names(Hitters)
 set.seed(20251201)
 splits <- initial_split(Hitters, prop = 0.7)
 Hitters.train <- training(splits)
-Hitters.test <- testing(splits)
 # Our data is REALLY SMALL such that splitting the data to train and test might
 # leave us with very small datasets.
 
@@ -112,6 +111,7 @@ predict.regsubsets <- function(
   as.vector(X_newdata[, names(b), drop = FALSE] %*% b)
 }
 
+Hitters.test <- testing(splits)
 
 Hitters.test$pred_bss <- predict(regfit.full, newdata = Hitters.test, id = 9)
 

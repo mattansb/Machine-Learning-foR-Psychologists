@@ -19,7 +19,7 @@ oj_metrics <- metric_set(accuracy, f_meas, roc_auc)
 set.seed(20251201)
 splits <- initial_split(OJ, prop = 0.8)
 OJ.train <- training(splits)
-OJ.test <- testing(splits)
+
 
 ggplot(OJ.train, aes(PriceDiff, LoyalCH, color = Purchase)) +
   geom_point()
@@ -107,6 +107,8 @@ plot(svmlin_eng, data = X_train)
 
 ## Evaluating the support vector classifier performance ---------------------
 # (on a new TEST DATA)
+
+OJ.test <- testing(splits)
 
 # Predict the class labels of these test observations.
 svmlin_predictions <- augment(svmlin_fit, new_data = OJ.test)
@@ -221,7 +223,6 @@ data("penguins")
 set.seed(20251201)
 splits <- initial_split(penguins, prop = 0.7)
 penguins.train <- training(splits)
-penguins.test <- testing(splits)
 
 
 # We will try to predict penguins species from bill_length_mm and body_mass_g.
@@ -244,6 +245,7 @@ svmlin_fit2 <- fit(svmlin_wf2, data = penguins.train)
 
 
 ## Predict and evaluate
+penguins.test <- testing(splits)
 
 penguins.test$pred_lin <- predict(
   svmlin_fit2,
@@ -300,7 +302,6 @@ data("College", package = "ISLR")
 set.seed(20251201)
 splits <- initial_split(College, prop = 0.7)
 College.train <- training(splits)
-College.test <- testing(splits)
 
 svrlin_spec <- svm_linear(
   mode = "regression",
@@ -338,7 +339,7 @@ svrlin_fit <-
   fit(data = College.train)
 
 
-College.test_preds <- augment(svrlin_fit, new_data = College.train)
+College.test_preds <- augment(svrlin_fit, new_data = testing(splits))
 
 College.test_preds |>
   group_by(Private) |>

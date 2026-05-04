@@ -18,19 +18,18 @@ data(Smarket, package = "ISLR")
 
 # Assume the following classification task on the Smarket data:
 # predict Direction (Up/Down) using the features Lag1 and Lag2.
-# If we are not sure how Direction is coded we can use levels():
-levels(Smarket$Direction)
-
-table(Smarket$Direction)
-# The base rate probability:
-table(Smarket$Direction) |> proportions()
-
 
 # Data Splitting (70%):
 set.seed(20251201)
 splits <- initial_split(Smarket, prop = 0.7)
 Smarket.train <- training(splits)
-Smarket.test <- testing(splits)
+
+# If we are not sure how Direction is coded we can use levels():
+levels(Smarket.train$Direction)
+
+table(Smarket.train$Direction)
+# The base rate probability:
+table(Smarket.train$Direction) |> proportions()
 
 
 # We'll start by using a parametric method - logistic regression.
@@ -69,6 +68,8 @@ extract_fit_engine(logit_fit) |>
 # Or...
 
 ## 4) Predict and evaluate -------------------------------------------------
+
+Smarket.test <- testing(splits) # Extract the test set from the initial split
 
 predict(logit_fit, new_data = Smarket.test, type = "class") # default
 predict(logit_fit, new_data = Smarket.test, type = "prob")
