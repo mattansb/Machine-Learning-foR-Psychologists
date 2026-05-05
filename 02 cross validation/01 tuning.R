@@ -165,9 +165,7 @@ knn_final_fit <- fit(knn_final_wf, data = Wage.train)
 ## 4) Predict and evaluate -------------------------------------------------
 # On the test set.
 
-Wage.test <- testing(splits) # Extract the test set
-
-Wage.test_predictions <- augment(knn_final_fit, new_data = Wage.test)
+Wage.test_predictions <- augment(knn_final_fit, new_data = testing(splits))
 glimpse(Wage.test_predictions)
 
 

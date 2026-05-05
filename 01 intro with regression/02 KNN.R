@@ -110,11 +110,8 @@ knn_fit <- fit(knn_wf, data = Auto.train)
 
 ## 4) Predict and Evaluate the model -------------------------------
 
-# Now we can finally (safely!) extract the test set:
-Auto.test <- testing(splits)
-
-# Generate predictions:
-Auto.test_predictions <- augment(knn_fit, new_data = Auto.test)
+# Generate predictions *on the test set*!
+Auto.test_predictions <- augment(knn_fit, new_data = testing(splits))
 head(Auto.test_predictions)
 
 # In either case, the test set is preprocessed according to the recipe, and
