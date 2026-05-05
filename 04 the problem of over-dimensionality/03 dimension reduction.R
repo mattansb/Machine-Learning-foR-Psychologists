@@ -13,7 +13,6 @@ Hitters <- tidyr::drop_na(Hitters, Salary)
 set.seed(20260119)
 splits <- initial_split(Hitters, prop = 0.7)
 Hitters.train <- training(splits)
-Hitters.test <- testing(splits)
 # Our data is REALLY SMALL such that splitting the data to train and test might
 # leave us with very small datasets.
 
@@ -61,7 +60,7 @@ rec <- recipe(Salary ~ ., data = Hitters.train) |>
   # Let's add an interaction here:
   step_interact(~ HmRun:starts_with("League")) |>
   step_normalize(all_numeric_predictors())
-# IMPORTANT! scale the variables pre-fitting
+# IMPORTANT! scale the features pre-fitting
 
 pcr_rec <- rec |>
   # We will tune the PCA step!
@@ -233,9 +232,12 @@ extract_pls_coef(pls_fit)
 
 cbind(PCR = extract_pcr_coef(pcr_fit), PLS = extract_pls_coef(pls_fit))
 
+Hitters.test <- testing(splits)
+
 augment(pcr_fit, new_data = Hitters.test) |> rsq(Salary, .pred)
 augment(pls_fit, new_data = Hitters.test) |> rsq(Salary, .pred)
 # In this case pls out performed pcr.
+# (Does it?)
 
 # Using PCA / PLS in other methods ----------------------------------
 
@@ -292,6 +294,34 @@ knn_fit <- fit(
 Hitters.test_predictions <- augment(knn_fit, new_data = Hitters.test)
 
 Hitters.test_predictions |> rsq(Salary, .pred)
-# KNN with PCA is better!
+# KNN with PCA is better than PLS.
+# But it is though...?
 
-# How about KNN without PCA?
+# (What does this code do?)
+bind_rows(
+  PLS = collect_metrics(pls_tuned, summarize = FALSE) |>
+    semi_join(best_pls, by = "num_comp"),
+  PCR = collect_metrics(pcr_tuned, summarize = FALSE) |>
+    semi_join(best_pcr, by = "num_comp"),
+  "PCA \u279c KNN" = collect_metrics(knn_tuned, summarize = FALSE) |>
+    semi_join(onese_knn, by = c("num_comp", "neighbors")),
+  .id = "model"
+) |>
+  mutate(
+    best = model[ifelse(
+      .metric == "rmse",
+      which.min(.estimate),
+      which.max(.estimate)
+    )],
+    .by = c(id, .metric)
+  ) |>
+  ggplot(aes(model, .estimate)) +
+  facet_wrap(vars(.metric), scales = "free_y") +
+  expand_limits(
+    rbind(
+      data.frame(y = 0, .metric = "rmse"),
+      data.frame(y = c(0, 1), .metric = "rsq")
+    )
+  ) +
+  geom_line(aes(group = id, color = best), alpha = .5) +
+  stat_summary(color = "red")
