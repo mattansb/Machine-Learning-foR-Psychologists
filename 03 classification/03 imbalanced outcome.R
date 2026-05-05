@@ -35,7 +35,7 @@ rec <- recipe(Purchase ~ ., data = Caravan.train) |>
   step_normalize(all_numeric_predictors())
 
 # And these classification metrics:
-mset_class <- metric_set(accuracy, specificity, sensitivity)
+mset_class <- metric_set(accuracy, specificity, sensitivity, brier_class)
 
 
 # The worst model ---------------------------------------------------------
@@ -173,7 +173,9 @@ Caravan.test_predictions |>
 
 Caravan.test_predictions |>
   group_by(Method) |>
-  mset_class(truth = Purchase, estimate = .pred_class)
+  mset_class(truth = Purchase, estimate = .pred_class, .pred_Yes) |>
+  select(-.estimator) |>
+  pivot_wider(names_from = .metric, values_from = .estimate)
 # As we can see, the accuracy (and specificity) have dropped compared to the
 # null model (which always predicts "No") and the unbalanced kNN model but
 # sensitivity is higher.

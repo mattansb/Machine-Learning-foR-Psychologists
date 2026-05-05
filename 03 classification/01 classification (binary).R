@@ -3,8 +3,8 @@ library(tidymodels)
 
 # The data and problem ----------------------------------------------------
 
-# Previously, we've used {tidymodels} for a regression problem. Today we are looking
-# at classification.
+# Previously, we've used {tidymodels} for a regression problem. Today we are
+# looking at classification.
 
 # Smarket dataset contains daily percentage returns for the S&P 500 stock index
 # between 2001 and 2005 (1,250 days).
@@ -44,7 +44,7 @@ show_engines("logistic_reg")
 # We'll use the standard stats::glm()
 logit_spec <- logistic_reg(mode = "classification", engine = "glm")
 
-# We can see the under the hood, stats::glm() is used:
+# We can see that under the hood, stats::glm() is used:
 translate(logit_spec)
 ?details_logistic_reg_glm
 
@@ -56,7 +56,6 @@ rec <- recipe(Direction ~ Lag1 + Lag2 + Lag3, data = Smarket.train)
 
 # Combine spec and recipe to a workflow:
 logit_wf <- workflow(preprocessor = rec, spec = logit_spec)
-logit_wf
 
 
 ## 3) Fit the model ---------------------------------------------------

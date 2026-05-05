@@ -73,7 +73,7 @@ knn_fit <- knn_wf |>
   finalize_workflow(
     parameters = select_by_one_std_err(
       tune_results,
-      neighbors,
+      desc(neighbors),
       metric = "accuracy"
     )
   ) |>
@@ -81,9 +81,7 @@ knn_fit <- knn_wf |>
 
 # Predict -----------------------------------------------------------------
 
-penguins.test <- testing(splits) # Extract the test set from the initial split
-
-penguins.test_predictions <- augment(knn_fit, new_data = penguins.test)
+penguins.test_predictions <- augment(knn_fit, new_data = testing(splits))
 head(penguins.test_predictions)
 
 # {yardstick} provides 3 methods for dealing with multiclass predictions, all of

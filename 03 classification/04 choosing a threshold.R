@@ -1,7 +1,6 @@
 library(patchwork)
 
 library(tidymodels)
-library(tailor)
 # library(kknn)
 
 mirai::daemons(4) # Use 4 CPU cores for parallel processing
@@ -28,8 +27,10 @@ mset_class <- metric_set(sensitivity, specificity, accuracy, j_index, roc_auc)
 
 # Preprocessing
 rec <- recipe(Class ~ ., data = Alz.train) |>
+  # remove linear combinations and highly correlated predictors
   step_lincomb(all_numeric_predictors()) |>
   step_corr(all_numeric_predictors()) |>
+  # normalize all numeric predictors for KNN
   step_normalize(all_numeric_predictors())
 
 # Model Spec
@@ -46,9 +47,7 @@ knn_fit1 <- fit(knn_wf1, data = Alz.train)
 
 ## Evaluate on hold-out set ---------------------------------
 
-Alz.test <- testing(splits) # Extract the test set from the initial split
-
-Alz.test_pred0.50 <- augment(knn_fit1, new_data = Alz.test)
+Alz.test_pred0.50 <- augment(knn_fit1, new_data = testing(splits))
 Alz.test_pred0.50 |>
   mset_class(truth = Class, estimate = .pred_class, .pred_Impaired)
 # The model is pretty good, but early detection of Alzheimer's disease is
@@ -73,8 +72,12 @@ tlr <- tailor() |>
 
 
 # Bring is all together in a workflow
-knn_wf2 <- workflow(preprocessor = rec, spec = knn_spec, postprocessor = tlr)
-knn_wf2
+knn_wf2 <- workflow(
+  preprocessor = rec,
+  spec = knn_spec,
+  postprocessor = tlr # NEW!
+)
+
 
 ## Tune the threshold -------------------------------------------------
 
@@ -82,7 +85,7 @@ tune_results <- tune_grid(
   knn_wf2,
   resamples = vfold_cv(Alz.train, v = 10, strata = Class),
   grid = tibble(threshold = seq(0, 1, length = 20)),
-  metrics = mset_class,
+  metrics = mset_class
 )
 
 # As expected, we can see that sensitivity and specificity trade off from 0/1 to
@@ -94,42 +97,42 @@ autoplot(tune_results, metric = c("accuracy", "roc_auc"))
 
 ## Finalize model ------------------------------------------------
 
-knn_fit2 <- knn_wf2 |>
-  finalize_workflow(
-    # select the best threshold based on J-index measure
-    parameters = select_best(tune_results, metric = "j_index")
-  ) |>
-  fit(data = Alz.train)
+# select the best threshold based on J-index measure
+(final_thresh <- select_best(tune_results, metric = "j_index"))
 
 # We can also select by optimizing multiple metrics simultaneously with the
 # {desirability} package:
 # https://.tidymodels.org/#using-with-the-tune-package
 ?desirability2::select_best_desirability()
 
-
-knn_fit2
+knn_fit2 <- knn_wf2 |>
+  finalize_workflow(
+    parameters = final_thresh
+  ) |>
+  fit(data = Alz.train)
 
 
 # Predict (+ adjust) on test set ---------------------------------
 
-Alz.test_pred0.30 <- augment(knn_fit2, new_data = Alz.test)
+Alz.test_pred.adj <- augment(knn_fit2, new_data = testing(splits))
 
 # We can see that the class predictions do not completely agree:
 table(
   "Default" = Alz.test_pred0.50$.pred_class,
-  "Adjusted" = Alz.test_pred0.30$.pred_class
+  "Adjusted" = Alz.test_pred.adj$.pred_class
 )
 
 # (But note that probabilistic metrics are unaffected by adjustment)
 plot(
+  Alz.test_pred.adj$.pred_Impaired,
   Alz.test_pred0.50$.pred_Impaired,
-  Alz.test_pred0.30$.pred_Impaired,
-  xlab = "Default (thresh = 0.50)",
-  ylab = "Adjusted (thresh = 0.30)"
+  xlab = sprintf("Adjusted (thresh= %.3f)", final_thresh$threshold),
+  ylab = "Default (thresh = 0.50)"
 )
+
 
 Alz.test_pred0.50 |>
   mset_class(truth = Class, estimate = .pred_class, .pred_Impaired)
 
-Alz.test_pred0.30 |>
+Alz.test_pred.adj |>
   mset_class(truth = Class, estimate = .pred_class, .pred_Impaired)
