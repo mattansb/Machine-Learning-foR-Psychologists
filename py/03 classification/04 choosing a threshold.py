@@ -198,3 +198,21 @@ print(f"{'Accuracy':<15} {accuracy_default:<20.3f} {accuracy_adjusted:.3f}")
 print(f"{'J-index':<15} {j_index_default:<20.3f} {j_index_adjusted:.3f}")
 print(f"{'ROC AUC':<15} {auc_default:<20.3f} {auc_adjusted:.3f}")
 print("=" * 60)
+
+# Final notes ------------------------------------------------
+
+# Thresholds are only applicable to **binary classification** problems. For
+# multiclass problems, the predicted class is taken as the one with the highest
+# probability (for binary problems, this is equivalent to a threshold of 0.5).
+# Custom by-label thresholds are typically hard to justify, and I am not aware
+# of any implementations that support them in Python.
+
+# Also note that there is something arbitrary about crossing the threshold:
+# crossing the threshold by a small margin may not be meaningful. Often, even
+# when intrested in hard class predictions, it can be useful to report the
+# predicted probabilities instead, or to use them to define a "gray area" of
+# uncertainty around the threshold called an "equivocal zone".
+# See:
+# https://probably.tidymodels.org/articles/equivocal-zones.html
+
+# As we can see, classification is a very very complex topic...
