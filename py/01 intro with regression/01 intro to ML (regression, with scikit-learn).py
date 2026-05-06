@@ -28,7 +28,6 @@ print(Auto.info())
 #     Model year (modulo 100)
 # - origin
 #     Origin of car (1. American, 2. European, 3. Japanese)
-Auto["origin"] = pd.Categorical(Auto["origin"])
 
 print(Auto.head())
 # We're interested in predicting gas consumption: MPG (miles per gallon).
@@ -54,8 +53,8 @@ i = np.random.choice(
     Auto.shape[0], size=int(0.7 * Auto.shape[0]), replace=False
 )
 mask = np.isin(np.arange(len(Auto)), i)
-Auto_train = Auto.loc[mask]
-Auto_test = Auto.loc[~mask]
+Auto_train = Auto.loc[mask].reset_index(drop=True)
+Auto_test = Auto.loc[~mask].reset_index(drop=True)
 
 
 ## 2) Specify the model and Preprocessing ---------------------------
@@ -64,12 +63,12 @@ Auto_test = Auto.loc[~mask]
 # ii. How will the predictors be used to predict the outcome?
 
 # In statsmodels.formula.api, step i is typically done with a formula:
-f = "mpg ~ origin + zscore(weight) * horsepower"
+f = "mpg ~ C(origin) + zscore(weight) * horsepower"
 
 # Outcome: mpg
 # Predictors: origin, weight, horsepower
 # Preprocessing:
-# - origin is a factor, so will produce dummy coding
+# - origin is treated as a categorical (C) and will produce dummy variables
 # - weight is standardized
 # - adding an interaction between (standardized) weight and horsepower
 
@@ -91,7 +90,7 @@ help(smf.ols)
 
 # We combine the formula, and data and the fitting function as defined above:
 model = smf.ols(
-    "mpg ~ origin + zscore(weight) * horsepower", data=Auto_train
+    "mpg ~ C(origin) + zscore(weight) * horsepower", data=Auto_train
 ).fit()
 
 
@@ -181,7 +180,7 @@ print(X_test.shape)
 
 ct = ColumnTransformer(
     transformers=[
-        # - origin is a factor, so we'll produce dummy coding
+        # - produce dummy variables for origin
         ("dummy", OneHotEncoder(drop="first", sparse_output=False), ["origin"]),
         # - weight is standardized
         ("z", StandardScaler(), ["weight"]),
@@ -215,7 +214,7 @@ preprocessor.fit(X_train, y_train)
 
 
 # We can then pre-process any data we want:
-preprocessor.transform(X_train)
+print(preprocessor.transform(X_train))
 # Compare this to the model matrix above
 
 

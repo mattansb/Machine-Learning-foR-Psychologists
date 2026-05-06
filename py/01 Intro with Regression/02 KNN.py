@@ -38,7 +38,6 @@ print(Auto.info())
 #     Model year (modulo 100)
 # - origin
 #     Origin of car (1. American, 2. European, 3. Japanese)
-Auto["origin"] = pd.Categorical(Auto["origin"])
 
 # We're interested in predicting gas consumption: MPG (miles per gallon)
 
