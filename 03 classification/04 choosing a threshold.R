@@ -136,3 +136,23 @@ Alz.test_pred0.50 |>
 
 Alz.test_pred.adj |>
   mset_class(truth = Class, estimate = .pred_class, .pred_Impaired)
+
+
+# Final notes ------------------------------------------------
+
+# Thresholds are only applicable to **binary classification** problems. For
+# multiclass problems, the predicted class is taken as the one with the highest
+# probability (for binary problems, this is equivalent to a threshold of 0.5).
+# Custom by-label thresholds are typically hard to justify, but can be made
+# with:
+?adjust_predictions_custom()
+
+# Adding a buffer zone around the threshold:
+# Crossing the threshold by a small margin may not be meaningful, so we can
+# introduce an "equivocal zone" around the threshold. Predictions that fall
+# within this zone are classified as "equivocal" rather than being forced into
+# one class or the other. See:
+?adjust_equivocal_zone()
+# https://probably.tidymodels.org/articles/equivocal-zones.html
+
+# As we can see, classification is a very very complex topic...
