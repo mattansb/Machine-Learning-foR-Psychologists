@@ -19,6 +19,8 @@ set.seed(20251201)
 splits <- initial_split(ad_data, prop = 0.7, strata = Class)
 Alz.train <- training(splits)
 
+table(Alz.train$Class) |> prop.table()
+
 
 mset_class <- metric_set(sensitivity, specificity, accuracy, j_index, roc_auc)
 # J index = sensitivity + specificity - 1

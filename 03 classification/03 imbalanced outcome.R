@@ -64,7 +64,7 @@ Caravan.test_predictions_NULL |>
 
 # But as we can see, we have no specificity!
 Caravan.test_predictions_NULL |>
-  mset_class(truth = Purchase, estimate = .pred_class)
+  mset_class(truth = Purchase, estimate = .pred_class, .pred_Yes)
 
 
 # Training with Imbalance Data --------------------------------------------
@@ -167,7 +167,7 @@ Caravan.test_predictions <-
 # case:
 Caravan.test_predictions |>
   select(Method, Purchase, starts_with(".pred")) |>
-  slice(1, .by = Method)
+  slice(c(1, 39), .by = Method)
 # We can see that down-sampling and importance weights make more balanced
 # predictions (less certain to the "No" class).
 
@@ -185,3 +185,8 @@ Caravan.test_predictions |>
   group_by(Method) |>
   roc_curve(truth = Purchase, .pred_Yes) |>
   autoplot()
+
+
+Caravan.test_predictions |>
+  group_by(Method) |>
+  roc_auc(truth = Purchase, .pred_Yes)
