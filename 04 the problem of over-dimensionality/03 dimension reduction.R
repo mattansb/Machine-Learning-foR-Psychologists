@@ -230,7 +230,10 @@ extract_pls_coef(pls_fit)
 
 ## Compare ---------------------------
 
-cbind(PCR = extract_pcr_coef(pcr_fit), PLS = extract_pls_coef(pls_fit))
+cbind(
+  PCR = extract_pcr_coef(pcr_fit),
+  PLS = extract_pls_coef(pls_fit)
+)
 
 Hitters.test <- testing(splits)
 
@@ -298,13 +301,14 @@ Hitters.test_predictions |> rsq(Salary, .pred)
 # But it is though...?
 
 # (What does this code do?)
-bind_rows(
+oos_metrics <- bind_rows(
   PLS = collect_metrics(pls_tuned, summarize = FALSE) |>
     semi_join(best_pls, by = "num_comp"),
   PCR = collect_metrics(pcr_tuned, summarize = FALSE) |>
     semi_join(best_pcr, by = "num_comp"),
   "PCA \u279c KNN" = collect_metrics(knn_tuned, summarize = FALSE) |>
     semi_join(onese_knn, by = c("num_comp", "neighbors")),
+
   .id = "model"
 ) |>
   mutate(
@@ -314,8 +318,10 @@ bind_rows(
       which.max(.estimate)
     )],
     .by = c(id, .metric)
-  ) |>
-  ggplot(aes(model, .estimate)) +
+  )
+
+
+ggplot(oos_metrics, aes(model, .estimate)) +
   facet_wrap(vars(.metric), scales = "free_y") +
   expand_limits(
     rbind(

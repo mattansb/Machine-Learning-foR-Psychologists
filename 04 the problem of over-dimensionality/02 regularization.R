@@ -17,6 +17,9 @@ Hitters.train <- training(splits)
 # leave us with very small datasets.
 
 rec <- recipe(Salary ~ ., data = Hitters.train) |>
+  # For regularization methods, we can use one-hot encoding: each level of the
+  # factor gets its own column. Coefficients are interpreted as deviations from
+  # the *mean*.
   step_dummy(all_factor_predictors(), one_hot = TRUE) |>
   # Let's add an interaction here:
   step_interact(~ HmRun:starts_with("League")) |>
@@ -52,7 +55,7 @@ ridge_wf <- workflow(preprocessor = rec, spec = ridge_spec)
 
 # Let's tune the PENALTY.
 ridge_grid <- grid_regular(
-  penalty(range = c(-2, 7)),
+  penalty(range = c(-2, 7)), # values on the log10 scale
 
   levels = 20
 )
@@ -72,13 +75,7 @@ ridge_tuned <- tune_grid(
 
 # Let's choose a range
 # for lambda values.
-autoplot(ridge_tuned) +
-  scale_x_continuous(
-    transform = scales::transform_log(),
-    breaks = scales::breaks_log(n = 10),
-    labels = scales::label_number(big.mark = ",")
-  ) +
-  theme(axis.text.x = element_text(angle = 20))
+autoplot(ridge_tuned) + scale_x_log10()
 
 (best_ridge <- select_best(ridge_tuned, metric = "rmse"))
 
@@ -115,6 +112,13 @@ plot_glmnet_coef <- function(mod, s = 0, show_intercept = FALSE) {
   ggplot2::ggplot(b, ggplot2::aes(Coef, .data[[tail(colnames(b), 1)]])) +
     ggplot2::geom_blank(ggplot2::aes(y = .data[[colnames(b)[2]]])) +
     ggplot2::geom_hline(yintercept = 0) +
+    ggplot2::geom_segment(
+      ggplot2::aes(
+        xend = Coef,
+        yend = .data[[colnames(b)[2]]]
+      ),
+      color = "grey50"
+    ) +
     ggplot2::geom_point(
       ggplot2::aes(shape = .data[[tail(colnames(b), 1)]] == 0),
       fill = "red",
@@ -170,7 +174,6 @@ vip::vip(
 
 # We will once again train the model, but we will set alpha = 1.
 # Other than that change, we proceed just as we did in fitting a ridge model.
-
 lasso_spec <- linear_reg(
   mode = "regression",
   engine = "glmnet",
@@ -200,13 +203,7 @@ lasso_tuned <- tune_grid(
 
 # Let's choose a range
 # for lambda values.
-autoplot(lasso_tuned) +
-  scale_x_continuous(
-    transform = scales::transform_log(),
-    breaks = scales::breaks_log(n = 10),
-    labels = scales::label_number(big.mark = ",")
-  ) +
-  theme(axis.text.x = element_text(angle = 20))
+autoplot(lasso_tuned) + scale_x_log10()
 
 (best_lasso <- select_best(lasso_tuned, metric = "rmse"))
 
@@ -275,13 +272,7 @@ enet_tuned <- tune_grid(
 
 # Let's choose a range
 # for lambda values.
-autoplot(enet_tuned) +
-  scale_x_continuous(
-    transform = scales::transform_log(),
-    breaks = scales::breaks_log(n = 10),
-    labels = scales::label_number(big.mark = ",")
-  ) +
-  theme(axis.text.x = element_text(angle = 20))
+autoplot(enet_tuned) + scale_x_log10()
 
 (best_enet <- select_best(enet_tuned, metric = "rmse"))
 # What about the one SE rule?
@@ -318,7 +309,7 @@ data("attrition", package = "modeldata")
 ?modeldata::attrition
 head(attrition)
 
-# Lets predict Attrition from these 30 variables (Note that regularization
+# Let's predict Attrition from these 30 variables (Note that regularization
 # methods can be used for datasets with many more variables than this one).
 table(attrition$Attrition) |> prop.table()
 
