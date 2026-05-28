@@ -239,6 +239,15 @@ plot_glmnet_coef(lasso_eng, s = 100)
 # 19 predictors instead of 24!
 plot_glmnet_coef(lasso_eng, s = best_lasso$penalty) # some coefs are exactly 0!
 
+vip::vip(
+  lasso_eng,
+  method = "model",
+  lambda = best_lasso$penalty,
+  num_features = 100,
+  mapping = aes(fill = Sign)
+) +
+  theme(legend.position = "bottom")
+
 
 # Elastic Net---------------------------------------------------------------
 
