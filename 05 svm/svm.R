@@ -76,9 +76,6 @@ svmlin_tune <- tune_grid(
 
 autoplot(svmlin_tune)
 
-collect_metrics(svmlin_tune) |>
-  filter(.metric == "f_meas")
-
 (svmlin_const <- select_best(svmlin_tune, metric = "f_meas"))
 
 ## The final model ------------------------------------------------------
