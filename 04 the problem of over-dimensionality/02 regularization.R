@@ -27,6 +27,14 @@ rec <- recipe(Salary ~ ., data = Hitters.train) |>
   step_center(all_numeric_predictors()) |>
   step_scale(all_numeric_predictors())
 
+# OLS ----------------------------------
+# Use for comparison
+
+ols_fit <- workflow(
+  preprocessor = rec,
+  spec = linear_reg(mode = "regression", engine = "lm")
+) |>
+  fit(data = Hitters.train)
 
 # Ridge Regression -------------------------
 
@@ -270,8 +278,6 @@ enet_tuned <- tune_grid(
   # Default metrics: rsq, rmse
 )
 
-# Let's choose a range
-# for lambda values.
 autoplot(enet_tuned) + scale_x_log10()
 
 (best_enet <- select_best(enet_tuned, metric = "rmse"))
@@ -298,6 +304,9 @@ mset_reg <- metric_set(rsq, mae)
 augment(ridge_fit, new_data = Hitters.test) |> mset_reg(Salary, .pred)
 augment(lasso_fit, new_data = Hitters.test) |> mset_reg(Salary, .pred)
 augment(enet_fit, new_data = Hitters.test) |> mset_reg(Salary, .pred)
+
+# How do these compare to OLS?
+augment(ols_fit, new_data = Hitters.test) |> mset_reg(Salary, .pred)
 
 
 # Exercise--------------------------------------------------------------
