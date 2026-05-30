@@ -15,8 +15,6 @@ from sklearn import set_config
 from scipy.spatial.distance import pdist, squareform
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 
-from helpers import *
-
 from palmerpenguins import load_penguins
 
 # Configure sklearn to output pandas DataFrames

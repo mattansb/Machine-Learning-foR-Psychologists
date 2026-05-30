@@ -269,6 +269,7 @@ table(
 # Model based clustering -----------------------------------
 # https://mclust-org.github.io/mclust/
 ?gm_clust
+?db_clust
 
 
 # Understanding Clusters ------------------------------------------------------

@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 ![](https://img.shields.io/badge/Languages-Python-blue.png)
 
-<sub>*Last updated 2026-04-23.*</sub>
+<sub>*Last updated 2026-05-30.*</sub>
 
 This folder contains Python translations of the R tutorials in the main
 repo.
