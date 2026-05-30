@@ -19,23 +19,25 @@ data(USArrests)
 USArrests <- USArrests |> tibble::rownames_to_column("state.name")
 head(USArrests)
 
-# Are there clusters of states that are similar in their rates of crime?
+plot(USArrests[, 2:5], pch = 20, cex = 2)
+# there are some associations between variables, but are there CLUSTERS?
 
-## Prep -------------------
+# Note: no need to split into train/test sets for clustering, since we are not
+# trying to predict anything. We will be using all the data to find clusters,
+# and then we will validate the clusters using internal and external validation
+# methods.
+
+## Preprocessing -------------------
 
 summary(USArrests)
 # variables are on very different scales.
-#
 # We should re-scale them.
 
-# We can use recipe:
 rec <- recipe(~ Murder + Assault + UrbanPop + Rape, data = USArrests) |>
   step_normalize(all_numeric_predictors())
 
+# We will make a copy of the processed data:
 USArrests_z <- prep(rec) |> bake(new_data = USArrests)
-
-plot(USArrests[, 2:5], pch = 20, cex = 2)
-# there are some associations between variables, but are there CLUSTERS?
 
 ## t-SNE plot -------------------------------------------------
 
@@ -51,8 +53,7 @@ plot(USArrests[, 2:5], pch = 20, cex = 2)
 # so don't forget to set a seed:
 set.seed(20251109)
 
-
-USArrests_tSNE <- Rtsne(USArrests_z, perplexity = 5)
+USArrests_tSNE <- Rtsne(USArrests_z, perplexity = 5, normalize = FALSE)
 # Default perplexity is 30, but this value is too large for our small dataset.
 
 p_tSNE <- data.frame(USArrests_tSNE$Y) |>
@@ -72,9 +73,6 @@ p_tSNE
 # different clusters are as dissimilar as possible (i.e., low inter-class
 # similarity)
 
-# This is a "Top Down" approach - cluster observations on the basis of the
-# features. Prior selection of K - number of clusters.
-
 # We will be using k-means clustering, which is a popular partitioning
 # clustering method.
 
@@ -91,6 +89,7 @@ km_spec <- k_means(
 # as 20 or 50, since otherwise an undesirable local optimum may be obtained.
 
 km_wf <- workflow(preprocessor = rec, spec = km_spec)
+
 
 ## Tuning the number of clusters -----------------
 # https://www.datanovia.com/en/lessons/determining-the-optimal-number-of-clusters-3-must-know-methods/
@@ -116,12 +115,12 @@ autoplot(km_tuner, metric = "sse_within_total")
 autoplot(km_tuner, metric = "silhouette_avg")
 
 
-## Finding Clusters with k-means ------------------------------
+# Let's go with 4 clusters, which seems to be a reasonable choice here
+km_spec <- km_spec |> finalize_model(list(num_clusters = 4))
+km_wf <- km_wf |> update_model(km_spec)
+km_fit <- km_wf |> fit(data = USArrests)
 
-km_fit <- km_wf |>
-  finalize_workflow(list(num_clusters = 4)) |>
-  fit(data = USArrests)
-
+## Examining the results  -----------------
 
 extract_centroids(km_fit) # the clusters' centers (on the preprocessed data)
 # We can now label the clusters based on these centers.
@@ -158,25 +157,14 @@ p_tSNE + aes(color = USArrests$km_cluster)
 
 # Hierarchical Clustering ---------------------------------------------------------
 
-# This is a "Bottom Up" approach- cluster observations on the basis of the
-# features one by one. NO prior selection of number of clusters.
+# Unlike k-means, we don't need to decide on the number of clusters in advance.
+# We do however need to decide on:
+# 1. A dissimilarity metric
+# 2. A linkage method
 
-# We will use the same data to plot the hierarchical clustering dendrogram with
-# Euclidean distance as the dissimilarity measure.
-
-## Distance metric -----------------------------------
-# There are several to choose from....
+# There are several dissimilarity metrics to choose from....
+philentropy::getDistMethods()
 ?philentropy::distance()
-
-distance(
-  USArrests_z,
-  method = "euclidean"
-)
-
-distance(
-  USArrests_z,
-  method = "cosine"
-)
 
 # We can also use a type of unsupervised random forest to get a distance matrix:
 # https://gradientdescending.com/unsupervised-random-forest-example/
@@ -191,13 +179,12 @@ dist_rf <- function(x) {
 }
 
 
-# We will use the Euclidean distance (which is the default), but you should feel
-# free to experiment with other distance metrics and see how they affect your
-# results.
+# We also have sevral linkage methods to choose from. See:
+?hclust
 
-## Build dendrogram -----------------
-# The hclust() function implements hierarchical clustering.
-
+# We will use the Euclidean distance (which is the default) with complete
+# linkage, but you should feel free to experiment with other dissimilarity
+# metrics / linkages and see how they affect your results.
 hc_spec <- hier_clust(
   mode = "partition",
   engine = "stats",
@@ -210,16 +197,16 @@ hc_spec <- hier_clust(
   linkage_method = "complete",
   dist_fun = partial(distance, method = "euclidean") # (this is the default)
 )
-# Or linkage_method = "average"
-# Or linkage_method = "single"
-# Or linkage_method = "centroid"
+
 
 hc_wf <- workflow(preprocessor = rec, spec = hc_spec)
 
 hc_fit <- hc_wf |> fit(data = USArrests)
 
+## Exploring the dendrogram ---------------------------
+# _Now_ we can plot the dendrogram (with small-ish samples) and decide on the
+# number of clusters.
 
-# plotting the dendrograms (with small-ish samples) and determining clusters:
 hc_eng <- extract_fit_engine(hc_fit)
 plot(hc_eng)
 
@@ -227,24 +214,25 @@ plot(hc_eng)
 
 # We can also use:
 fviz_dend(hc_eng)
-fviz_dend(hc_eng, k = 4)
-fviz_dend(hc_eng, h = 3) + geom_hline(yintercept = 3, linetype = 2)
+fviz_dend(hc_eng, k = 4, rect = TRUE)
+fviz_dend(hc_eng, h = 3, rect = TRUE) + geom_hline(yintercept = 3, linetype = 2)
 
 # We can also extract the cluster centers (on the preprocessed data):
 extract_centroids(hc_fit, num_clusters = 4) # Looks similar to k-means centers
+extract_centroids(km_fit)
 
 # See also:
 # ?cluster::bannerplot(hc_eng)
 
-## Cut the tree! -----------------------------------
+## Cut the tree and examine the results  -----------------
 
 # Determining the cluster labels for each observation is done by cutting the
 # dendrogram, either at a specific height (h/cut_height) or by specifying the
 # number of clusters (k/num_clusters).
-
 hc_clusters.k4 <- hc_fit |>
   extract_cluster_assignment(
     num_clusters = 4,
+    # cut_height = ,
     labels = c("High Rural", "High Urban", "Low Urban", "Low Rural")
   )
 
@@ -272,12 +260,17 @@ table(
 ?db_clust
 
 
-# Understanding Clusters ------------------------------------------------------
-# All clustering methods will produce clusters, even if there is no real
-# structure in the data. So, it is important to validate the clusters.
+# Validating Clusters ------------------------------------------------------
+# All clustering methods will produce clusters, even if there is no real or
+# meaningful structure in the data. So, it is important to validate the
+# clusters. Read more about this here:
+# https://www.fharrell.com/post/cluster/
 #
 # Unfortunately, {tidyclust} doesn't have built-in functions for cluster
 # validation, but we can use other packages for this.
+
+# We will be looking at the k-mean results, but all of these methods can be
+# applied to the hierarchical clustering results as well.
 
 ## Internal Validation? -------------------------------------------------
 # How "good" is the clustering?
@@ -291,12 +284,16 @@ table(
 # clusters, and a value close to -1 indicates that the observation may have been
 # assigned to the wrong cluster.
 
+d_euc <- distance(USArrests_z, method = "euclidean") |> as.dist()
+
 sil_km <- cluster::silhouette(
   x = as.integer(USArrests$km_cluster),
-  dist = as.dist(distance(USArrests_z, method = "euclidean")) # k-means uses Euclidean distance
+  dist = d_euc # k-means uses Euclidean distance
 )
 
 plot(sil_km, col = c("purple2", "orange2", "red2", "royalblue2"))
+abline(v = c(0.3, 0.5), col = c("red", "blue"), lty = 2)
+
 summary(sil_km)
 # Overall the values are adequate (sil>~0.3), but not amazing (ideally we would
 # want sil>0.5)...
@@ -307,28 +304,34 @@ summary(sil_km)
 
 library(fpc)
 
+fit_kmeans <- function(X) {
+  .fit <- fit(km_wf, data = X)
+
+  .cl <- extract_cluster_assignment(.fit) |>
+    pull(.cluster) |>
+    as.integer()
+
+  list(
+    results = .fit,
+    nc = 4,
+    clusterlist = data.frame(outer(.cl, 1:4, "==")),
+    partition = rep(1, nrow(X))
+  )
+}
+
 jac_kmeans <- clusterboot(
-  USArrests_z,
+  USArrests,
   B = 200,
+  datatomatrix = FALSE,
+  bootmethod = "boot",
 
-  clustermethod = kmeansCBI,
-  k = 4
-)
-
-jac_hclust <- clusterboot(
-  as.dist(distance(USArrests_z, method = "euclidean")),
-  B = 200,
-
-  clustermethod = hclustCBI,
-  k = 4,
-  method = "complete"
+  clustermethod = fit_kmeans
 )
 
 # Jaccard values larger than 0.75 indicate stable clusters, while values below
 # 0.5 indicate highly unstable clusters.
-
 jac_kmeans # all clusters are stable
-jac_hclust # cluster 2 might be unstable?
+plot(jac_kmeans)
 
 
 ### Compare cluster means ---------------
@@ -351,7 +354,6 @@ library(clusterpval)
 cl_fun <- function(X) {
   # K-means clustering with 4 clusters:
   km_spec |>
-    finalize_model(list(num_clusters = 4)) |>
     # "fit" the model to the data:
     fit_xy(X) |>
     # Extract the cluster assignment:
@@ -371,7 +373,7 @@ test_clusters_approx(
   cl_fun = cl_fun,
   cl = as.integer(USArrests$km_cluster),
 
-  ndraws = 500
+  ndraws = 200
 )
 
 # How about clusters 1 and 4?
@@ -384,7 +386,7 @@ test_clusters_approx(
   cl_fun = cl_fun,
   cl = as.integer(USArrests$km_cluster),
 
-  ndraws = 500
+  ndraws = 200
 )
 
 
