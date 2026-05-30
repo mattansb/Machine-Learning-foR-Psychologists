@@ -83,33 +83,7 @@ coef(regfit.full, id = 9)
 
 # the leaps package doesn't provide a predict method for `regsubsets` objects.
 # Se we will define one ourselves
-predict.regsubsets <- function(
-  object,
-  newdata,
-  id = NULL,
-  select = c("adjr2", "cp", "bic")
-) {
-  cl <- object$call
-  cl[[1]] <- quote(stats::lm)
-  cl[!names(cl) %in% c(formalArgs(stats::lm), "")] <- NULL
-  lm_object <- eval.parent(cl)
-
-  X_newdata <- model.matrix(
-    terms(lm_object),
-    newdata,
-    contrasts.arg = object$contrasts
-  )
-
-  if (is.null(id)) {
-    select <- match.arg(select)
-    v <- summary(object)[[select]]
-    id <- switch(select, adjr2 = which.max(v), cp = , bic = which.min(v))
-  }
-
-  b <- coef(object, id = id)
-
-  as.vector(X_newdata[, names(b), drop = FALSE] %*% b)
-}
+source("_tpoo_utils.R")
 
 Hitters.test <- testing(splits)
 

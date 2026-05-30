@@ -208,7 +208,7 @@ hc_spec <- hier_clust(
 
   # Decisions!
   linkage_method = "complete",
-  dist_fun = \(x) distance(x, method = "euclidean") # (this is the default)
+  dist_fun = partial(distance, method = "euclidean") # (this is the default)
 )
 # Or linkage_method = "average"
 # Or linkage_method = "single"

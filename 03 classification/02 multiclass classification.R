@@ -124,7 +124,7 @@ penguins.test_predictions |>
 # (ROC-AUC is averaged using Hand & Till method.)
 
 # I also provide here a function to produce event-wise - not averaging!
-source(".metric_by_event.R")
+source("_clss_utils.R")
 
 penguins.test_predictions |>
   metric_by_event(

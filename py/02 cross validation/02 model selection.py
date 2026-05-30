@@ -273,6 +273,7 @@ cv_results_long = pd.melt(
 
 # Summary statistics
 def std_err(x):
+    """Calculate standard error of the mean"""
     return x.std() / np.sqrt(len(x))
 
 

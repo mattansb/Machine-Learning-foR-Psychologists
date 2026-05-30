@@ -109,8 +109,11 @@ def sensitivity_macro(y_true, y_pred):
 
 
 def specificity_macro(y_true, y_pred):
-    # Specificity needs to be calculated per class, then averaged
-    # We'll compute it as the recall of the "negative" class for each one-vs-rest
+    """
+    Calculate macro-averaged specificity for multiclass classification.
+    Specificity needs to be calculated per class, then averaged.
+    We'll compute it as the recall of the "negative" class for each one-vs-rest.
+    """
     cm = confusion_matrix(y_true, y_pred)
     # Specificity for each class
     specificity_per_class = []
