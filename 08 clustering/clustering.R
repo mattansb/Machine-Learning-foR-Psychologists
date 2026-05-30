@@ -127,7 +127,7 @@ km_fit <- km_wf |>
 
 extract_centroids(km_fit) # the clusters' centers (on the preprocessed data)
 # We can now label the clusters based on these centers.
-# ... and extract a the assignment of observations to each cluster:
+# ... and extract the assignment of observations to each cluster:
 km_clusters <- extract_cluster_assignment(
   km_fit,
   labels = c("High Rural", "High Urban", "Low Urban", "Low Rural")
@@ -160,8 +160,8 @@ p_tSNE + aes(color = USArrests$km_cluster)
 
 # Hierarchical Clustering ---------------------------------------------------------
 
-# This is a "Bottom Up" approach- cluster features on the basis of the
-# observations. NO prior selection of num. of clusters.
+# This is a "Bottom Up" approach- cluster observations on the basis of the
+# features. NO prior selection of num. of clusters.
 
 # We will use the same data to plot the hierarchical clustering dendrogram using
 # complete, single, and average linkage clustering, with Euclidean distance as
@@ -234,7 +234,7 @@ fviz_dend(hc_eng, k = 4)
 fviz_dend(hc_eng, h = 3) + geom_hline(yintercept = 3, linetype = 2)
 
 # We can also extract the cluster centers (on the preprocessed data):
-extract_centroids(hc_fit, num_clusters = 4) # Looks similar to k-means centers)
+extract_centroids(hc_fit, num_clusters = 4) # Looks similar to k-means centers
 
 # See also:
 # ?cluster::bannerplot(hc_eng)
