@@ -43,7 +43,7 @@ features = [
     "body_mass_g",
 ]
 
-penguins.dropna(subset=features, inplace=True)
+penguins = penguins.dropna(subset=features)
 
 print(penguins.loc[:, features].describe())
 # variables are on very different scales.
@@ -59,7 +59,7 @@ print(penguins_z.head())
 
 sns.pairplot(penguins_z)
 plt.show()
-# there are some associations variables, but are there CLUSTERS?
+# there are some associations between the variables, but are there CLUSTERS?
 
 
 ## t-SNE plot -------------------------------------------------
@@ -85,7 +85,7 @@ p_tSNE = (
     + theme_void()
 )
 p_tSNE.show()
-# It seems like there are 3 or 4 clumps of high-D (4D in out case) data.
+# It seems like there are 3 or 4 clumps of high-D (4D in our case) data.
 
 
 # Partitioning Clustering --------------------------------------------------------
@@ -138,12 +138,6 @@ for k in K:
 plot_metric_by_k(silhouette_scores, ylabel="Silhouette Score", cutoff=2)
 # Here, k=2
 
-## Gap statistic (using bootstrap sampling): measures how far is the observed
-# within intra-cluster variation is from a random uniform distribution of the
-# data?
-gap_values = compute_gap_statistic(penguins_z.values, k_max=20, n_replicates=10)
-plot_metric_by_k(gap_values, ylabel="Gap Statistic", cutoff=3)
-# Suggests k=6!
 
 ## Finding Clusters with k-means ------------------------------
 
@@ -191,7 +185,6 @@ plt.show()
 
 ## Distance metric -----------------------------------
 # There are several to choose from....
-# ! NEW PY: scipy.spatial.distance.pdist
 
 penguins_d_euc = pdist(penguins_z, metric="euclidean")
 penguins_d_cor = pdist(penguins_z, metric="correlation")
@@ -247,9 +240,9 @@ print(pd.crosstab(hc_cut_h5, cluster_km))
 
 
 # Model based clustering -----------------------------------
-#
-# See sklearn.mixture.GaussianMixture
 # https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html
+# https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html
+
 
 # Understanding Clusters ------------------------------------------------------
 # All clustering methods will produce clusters, even if there is no real
@@ -264,10 +257,22 @@ print(pd.crosstab(hc_cut_h5, cluster_km))
 # compared to other clusters.
 
 sil_values = silhouette_samples(penguins_z, cluster_km)
-sil_data = pd.DataFrame({"silhouette_width": sil_values, "cluster": cluster_km})
+sil_data = (
+    pd.DataFrame(
+        {
+            "silhouette_width": sil_values,
+            "cluster": cluster_km,
+        }
+    )
+    .sort_values(["cluster", "silhouette_width"])
+    .assign(id=range(len(sil_values)))
+    .reset_index(drop=True)
+)
 (
-    ggplot(sil_data, aes("silhouette_width", fill="cluster"))
-    + geom_histogram(alpha=0.6, position="identity")
+    ggplot(sil_data, aes("factor(id)", "silhouette_width", fill="cluster"))
+    + facet_grid("cluster ~ .", scales="free_y")
+    + geom_col()
+    + coord_flip()
 )
 
 print("Average Silhouette Score:")
@@ -278,13 +283,13 @@ print(pd.Series(sil_values).groupby(cluster_km).mean())
 # Are the clusters stable to small perturbations in the data? In other words,
 # if we re-sample the data, will we get similar clusters?
 
-# ! cluster stability analysis not imlpamented in python :(
+# ! cluster stability analysis not implemented in python :(
 
 
 ### Compare cluster means ---------------
 # Do the clusters differ on the variables that went into the clustering?
 
-# ! selective inference not imlpamented in python :(
+# ! selective inference not implemented in python :(
 
 
 ## External Validation? -------------------------------------------------
