@@ -2,12 +2,10 @@
 
 library(tidymodels)
 library(tidyclust)
+
 library(cluster)
 library(factoextra)
 library(philentropy)
-
-library(patchwork)
-
 library(Rtsne)
 
 
@@ -36,7 +34,7 @@ rec <- recipe(~ Murder + Assault + UrbanPop + Rape, data = USArrests) |>
 
 USArrests_z <- prep(rec) |> bake(new_data = USArrests)
 
-plot(USArrests[, -1], pch = 20, cex = 2)
+plot(USArrests[, 2:5], pch = 20, cex = 2)
 # there are some associations between variables, but are there CLUSTERS?
 
 ## t-SNE plot -------------------------------------------------
@@ -64,7 +62,7 @@ p_tSNE <- data.frame(USArrests_tSNE$Y) |>
   # scales are meaningless, so remove them
   theme_void()
 p_tSNE
-# It seems like there are 3 or 4 clumps of high-D (4D in out case) data.
+# It seems like there are 3 or 4 clumps of high-D (4D in our case) data.
 
 # Partitioning Clustering --------------------------------------------------------
 
@@ -133,7 +131,7 @@ km_clusters <- extract_cluster_assignment(
   labels = c("High Rural", "High Urban", "Low Urban", "Low Rural")
 )
 
-# obs. num in each cluster
+# Number of observations in each cluster
 table(km_clusters$.cluster)
 
 # Add the cluster labels to the original data:
@@ -161,11 +159,10 @@ p_tSNE + aes(color = USArrests$km_cluster)
 # Hierarchical Clustering ---------------------------------------------------------
 
 # This is a "Bottom Up" approach- cluster observations on the basis of the
-# features. NO prior selection of num. of clusters.
+# features one by one. NO prior selection of number of clusters.
 
-# We will use the same data to plot the hierarchical clustering dendrogram using
-# complete, single, and average linkage clustering, with Euclidean distance as
-# the dissimilarity measure.
+# We will use the same data to plot the hierarchical clustering dendrogram with
+# Euclidean distance as the dissimilarity measure.
 
 ## Distance metric -----------------------------------
 # There are several to choose from....
@@ -241,8 +238,9 @@ extract_centroids(hc_fit, num_clusters = 4) # Looks similar to k-means centers
 
 ## Cut the tree! -----------------------------------
 
-# To determine the cluster labels for each observation associated with a given
-# cut of the dendrogram, we can use the cutree() function:
+# Determining the cluster labels for each observation is done by cutting the
+# dendrogram, either at a specific height (h/cut_height) or by specifying the
+# number of clusters (k/num_clusters).
 
 hc_clusters.k4 <- hc_fit |>
   extract_cluster_assignment(
@@ -294,10 +292,10 @@ table(
 
 sil_km <- cluster::silhouette(
   x = as.integer(USArrests$km_cluster),
-  dist = distance(USArrests_z, method = "euclidean") # k-means uses euclidean distance
+  dist = as.dist(distance(USArrests_z, method = "euclidean")) # k-means uses Euclidean distance
 )
 
-plot(sil_km, col = sample(colors(TRUE), 4))
+plot(sil_km, col = c("purple2", "orange2", "red2", "royalblue2"))
 summary(sil_km)
 # Overall the values are adequate (sil>~0.3), but not amazing (ideally we would
 # want sil>0.5)...
@@ -317,8 +315,7 @@ jac_kmeans <- clusterboot(
 )
 
 jac_hclust <- clusterboot(
-  distance(USArrests_z, method = "euclidean"),
-  distances = TRUE,
+  as.dist(distance(USArrests_z, method = "euclidean")),
   B = 200,
 
   clustermethod = hclustCBI,
@@ -350,7 +347,7 @@ extract_centroids(km_fit)
 library(clusterpval)
 
 # Make a function to obtain clusters:
-cl_fun = function(X) {
+cl_fun <- function(X) {
   # K-means clustering with 4 clusters:
   km_spec |>
     finalize_model(list(num_clusters = 4)) |>
