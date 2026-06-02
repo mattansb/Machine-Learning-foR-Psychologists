@@ -4,7 +4,6 @@ library(tidymodels)
 library(tidyclust)
 
 library(cluster)
-library(factoextra)
 library(philentropy)
 library(Rtsne)
 
@@ -179,7 +178,7 @@ dist_rf <- function(x) {
 }
 
 
-# We also have sevral linkage methods to choose from. See:
+# We also have serval linkage methods to choose from. See:
 ?hclust
 
 # We will use the Euclidean distance (which is the default) with complete
@@ -199,23 +198,24 @@ hc_spec <- hier_clust(
 )
 
 
-hc_wf <- workflow(preprocessor = rec, spec = hc_spec)
-
-hc_fit <- hc_wf |> fit(data = USArrests)
+hc_fit <-
+  workflow(preprocessor = rec, spec = hc_spec) |>
+  fit(data = USArrests)
 
 ## Exploring the dendrogram ---------------------------
 # _Now_ we can plot the dendrogram (with small-ish samples) and decide on the
 # number of clusters.
 
 hc_eng <- extract_fit_engine(hc_fit)
-plot(hc_eng)
-
+plot(hc_eng, labels = USArrests$state.name)
 # The numbers / labels at the bottom of the plot identify each observation.
 
 # We can also use:
-fviz_dend(hc_eng)
-fviz_dend(hc_eng, k = 4, rect = TRUE)
-fviz_dend(hc_eng, h = 3, rect = TRUE) + geom_hline(yintercept = 3, linetype = 2)
+rect.hclust(hc_eng, k = 4)
+
+plot(hc_eng, labels = USArrests$state.name)
+rect.hclust(hc_eng, h = 2)
+abline(h = 2, col = "red", lty = 2)
 
 # We can also extract the cluster centers (on the preprocessed data):
 extract_centroids(hc_fit, num_clusters = 4) # Looks similar to k-means centers
@@ -261,8 +261,8 @@ table(
 
 
 # Validating Clusters ------------------------------------------------------
-# All clustering methods will produce clusters, even if there is no real or
-# meaningful structure in the data. So, it is important to validate the
+# All clustering methods will produce **some** clusters, even if there is no
+# real or meaningful structure in the data. So, it is important to validate the
 # clusters. Read more about this here:
 # https://www.fharrell.com/post/cluster/
 #
@@ -305,6 +305,8 @@ summary(sil_km)
 library(fpc)
 
 fit_kmeans <- function(X) {
+  # This function takes in a data frame X and returns a list the is required by
+  # {fpc} functions see e.g., ?kmeansCBI
   .fit <- fit(km_wf, data = X)
 
   .cl <- extract_cluster_assignment(.fit) |>
@@ -330,64 +332,11 @@ jac_kmeans <- clusterboot(
 
 # Jaccard values larger than 0.75 indicate stable clusters, while values below
 # 0.5 indicate highly unstable clusters.
-jac_kmeans # all clusters are stable
+jac_kmeans # all clusters are stable (low dissolved / unrecovered clusters)
 plot(jac_kmeans)
 
-
-### Compare cluster means ---------------
-# Do the clusters differ on the variables that went into the clustering?
-
-# Let's use k-means clusters for this example. Recall:
-extract_centroids(km_fit)
-
-# Do clusters 1 and 2 actually differ on these variables?
-# We can't just compute t-tests, because that would be doing post-selection
-# inference!
-# Thankfully, the {clusterpval} package provides functions to test for
-# differences between clusters while accounting for the fact that the clusters
-# were formed based on the distance on these same variables:
-
-# pak::pak("lucylgao/clusterpval")
-library(clusterpval)
-
-# Make a function to obtain clusters:
-cl_fun <- function(X) {
-  # K-means clustering with 4 clusters:
-  km_spec |>
-    # "fit" the model to the data:
-    fit_xy(X) |>
-    # Extract the cluster assignment:
-    extract_cluster_assignment() |>
-    # pull the cluster labels and convert to integer:
-    pull(.cluster) |>
-    as.integer()
-}
-
-
-test_clusters_approx(
-  X = as.matrix(USArrests_z),
-  # Clusters to compare
-  k1 = 1,
-  k2 = 2,
-
-  cl_fun = cl_fun,
-  cl = as.integer(USArrests$km_cluster),
-
-  ndraws = 200
-)
-
-# How about clusters 1 and 4?
-test_clusters_approx(
-  X = as.matrix(USArrests_z),
-  # Clusters to compare
-  k1 = 1,
-  k2 = 4,
-
-  cl_fun = cl_fun,
-  cl = as.integer(USArrests$km_cluster),
-
-  ndraws = 200
-)
+# See also:
+?prediction.strength
 
 
 ## External Validation? -------------------------------------------------
@@ -408,6 +357,71 @@ ggplot(states_info, aes(margin_pct, km_cluster, fill = km_cluster)) +
   geom_violin() +
   scale_x_continuous("% margin voted for Reagan")
 # What can we learn from this?
+
+# Compare cluster means ---------------------------------------------------
+# Looking at the cluster centers form k-means:
+extract_centroids(km_fit)
+# Do the clusters differ on the variables that went into the clustering?
+
+# Do clusters 1 and 2 actually differ on these variables?
+# We can't just compute t-tests, because that would be doing post-selection
+# inference - the clusters are defined based on the distance on these variables,
+# so of course they will differ!
+t.test(
+  Murder ~ km_cluster,
+  data = USArrests,
+  subset = km_cluster %in% c("High Rural", "High Urban")
+)
+
+# Thankfully, the {clusterpval} package provides functions to test for
+# differences between clusters while accounting for the fact that the clusters
+# were formed based on the distance on these same variables:
+
+# pak::pak("lucylgao/clusterpval")
+library(clusterpval)
+
+# Make a function to obtain clusters:
+km_cluster_x <- function(X) {
+  # This function takes the *preprocessed* data and returns the cluster
+  # assignments as integers.
+
+  # K-means clustering with 4 clusters:
+  km_spec |>
+    # "fit" the model to the data:
+    fit_xy(X) |>
+    # Extract the cluster assignment:
+    extract_cluster_assignment() |>
+    # pull the cluster labels and convert to integer:
+    pull(.cluster) |>
+    as.integer()
+}
+
+
+test_clusters_approx(
+  X = as.matrix(USArrests_z),
+  # Clusters to compare
+  k1 = 1,
+  k2 = 2,
+
+  cl_fun = km_cluster_x,
+  cl = as.integer(USArrests$km_cluster),
+
+  ndraws = 200
+)
+
+# How about clusters 1 and 4?
+test_clusters_approx(
+  X = as.matrix(USArrests_z),
+  # Clusters to compare
+  k1 = 1,
+  k2 = 4,
+
+  cl_fun = km_cluster_x,
+  cl = as.integer(USArrests$km_cluster),
+
+  ndraws = 200
+)
+
 
 # Exercise ----------------------------------------------------------------
 
