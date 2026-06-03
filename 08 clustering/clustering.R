@@ -3,11 +3,6 @@
 library(tidymodels)
 library(tidyclust)
 
-library(cluster)
-library(philentropy)
-library(Rtsne)
-
-
 # Learn more at:
 # https://tidyclust.tidymodels.org/index.html
 
@@ -52,7 +47,7 @@ USArrests_z <- prep(rec) |> bake(new_data = USArrests)
 # so don't forget to set a seed:
 set.seed(20251109)
 
-USArrests_tSNE <- Rtsne(USArrests_z, perplexity = 5, normalize = FALSE)
+USArrests_tSNE <- Rtsne::Rtsne(USArrests_z, perplexity = 5, normalize = FALSE)
 # Default perplexity is 30, but this value is too large for our small dataset.
 
 p_tSNE <- data.frame(USArrests_tSNE$Y) |>
@@ -194,7 +189,7 @@ hc_spec <- hier_clust(
 
   # Decisions!
   linkage_method = "complete",
-  dist_fun = partial(distance, method = "euclidean") # (this is the default)
+  dist_fun = partial(philentropy::distance, method = "euclidean") # (this is the default)
 )
 
 
@@ -284,7 +279,7 @@ table(
 # clusters, and a value close to -1 indicates that the observation may have been
 # assigned to the wrong cluster.
 
-d_euc <- distance(USArrests_z, method = "euclidean") |> as.dist()
+d_euc <- philentropy::distance(USArrests_z, method = "euclidean") |> as.dist()
 
 sil_km <- cluster::silhouette(
   x = as.integer(USArrests$km_cluster),
@@ -373,6 +368,7 @@ t.test(
   subset = km_cluster %in% c("High Rural", "High Urban")
 )
 
+
 # Thankfully, the {clusterpval} package provides functions to test for
 # differences between clusters while accounting for the fact that the clusters
 # were formed based on the distance on these same variables:
@@ -438,5 +434,5 @@ data("oils", package = "modeldata")
 #   - plot the clusters on a t-SNE plot.
 # 2. Validate the clusters:
 #   - Are the results stable?
-#   - Do the clusters differ on the variables used to create them?
 #   - Do the clusters map nicely onto the "class" variable?
+#   - Do the clusters differ on the variables used to create them?
