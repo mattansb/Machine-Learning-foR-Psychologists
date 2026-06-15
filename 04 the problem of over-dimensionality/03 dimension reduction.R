@@ -106,6 +106,7 @@ pcr_fit <- linreg_wf |>
 extract_fit_engine(pcr_fit) |> coef()
 
 # With a little help we can obtain the coefficients of the original features:
+source("_tpoo_utils.R")
 extract_pcr_coef(pcr_fit)
 # Note the features were all scaled, so these values are partially standardized
 # coefficients (they're not scaled with respect to y, only to X).
