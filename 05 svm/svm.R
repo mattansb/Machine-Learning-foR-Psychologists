@@ -170,7 +170,7 @@ plot(svmpoly_eng, data = X_train)
 # https://vitalflux.com/svm-rbf-kernel-parameters-code-sample/
 
 svmrad_spec <- svm_rbf(
-  "classification",
+  mode = "classification",
   engine = "kernlab",
   cost = tune(),
   rbf_sigma = 2
