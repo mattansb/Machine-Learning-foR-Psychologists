@@ -94,7 +94,7 @@ km_wf <- workflow(preprocessor = rec, spec = km_spec)
 
 km_tuner <- tune_cluster(
   km_wf,
-  resamples = vfold_cv(USArrests, v = 5),
+  resamples = vfold_cv(USArrests, v = 5, repeats = 5),
   grid = tibble(num_clusters = 1:10),
   metrics = cluster_metric_set(silhouette_avg, sse_within_total)
 )
