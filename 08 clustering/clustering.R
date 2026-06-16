@@ -6,6 +6,8 @@ library(tidyclust)
 # Learn more at:
 # https://tidyclust.tidymodels.org/index.html
 
+source("_clst_utils.R")
+
 # The Data ---------------------------------------
 
 data(USArrests)
@@ -111,8 +113,9 @@ autoplot(km_tuner, metric = "silhouette_avg")
 
 # Let's go with 4 clusters, which seems to be a reasonable choice here
 km_spec <- km_spec |> finalize_model(list(num_clusters = 4))
-km_wf <- km_wf |> update_model(km_spec)
-km_fit <- km_wf |> fit(data = USArrests)
+km_fit <- km_wf |>
+  update_model(km_spec) |>
+  fit(data = USArrests)
 
 ## Examining the results  -----------------
 
@@ -260,9 +263,6 @@ table(
 # real or meaningful structure in the data. So, it is important to validate the
 # clusters. Read more about this here:
 # https://www.fharrell.com/post/cluster/
-#
-# Unfortunately, {tidyclust} doesn't have built-in functions for cluster
-# validation, but we can use other packages for this.
 
 # We will be looking at the k-mean results, but all of these methods can be
 # applied to the hierarchical clustering results as well.
@@ -288,6 +288,8 @@ sil_km <- cluster::silhouette(
 
 plot(sil_km, col = c("purple2", "orange2", "red2", "royalblue2"))
 abline(v = c(0.3, 0.5), col = c("red", "blue"), lty = 2)
+# (Negative silhouette values indicate that some observations may have been
+# assigned to the wrong cluster.)
 
 summary(sil_km)
 # Overall the values are adequate (sil>~0.3), but not amazing (ideally we would
@@ -297,41 +299,42 @@ summary(sil_km)
 # Are the clusters stable to small perturbations in the data? In other words,
 # if we re-sample the data, will we get similar clusters?
 
-library(fpc)
-
-fit_kmeans <- function(X) {
-  # This function takes in a data frame X and returns a list the is required by
-  # {fpc} functions see e.g., ?kmeansCBI
-  .fit <- fit(km_wf, data = X)
-
-  .cl <- extract_cluster_assignment(.fit) |>
-    pull(.cluster) |>
-    as.integer()
-
-  list(
-    results = .fit,
-    nc = 4,
-    clusterlist = data.frame(outer(.cl, 1:4, "==")),
-    partition = rep(1, nrow(X))
-  )
-}
-
-jac_kmeans <- clusterboot(
-  USArrests,
-  B = 200,
-  datatomatrix = FALSE,
-  bootmethod = "boot",
-
-  clustermethod = fit_kmeans
+# The Jaccard index is a common measure of cluster stability, which measures the
+# similarity between two clusterings by comparing the number of observations
+# that are assigned to the same cluster in both clusterings (intersection) to
+# the number of observations that are assigned to the same cluster in at least
+# one of the clusterings (union).
+km_jacc <- tune_cluster(
+  km_wf,
+  # Use bootstrapping to evaluate stability!
+  resamples = bootstraps(USArrests, times = 100),
+  grid = tibble(num_clusters = 2:4),
+  metrics = cluster_metric_set(jaccard_avg)
 )
 
+collect_metrics(km_jacc)
 # Jaccard values larger than 0.75 indicate stable clusters, while values below
 # 0.5 indicate highly unstable clusters.
-jac_kmeans # all clusters are stable (low dissolved / unrecovered clusters)
-plot(jac_kmeans)
 
-# See also:
-?prediction.strength
+# We can also look at (minimal) prediction strength: how well do cluster
+# assignments of new data from a pre-trained model co-incide with cluster
+# assignments of the same data from a new model fitted on the same data:
+km_ps <- tune_cluster(
+  km_wf,
+  # Use split-half (2 fold) CV with at least 25 repeats for prediction strength!
+  resamples = vfold_cv(USArrests, v = 2, repeats = 25),
+  grid = tibble(num_clusters = 2:4),
+  metrics = cluster_metric_set(pred_strength)
+)
+
+collect_metrics(km_ps)
+# Values larger than 0.8 indicate strong cluster structure.
+# This method can also be used for selecting the number of clusters:
+# Use the largest number of clusters with a prediction strength larger than 0.8.
+
+# For more fine-grained results, see:
+?fpc::clusterboot
+?fpc::prediction.strength
 
 
 ## External Validation? -------------------------------------------------
