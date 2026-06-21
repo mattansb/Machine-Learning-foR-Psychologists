@@ -178,13 +178,6 @@ cv_results <- bind_rows(
     model = factor(model, levels = c("linear1", "linear2", "KNN")),
   )
 
-cv_summary <- bind_rows(
-  linear1 = collect_metrics(linreg1_oos),
-  linear2 = collect_metrics(linreg2_oos),
-  KNN = collect_metrics(knn_oos),
-  .id = "model"
-)
-
 
 cv_results |>
   group_by(id, .metric) |>
@@ -200,10 +193,7 @@ cv_results |>
   # fold-data
   geom_line(aes(group = id, color = best)) +
   # summary
-  geom_pointrange(
-    aes(y = mean, ymin = mean - std_err, ymax = mean + std_err),
-    data = cv_summary
-  )
+  stat_summary()
 
 
 ### Contrast ----------------
@@ -223,13 +213,13 @@ cv_compareare_lin2.knn <- cv_results |>
     mean_diff = mean(diff),
     se_diff = sd(diff) / sqrt(n()),
 
-    lb = mean_diff - 1.96 * se_diff,
-    ub = mean_diff + 1.96 * se_diff
+    lb = mean_diff - 2 * se_diff,
+    ub = mean_diff + 2 * se_diff
   )
 
 cv_compareare_lin2.knn |>
   # Format results:
-  mutate(across(everything(), format)) |>
+  mutate(across(everything(), ~ format(.x, digits = 3))) |>
   glue::glue_data(
     "A diff of {mean_diff} in {.metric}, 95% CI[{lb}, {ub}]"
   )
@@ -278,7 +268,7 @@ Auto.train |>
   slice(linreg2_predictions$.row) |>
   select(-mpg) |>
   bind_cols(linreg2_predictions) |>
-  group_by(origin, mpg >= median(mpg)) |>
+  group_by(origin, mpg_median = mpg >= median(mpg)) |>
   rsq(mpg, .pred) |>
   arrange(.estimate)
 
@@ -299,7 +289,7 @@ Auto.train |>
   slice(linreg2_predictions$.row) |>
   select(-mpg) |>
   bind_cols(linreg2_predictions) |>
-  group_by(cut_number(horsepower, 3)) |>
+  group_by(hp_3gr = cut_number(horsepower, 3)) |>
   rsq(mpg, .pred)
 
 # See also:
