@@ -14,13 +14,12 @@ glimpse(Boston)
 
 # Split the data:
 set.seed(20251201)
-splits <- initial_split(Boston, prop = 0.6)
+splits <- initial_split(Boston, prop = 0.7)
 Boston.train <- training(splits)
-Boston.test <- testing(splits)
 
 # Split again for CV
 Bostin.tune_splits <- vfold_cv(Boston.train, v = 10) # Make 10-folds for tuning
-Bostin.comp_splits <- vfold_cv(Boston.test, v = 10) # And 10-folds for comparing
+Bostin.comp_splits <- vfold_cv(Boston.train, v = 10) # And a different 10-folds for comparing
 
 mset_reg <- metric_set(rsq, mae)
 
@@ -171,11 +170,13 @@ n_trees_rmse <- sapply(seq(rf_eng$num.trees), function(n) {
   pred <- predict(rf_eng, data = Boston.train, num.trees = n)$predictions
   rmse_vec(Boston.train$medv, pred)
 })
-plot(n_trees_rmse) # See how the error decreased # of trees
+plot(n_trees_rmse, ylim = c(0, 1.1 * max(n_trees_rmse))) # See how the error decreased # of trees
+abline(h = tail(n_trees_rmse, 1), col = "red", lty = 2)
 
 # Again, we can plot a VIP for the importance of variables *across* all trees.
 # This time we will again use the {vip} package:
 vip::vip(rf_eng, method = "model", num_features = 13)
+
 
 # Boosting --------------------------------------------------------------------
 
@@ -252,7 +253,7 @@ ensemble_metrics <- bind_rows(
 ensemble_metrics |>
   group_by(id, .metric) |>
   mutate(
-    best_model = case_match(
+    best_model = recode_values(
       .metric,
       "mae" ~ Model[which.min(.estimate)],
       "rsq" ~ Model[which.max(.estimate)]
@@ -283,7 +284,7 @@ ensemble_metrics |>
 
 ## Test set performance -----------------------------------
 
-Boston.test_rf.pred <- augment(rf_fit, Boston.test)
+Boston.test_rf.pred <- augment(rf_fit, new_data = testing(splits))
 
 Boston.test_rf.pred |>
   mset_reg(medv, .pred)

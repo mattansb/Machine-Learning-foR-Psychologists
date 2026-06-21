@@ -33,8 +33,7 @@ OJ_metrics <- metric_set(bal_accuracy, f2_meas, roc_auc)
 # Our recipe:
 rec <- recipe(Purchase ~ ., data = OJ.train) |>
   step_rm(STORE)
-# Decision Trees don't require dummy coding or predictor standardization (unless
-# you want to do something...)
+# Decision Trees don't require dummy coding or predictor standardization.
 
 ## Fitting a basic classification tree ---------------------------
 
@@ -49,8 +48,12 @@ OJ.tree_spec <- decision_tree(
 # All the hyperparameters control the complexity and depth of the tree:
 # - cost_complexity (cp) is the complexity parameter. If set to 0, no pruning is
 #   done.
-# - tree_depth is the maximum number of splits ALONG EACH BRANCH.
-# - min_n is the minimum number of observations in a node that can be split
+# Stopping rule parameters:
+#   - min_n is the minimum number of observations in a node that can be split
+#   - tree_depth is the maximum number of splits ALONG EACH BRANCH. This might
+#     not seem like a lot, but if 1 split is 2 nodes, and 2 splits is 4 nodes,
+#     then 30 splits is 2^30 nodes:
+2^30
 
 ?details_decision_tree_rpart
 translate(OJ.tree_spec)
@@ -90,10 +93,9 @@ pruned.OJ.tree_grid <- grid_regular(
 )
 
 pruned.OJ.tree_grid[c(1, 30), ] # We have a wide range of values
-# cp specifies how the cost of a tree is penalized by the number of terminal
-# nodes, resulting in a regularized cost for each tress. Small cp results in
-# larger trees and potential overfitting (variance), large cp - small trees and
-# potential underfitting (bias).
+# cp specifies how the cost of a split is penalized, resulting in a regularized
+# trees. Small cp results in larger trees and potential overfitting (variance),
+# large cp - small trees and potential underfitting (bias).
 
 pruned.OJ.tree_tuner <- tune_grid(
   pruned.OJ.tree_wf,
