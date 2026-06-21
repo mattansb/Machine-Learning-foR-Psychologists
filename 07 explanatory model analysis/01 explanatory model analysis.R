@@ -63,7 +63,7 @@ knn_xplnr <- explain(
 
 ### Explain a single prediction ------------------------------
 # Models make predictions. For example, we can see that our model predicts Bob
-# Horner will have a salary of 1117 (*1000 = 1,117,000$)
+# Horner will have a salary of 1173 (*1000 = 1,173,000$)
 predict(knn_fit, new_data = Hitters.test["-Bob Horner", ])
 
 
@@ -260,7 +260,7 @@ rec <- recipe(species ~ ., data = penguins.train) |>
 rf_spec <- rand_forest(
   mode = "classification",
   engine = "randomForest",
-  mtry = sqrt(.cols() - 1),
+  mtry = sqrt(.cols()),
   trees = 500,
   min_n = 5
 )

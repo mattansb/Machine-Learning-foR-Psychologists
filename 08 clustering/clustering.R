@@ -1,5 +1,3 @@
-### Tutorial 6- Clustering  ###
-
 library(tidymodels)
 library(tidyclust)
 
