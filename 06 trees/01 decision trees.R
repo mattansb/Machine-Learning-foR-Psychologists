@@ -32,7 +32,7 @@ OJ_metrics <- metric_set(bal_accuracy, f2_meas, roc_auc)
 
 # Our recipe:
 rec <- recipe(Purchase ~ ., data = OJ.train) |>
-  step_rm(STORE)
+  step_rm(STORE, StoreID)
 # Decision Trees don't require dummy coding or predictor standardization.
 
 ## Fitting a basic classification tree ---------------------------
@@ -65,7 +65,8 @@ OJ.tree_fit <- fit(OJ.tree_wf, data = OJ.train)
 
 # One of the most attractive properties of trees is that they can be graphically
 # displayed:
-extract_fit_engine(OJ.tree_fit) |> rpart.plot(uniform = FALSE)
+extract_fit_engine(OJ.tree_fit) |>
+  rpart.plot(uniform = FALSE, fallen.leaves = FALSE)
 # The color of the nodes indicates the class prediction at that node, and it's
 # saturation indicates how "pure" it is.
 # It is quite hard to understand this tree - we need to prune it!
@@ -144,14 +145,12 @@ pruned.OJ.tree_eng
 #    n and deviance.
 # * Branches that lead to terminal nodes are indicated using asterisks.
 
-summary(pruned.OJ.tree_eng) # more detailed results
-
-
 # We can now plot a MUCH smaller tree:
 rpart.plot(
   pruned.OJ.tree_eng,
   type = 2,
   extra = 104,
+  fallen.leaves = FALSE,
   # Should the length of the branches NOT be spaced proportionally to
   # the fit improvement?
   uniform = TRUE
@@ -170,6 +169,8 @@ vip::vip(pruned.OJ.tree_eng, method = "model", num_features = 20)
 # split for which it was the primary variable + (goodness * agreement) for all
 # splits in which it was a surrogate (=when it was correlated with a different
 # split on another variable).
+
+summary(pruned.OJ.tree_eng) # more detailed results with surrogates
 
 # We will discuss a general framework for estimating variables' importance later
 # in the semester.
@@ -324,9 +325,10 @@ rpart.plot(
   Boston.tree_eng,
   type = 2,
   extra = 101,
+  fallen.leaves = FALSE,
   # Should the length of the branches NOT be spaced proportionally to
   # the fit improvement?
-  uniform = TRUE
+  uniform = FALSE
 )
 # In each node we get:
 # - Predicted class (also corresponds to the color)
