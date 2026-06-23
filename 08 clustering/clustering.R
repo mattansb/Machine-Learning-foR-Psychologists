@@ -4,7 +4,7 @@ library(tidyclust)
 # Learn more at:
 # https://tidyclust.tidymodels.org/index.html
 
-source("_clst_utils.R")
+library(MSBMisc) # for jaccard index and prediction strength metrics
 
 # The Data ---------------------------------------
 

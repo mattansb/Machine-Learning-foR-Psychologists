@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2026-05-30.*</sub>
+<sub>*Last updated 2026-06-23.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
@@ -44,12 +44,12 @@ You will need:
 |:---|:---|
 | [01 intro with regression](01%20intro%20with%20regression//) | `ISLR`, `tidymodels`, `stats`, `patchwork`, `kknn` |
 | [02 cross validation](02%20cross%20validation//) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `mirai`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |
-| [03 classification](03%20classification//) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `mirai`, `themis`, `patchwork`, `modeldata`, `probably`, `desirability2` |
-| [04 the problem of over-dimensionality](04%20the%20problem%20of%20over-dimensionality//) | `tidymodels`, `leaps`, `ISLR`, `stats`, `MASS`, `insight`, `glmnet`, `mirai`, `tidyr`, `tibble`, `ggplot2`, `vip`, `modeldata`, `kknn`, `BiocManager`, `mixOmics`, `parsnip` |
+| [03 classification](03%20classification//) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `mirai`, `MSBMisc`, `themis`, `patchwork`, `modeldata`, `probably`, `desirability2` |
+| [04 the problem of over-dimensionality](04%20the%20problem%20of%20over-dimensionality//) | `stats`, `glmnet`, `tibble`, `ggplot2`, `hardhat`, `tidymodels`, `leaps`, `ISLR`, `MASS`, `insight`, `mirai`, `tidyr`, `vip`, `modeldata`, `kknn`, `BiocManager`, `mixOmics`, `parsnip` |
 | [05 svm](05%20svm//) | `tidymodels`, `kernlab`, `mirai`, `ISLR`, `ISLR2` |
 | [06 trees](06%20trees//) | `tidymodels`, `rpart`, `rpart.plot`, `mirai`, `ISLR`, `scales`, `vip`, `MASS`, `baguette`, `ranger`, `xgboost`, `forcats`, `randomForest` |
 | [07 explanatory model analysis](07%20explanatory%20model%20analysis//) | `tidymodels`, `kknn`, `ranger`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `datawizard`, `vip`, `randomForest` |
-| [08 clustering](08%20clustering//) | `tidymodels`, `tidyclust`, `cluster`, `factoextra`, `philentropy`, `Rtsne`, `tibble`, `ggrepel`, `randomForest`, `fpc`, `pak`, `clusterpval`, `modeldata` |
+| [08 clustering](08%20clustering//) | `tidymodels`, `tidyclust`, `MSBMisc`, `tibble`, `Rtsne`, `ggrepel`, `philentropy`, `randomForest`, `cluster`, `fpc`, `pak`, `clusterpval`, `modeldata` |
 
 <details>
 
@@ -62,6 +62,8 @@ You can install all the R packages used by running:
 
     # in alphabetical order:
 
+    pak::repo_add(rhub = 'https://mattansb.r-universe.dev')
+
     pak::pak(
       c(
 
@@ -71,13 +73,13 @@ You can install all the R packages used by running:
         "cran::ISLR", # 1.4
         "cran::ISLR2", # 1.3-2
         "cran::MASS", # 7.3-65
+        "MSBMisc", # 0.0.1.15
         "cran::Rtsne", # 0.17
         "cran::baguette", # 1.1.0
         "cran::cluster", # 2.1.8.2
         "github::lucylgao/clusterpval", # 1.0.1
         "cran::desirability2", # 0.2.0
         "cran::easystats", # 0.7.5
-        "cran::factoextra", # 2.0.0
         "cran::finetune", # 1.2.1
         "cran::fpc", # 2.2-14
         "cran::ggrepel", # 0.9.7
@@ -99,7 +101,7 @@ You can install all the R packages used by running:
         "cran::rpart.plot", # 3.1.4
         "cran::scales", # 1.4.0
         "cran::themis", # 1.0.3
-        "cran::tidyclust", # 0.3.0
+        "github::tidymodels/tidyclust", # 0.3.0.9000
         "cran::tidymodels", # 1.4.1
         "cran::tidyverse", # 2.0.0
         "cran::vip", # 0.4.5

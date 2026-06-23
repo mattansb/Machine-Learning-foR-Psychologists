@@ -125,17 +125,19 @@ r_pkg_info <- tibble(
       str_detect(source, "Bioconductor") ~ "bioc"
     ),
 
-    pak = case_match(
+    pak = recode_values(
       pak_src,
       "cran" ~ glue("cran::{pkg}"),
       "bioc" ~ glue("bioc::{pkg}"),
       "github" ~ glue("github::{str_remove_all(source, 'Github: ')}"),
-      .default = pkg
+      default = pkg
     )
   ) |>
   arrange(pkg)
 
 cat("# in alphabetical order:\n\n")
+
+cat("pak::repo_add(rhub = 'https://mattansb.r-universe.dev')")
 
 cat("pak::pak(\n  c(")
 r_pkg_info$comma <- rep(",", nrow(r_pkg_info))
