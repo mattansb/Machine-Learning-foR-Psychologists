@@ -98,6 +98,7 @@ plot(shap_bob, show_boxplots = FALSE) # show only mean SHAP values
 
 # Note that predictions can be attributed differently between predictors
 # across different predictions. Let's compare Bob to Willie:
+predict(knn_fit, new_data = Hitters.test["-Willie Wilson", ])
 shap_willie <- predict_parts(
   knn_xplnr,
   new_observation = Hitters.test["-Willie Wilson", ],
@@ -281,9 +282,9 @@ rf_xplnr <- explain(
 
 
 ### Explain a single prediction ------------------------------
-# Why does the model think that obs 61 has a high chance of being a Gentoo?
+# Why does the model think that obs 98 has a high chance of being a Chinstrap?
 predict(rf_fit, new_data = penguins.test[98, ], type = "prob")
-
+table(penguins.train$species) |> prop.table()
 
 # We can look at his SHAP values:
 shap_98 <- predict_parts(
@@ -325,7 +326,7 @@ ggplot(penguins.train, aes(bill_length_mm, body_mass_g, color = species)) +
 plot_predictions(
   rf_fit,
   type = "prob",
-  by = c("body_mass_g", "bill_length_mm", "group"), # group = class
+  by = c("body_mass_g", "group", "bill_length_mm"), # group = class
   # Define a counterfactual datagrid:
   newdata = datagrid(
     newdata = penguins.train,
