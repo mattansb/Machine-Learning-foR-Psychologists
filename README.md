@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2026-06-23.*</sub>
+<sub>*Last updated 2026-07-12.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
@@ -101,7 +101,7 @@ You can install all the R packages used by running:
         "cran::rpart.plot", # 3.1.4
         "cran::scales", # 1.4.0
         "cran::themis", # 1.0.3
-        "github::tidymodels/tidyclust", # 0.3.0.9000
+        "cran::tidyclust", # 0.3.1
         "cran::tidymodels", # 1.4.1
         "cran::tidyverse", # 2.0.0
         "cran::vip", # 0.4.5
