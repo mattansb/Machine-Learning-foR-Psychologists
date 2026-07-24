@@ -9,25 +9,6 @@ execute:
 #| include: false
 library(tidyverse)
 library(glue)
-
-extract_pkgs <- function(fl) {
-  if (length(fl) == 1) {
-    txt <- read.delim(fl, header = FALSE)[[1]]
-
-    pkgs <- str_extract_all(
-      string = txt,
-      pattern = "((?<=(library|require)\\()[a-zA-Z0-9\\.]{1,}(?=\\))|[a-zA-Z0-9\\.]{1,}(?=\\:{2}))"
-    )
-
-    pkgs <- unlist(pkgs)
-  } else if (length(fl) > 1) {
-    pkgs <- sapply(fl, extract_pkgs)
-  }
-
-  pkgs |>
-    unlist(recursive = TRUE) |>
-    unique()
-}
 ```
 
 # Machine Learning foR Psychologists
@@ -60,23 +41,49 @@ You will need:
 
 
 ```{r}
-r_files <- list.files(pattern = ".R$", recursive = TRUE, full.names = TRUE)
+script_deps <- function(fl, comment = FALSE) {
+  txt <- read.delim(fl, header = FALSE)[[1]] |>
+    stringr::str_trim()
 
-r_files <- r_files[str_detect(r_files, "^\\./\\d{2}")]
+  if (isFALSE(comment)) {
+    # remove comments from the code
+    txt <- stringr::str_remove_all(txt, pattern = "(?<=#).*")
+  }
+  txt <- stringr::str_remove_all(txt, pattern = "(?<=pak::pak).*")
 
-r_lesson_names <- str_extract(r_files, pattern = "(?<=(/)).{1,}(?=(/))")
+  pkgs <- stringr::str_extract_all(
+    string = txt,
+    pattern = "((?<=(library|require)\\()[a-zA-Z0-9\\.]{1,}(?=(\\)|,))|[a-zA-Z0-9\\.]{1,}(?=\\:{2}))",
+    simplify = TRUE
+  )
 
-r_list <- split(r_files, r_lesson_names)
+  unique(pkgs[nzchar(pkgs)])
+}
 
-r_pkgs <- lapply(r_list, extract_pkgs)
-
-r_df <- tibble(
-  Lesson = names(r_pkgs),
-  Packages = r_pkgs
+pkgs <- tibble(
+  script = list.files(pattern = ".R$", recursive = TRUE, full.names = TRUE),
+  Lesson = dirname(script) |> str_remove("^\\./"),
+  Packages = map(script, script_deps, comment = TRUE)
 )
 
-r_df |>
-  mutate(
+pkgs_info <- unlist(pkgs$Packages) |>
+  unique() |>
+  setdiff(tidyverse::tidyverse_packages()) |>
+  setdiff(tidymodels::tidymodels_packages()) |>
+  setdiff(easystats::easystats_packages()) |>
+  setdiff(rownames(installed.packages(priority = "base"))) |>
+  c("tidyverse", "tidymodels", "easystats") |>
+  sort() |>
+  pak::pkg_status()
+```
+
+```{r}
+pkgs |>
+  summarize(
+    Packages = list(unique(unlist(Packages))),
+    .by = Lesson
+  ) |>
+  reframe(
     Lesson = glue("[{Lesson}]({Lesson}//)"),
     Packages = sapply(Packages, \(x) glue('`{x}`') |> glue_collapse(sep = ", "))
   ) |>
@@ -88,64 +95,22 @@ r_df |>
 You can install all the R packages used by running:
 
 ```{r}
-r_pkgs <- r_pkgs |>
-  unlist(recursive = TRUE) |>
-  unique() |>
-  setdiff(tidyverse::tidyverse_packages()) |>
-  setdiff(tidymodels::tidymodels_packages()) |>
-  setdiff(easystats::easystats_packages()) |>
-  c("tidyverse", "tidymodels", "easystats") |>
-  sort()
-
-packinfo <- installed.packages(fields = c("Package", "Version"))
-
-get_src <- function(pkg) {
-  pd <- packageDescription(pkg)
-  if (is.null(src <- pd$Repository)) {
-    if (!is.null(src <- pd$GithubRepo)) {
-      src <- paste0("Github: ", pd$GithubUsername, "/", src)
-    } else {
-      src <- "Dev"
-    }
-  }
-  return(src)
-}
-
-r_pkg_info <- tibble(
-  pkg = r_pkgs,
-  source = sapply(r_pkgs, get_src),
-  version = packinfo[r_pkgs, "Version"]
-) |>
-  filter(version != packageVersion("base")) |>
-  mutate(
-    pak_src = case_when(
-      source == "Dev" ~ NA,
-      source == "CRAN" ~ "cran",
-      str_detect(source, "Github") ~ "github",
-      str_detect(source, "Bioconductor") ~ "bioc"
-    ),
-
-    pak = recode_values(
-      pak_src,
-      "cran" ~ glue("cran::{pkg}"),
-      "bioc" ~ glue("bioc::{pkg}"),
-      "github" ~ glue("github::{str_remove_all(source, 'Github: ')}"),
-      default = pkg
-    )
-  ) |>
-  arrange(pkg)
-
 cat("# in alphabetical order:\n\n")
 
-cat("pak::repo_add(rhub = 'https://mattansb.r-universe.dev')")
-
 cat("pak::pak(\n  c(")
-r_pkg_info$comma <- rep(",", nrow(r_pkg_info))
-r_pkg_info$comma[nrow(r_pkg_info)] <- ""
-cat(
-  glue_data(r_pkg_info, '    "{pak}"{comma} # {version}') |>
-    glue_collapse(sep = "\n")
-)
+
+pkgs_info |>
+  transmute(
+    prefix = case_when(
+      repotype %in% c("cran", "bioc") ~ glue("{package}"),
+      remotetype == "github" ~ glue("github::{remotepkgref}")
+    ),
+    comma = rep(c(",", ""), c(nrow(pkgs_info) - 1, 1)),
+    version = glue("# {version}")
+  ) |>
+  glue_data('    "{prefix}"{comma} {version}') |>
+  print()
+
 cat("  )\n)")
 ```
 

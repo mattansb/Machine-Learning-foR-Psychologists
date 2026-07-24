@@ -124,7 +124,7 @@ penguins.test_predictions |>
 # (ROC-AUC is averaged using Hand & Till method.)
 
 # I also provide here a function to produce event-wise - not averaging!
-# install.packages("MSBMisc", repos = "https://mattansb.r-universe.dev")
+# pak::pak("github::mattansb/MSBMisc")
 penguins.test_predictions |>
   MSBMisc::metric_by_event(
     mset_class,

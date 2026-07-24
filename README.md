@@ -6,7 +6,7 @@
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
 [![](https://img.shields.io/badge/Language-R-blue.png)](http://cran.r-project.org/)
 
-<sub>*Last updated 2026-07-12.*</sub>
+<sub>*Last updated 2026-07-24.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R*.
 The goal is to impart students with the basic tools to construct,
@@ -44,8 +44,8 @@ You will need:
 |:---|:---|
 | [01 intro with regression](01%20intro%20with%20regression//) | `ISLR`, `tidymodels`, `stats`, `patchwork`, `kknn` |
 | [02 cross validation](02%20cross%20validation//) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `mirai`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |
-| [03 classification](03%20classification//) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `mirai`, `MSBMisc`, `themis`, `patchwork`, `modeldata`, `probably`, `desirability2` |
-| [04 the problem of over-dimensionality](04%20the%20problem%20of%20over-dimensionality//) | `stats`, `glmnet`, `tibble`, `ggplot2`, `hardhat`, `tidymodels`, `leaps`, `ISLR`, `MASS`, `insight`, `mirai`, `tidyr`, `vip`, `modeldata`, `kknn`, `BiocManager`, `mixOmics`, `parsnip` |
+| [03 classification](03%20classification//) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `mirai`, `pak`, `MSBMisc`, `themis`, `patchwork`, `modeldata`, `probably`, `desirability2` |
+| [04 the problem of over-dimensionality](04%20the%20problem%20of%20over-dimensionality//) | `stats`, `glmnet`, `tibble`, `ggplot2`, `hardhat`, `tidymodels`, `leaps`, `ISLR`, `MASS`, `insight`, `mirai`, `tidyr`, `vip`, `modeldata`, `kknn`, `mixOmics`, `pak`, `parsnip` |
 | [05 svm](05%20svm//) | `tidymodels`, `kernlab`, `mirai`, `ISLR`, `ISLR2` |
 | [06 trees](06%20trees//) | `tidymodels`, `rpart`, `rpart.plot`, `mirai`, `ISLR`, `scales`, `vip`, `MASS`, `baguette`, `ranger`, `xgboost`, `forcats`, `randomForest` |
 | [07 explanatory model analysis](07%20explanatory%20model%20analysis//) | `tidymodels`, `kknn`, `ranger`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `datawizard`, `vip`, `randomForest` |
@@ -62,50 +62,49 @@ You can install all the R packages used by running:
 
     # in alphabetical order:
 
-    pak::repo_add(rhub = 'https://mattansb.r-universe.dev')
-
     pak::pak(
       c(
 
-        "cran::BiocManager", # 1.30.27
-        "cran::DALEX", # 2.5.3
-        "cran::DALEXtra", # 2.3.1
-        "cran::ISLR", # 1.4
-        "cran::ISLR2", # 1.3-2
-        "cran::MASS", # 7.3-65
-        "MSBMisc", # 0.0.1.15
-        "cran::Rtsne", # 0.17
-        "cran::baguette", # 1.1.0
-        "cran::cluster", # 2.1.8.2
+        "baguette", # 1.1.0
+        "cluster", # 2.1.8.2
         "github::lucylgao/clusterpval", # 1.0.1
-        "cran::desirability2", # 0.2.0
-        "cran::easystats", # 0.7.5
-        "cran::finetune", # 1.2.1
-        "cran::fpc", # 2.2-14
-        "cran::ggrepel", # 0.9.7
-        "cran::glmnet", # 4.1-10
-        "cran::glue", # 1.8.0
-        "cran::kernlab", # 0.9-33
-        "cran::kknn", # 1.4.1
-        "cran::leaps", # 3.2
-        "github::vincentarelbundock/marginaleffects", # 0.32.0.5
-        "cran::mirai", # 2.6.1
+        "DALEX", # 2.5.3
+        "DALEXtra", # 2.3.1
+        "desirability2", # 0.2.0
+        "easystats", # 0.7.5
+        "finetune", # 1.2.1
+        "fpc", # 2.2-14
+        "ggrepel", # 0.9.7
+        "glmnet", # 4.1-10
+        "glue", # 1.8.0
+        "ISLR", # 1.4
+        "ISLR2", # 1.3-2
+        "kernlab", # 0.9-33
+        "kknn", # 1.4.1
+        "leaps", # 3.2
+        "github::vincentarelbundock/marginaleffects/r", # 0.32.0.5
+        "mirai", # 2.6.1
         "mixOmics", # 6.34.0
-        "cran::pak", # 0.9.2
-        "cran::patchwork", # 1.3.2
-        "cran::philentropy", # 0.10.0
-        "cran::probably", # 1.2.0
-        "cran::randomForest", # 4.7-1.2
-        "cran::ranger", # 0.18.0
-        "cran::rpart", # 4.1.24
-        "cran::rpart.plot", # 3.1.4
-        "cran::scales", # 1.4.0
-        "cran::themis", # 1.0.3
-        "cran::tidyclust", # 0.3.1
-        "cran::tidymodels", # 1.4.1
-        "cran::tidyverse", # 2.0.0
-        "cran::vip", # 0.4.5
-        "cran::xgboost" # 3.2.0.1
+        "github::mattansb/MSBMisc", # 0.0.1.15
+        "pak", # 0.9.2
+        "patchwork", # 1.3.2
+        "philentropy", # 0.10.0
+        "probably", # 1.2.0
+        "randomForest", # 4.7-1.2
+        "ranger", # 0.18.0
+        "rpart", # 4.1.24
+        "rpart.plot", # 3.1.4
+        "Rtsne", # 0.17
+        "scales", # 1.4.0
+        "themis", # 1.0.3
+        "tidyclust", # 0.3.1
+        "tidymodels", # 1.4.1
+        "tidyverse", # 2.0.0
+        "vip", # 0.4.5
+        "xgboost", # 3.2.0.1
+        "cluster", # 2.1.8.1
+        "MASS", # 7.3-65
+        "rpart" # 4.1.24
 
       )
     )

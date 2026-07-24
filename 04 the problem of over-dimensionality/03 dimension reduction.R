@@ -116,9 +116,9 @@ extract_pcr_coef(pcr_fit)
 # PLS (Partial Least Squares). Importantly, PCR is an UNSUPERVISED method and
 # PLS is a SUPERVISED method.
 
-# install.packages("BiocManager", repos = "https://cloud.r-project.org")
-# BiocManager::install("mixOmics")
-# library(mixOmics)
+# step_pls uses mixOmics::pls under the hood, which is a Bioconductor package.
+# We will need to install it first:
+# pak::pak("mixOmics")
 # See also ?parsnip::pls()
 
 # Instead of step_pca() we will use step_pls().
