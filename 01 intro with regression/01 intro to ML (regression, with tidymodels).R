@@ -128,7 +128,6 @@ library(tidymodels)
 splits <- initial_split(Auto, prop = 0.7) # create a splits object
 splits # see the sizes of the sets
 Auto.train <- training(splits) # Extract the training set
-Auto.test <- testing(splits) # Extract the test set
 
 
 ## 2) Specify the model -------------------------------------------
@@ -167,11 +166,12 @@ rec
 # with specific instruction steps, we need to train the recipe. In the
 # tidymodels terminology, the process of training a recipe is called
 # "preparing":
-prep(rec)
+prep(rec, log_changes = TRUE)
 
 # We can then use the "prepared" recipe to "bake" some data into the shape we
-# want:
-prep(rec) |> bake(new_data = Auto.train)
+# want. Steps are applied sequentially - we can "peek" between steps using
+# stop_at = i to see the data after the ith step:
+prep(rec) |> bake(new_data = Auto.train, stop_at = 1) |> head()
 # Compare this to the model matrix above
 
 ### iii. Define the type of model ---------------------
@@ -215,6 +215,10 @@ cbind(
 # (Why aren't these exactly the same? How is this related to bias or variance?)
 
 ## 4) Evaluate the model ------------------------------------------
+
+# Extract the test set - best practices would be to not look at the test set
+# until the very end, after all model fitting is done.
+Auto.test <- testing(splits)
 
 # Generate predictions:
 predict(linreg_fit, new_data = Auto.test) # generates a data frame
