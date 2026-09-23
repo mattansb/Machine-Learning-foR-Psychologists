@@ -177,38 +177,36 @@ summary(pruned.OJ.tree_eng) # more detailed results with surrogates
 
 ## Select a model ---------------------------------
 
-# Let's use CV to compare the trees:
-OJ.tree_resamps <- fit_resamples(
-  OJ.tree_wf,
+# Let's use CV to compare the trees!
+
+# We've already seen how to to _between_ model comparison and selection using
+# `fit_resamples()` - we can streamline this using a workflow set:
+# https://workflowsets.tidymodels.org/
+wf_set <- as_workflow_set(tree = OJ.tree_wf, pruned = pruned.OJ.tree_fit)
+
+resamps <- workflow_map(
+  wf_set,
+  fn = "fit_resamples",
   resamples = OJ.comp_splits,
-  metrics = OJ_metrics
-)
-pruned.OJ.tree_resamps <- fit_resamples(
-  pruned.OJ.tree_fit,
-  resamples = OJ.comp_splits,
-  metrics = OJ_metrics
+  metrics = OJ_metrics,
+  verbose = TRUE
 )
 
 
-OJ_resamps_metrics <- bind_rows(
-  "tree" = collect_metrics(OJ.tree_resamps, summarize = FALSE),
-  "pruned" = collect_metrics(pruned.OJ.tree_resamps, summarize = FALSE),
-
-  .id = "Model"
-) |>
+OJ_resamps_metrics <- collect_metrics(resamps, summarize = FALSE) |>
   group_by(id, .metric) |>
   mutate(
-    best_is = Model[which.max(.estimate)]
+    best_is = wflow_id[which.max(.estimate)]
   ) |>
   ungroup()
 
 
-ggplot(OJ_resamps_metrics, aes(Model, .estimate, color = Model)) +
+ggplot(OJ_resamps_metrics, aes(wflow_id, .estimate, color = wflow_id)) +
   facet_wrap(~.metric, scales = "free") +
   geom_line(aes(group = id, color = best_is)) +
   geom_point() +
   stat_summary(
-    aes(fill = Model),
+    aes(fill = wflow_id),
     geom = "point",
     size = 3,
     shape = 21,

@@ -59,13 +59,6 @@ bag_wf <- workflow(preprocessor = rec, spec = bag_spec)
 
 bag_fit <- fit(bag_wf, data = Boston.train)
 
-# We'll use this later for comparisons
-bag_resamps <- fit_resamples(
-  bag_wf,
-  resamples = Bostin.comp_splits,
-  metrics = mset_reg
-)
-
 
 ## Variable Importance --------------------------------
 
@@ -152,14 +145,6 @@ rf_fit <- rf_wf |>
   fit(data = Boston.train)
 
 
-# We'll use this later for comparisons
-rf_resamps <- fit_resamples(
-  rf_fit,
-  resamples = Bostin.comp_splits,
-  metrics = mset_reg
-)
-
-
 ## Explore the final model ---------------------------------------
 
 rf_eng <- extract_fit_engine(rf_fit)
@@ -220,13 +205,6 @@ boost_wf <- workflow(preprocessor = rec, spec = boost_spec)
 # Fit the model:
 boost_fit <- fit(boost_wf, data = Boston.train)
 
-# We'll use this later for comparisons
-boost_resamps <- fit_resamples(
-  boost_wf,
-  resamples = Bostin.comp_splits,
-  metrics = mset_reg
-)
-
 
 ## Variable Importance --------------------------------
 
@@ -238,15 +216,23 @@ vip::vip(boost_eng, method = "model", num_features = 13)
 
 ## Compare with resampling --------------------------------
 
-ensemble_metrics <- bind_rows(
-  "bagging" = collect_metrics(bag_resamps, summarize = FALSE),
-  "rf" = collect_metrics(rf_resamps, summarize = FALSE),
-  "boosting" = collect_metrics(boost_resamps, summarize = FALSE),
+wf_set <- as_workflow_set(
+  bagging = bag_wf,
+  rf = rf_fit, # we need to use the fitted model since we tunes mtry
+  boosting = boost_wf
+)
 
-  .id = "Model"
-) |>
+resamps <- workflow_map(
+  wf_set,
+  fn = "fit_resamples",
+  resamples = Bostin.comp_splits,
+  metrics = mset_reg,
+  verbose = TRUE
+)
+
+ensemble_metrics <- collect_metrics(resamps, summarize = FALSE) |>
   mutate(
-    Model = factor(Model, levels = c("bagging", "rf", "boosting"))
+    wflow_id = factor(wflow_id, levels = c("bagging", "rf", "boosting"))
   )
 
 
@@ -255,11 +241,11 @@ ensemble_metrics |>
   mutate(
     best_model = recode_values(
       .metric,
-      "mae" ~ Model[which.min(.estimate)],
-      "rsq" ~ Model[which.max(.estimate)]
+      "mae" ~ wflow_id[which.min(.estimate)],
+      "rsq" ~ wflow_id[which.max(.estimate)]
     )
   ) |>
-  ggplot(aes(Model, .estimate, color = Model)) +
+  ggplot(aes(wflow_id, .estimate, color = wflow_id)) +
   facet_wrap(facets = vars(.metric), scales = "free") +
   stat_summary(size = 1, position = position_nudge(0.1), show.legend = FALSE) +
   geom_point() +
@@ -268,17 +254,25 @@ ensemble_metrics |>
 # slightly better than bagging.
 
 ensemble_metrics |>
-  pivot_wider(names_from = "Model", values_from = ".estimate") |>
+  pivot_wider(
+    names_from = "wflow_id",
+    values_from = ".estimate",
+    id_cols = c("id", ".metric")
+  ) |>
   mutate(
     diff = rf - bagging
   ) |>
   summarise(
     mean_diff = mean(diff),
     std_err = sd(diff) / sqrt(n()),
-    .lower = mean_diff - 2 * std_err,
-    .upper = mean_diff + 2 * std_err,
+    lower = mean_diff - 2 * std_err,
+    upper = mean_diff + 2 * std_err,
 
     .by = .metric
+  ) |>
+  mutate(across(everything(), ~ format(.x, digits = 3))) |>
+  glue::glue_data(
+    "A diff of {mean_diff} in {.metric}, 95% CI[{lower}, {upper}]"
   )
 # Nope...
 
