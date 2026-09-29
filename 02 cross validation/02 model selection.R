@@ -134,6 +134,9 @@ knn_tuner <- tune_grid(
 
 autoplot(knn_tuner)
 
+# We can see that k=5 gives that best mean CV performance, but...
+show_best(knn_tuner, metric = "mae", n = Inf)
+
 # Selecting by the one-SE rule also protects us from overfitting:
 (k_1SE <- select_by_one_std_err(knn_tuner, desc(neighbors), metric = "mae"))
 

@@ -205,6 +205,8 @@ knn_tuned <- tune_grid(
 
 autoplot(knn_tuned)
 
+show_best(knn_tuned, metric = "rmse")
+# best or 1-SE would lead to the same choice here.
 
 (onese_knn <- select_by_one_std_err(
   knn_tuned,

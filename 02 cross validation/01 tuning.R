@@ -139,10 +139,15 @@ collect_metrics(knn_tuned, summarize = FALSE) # for each fold
 
 
 #### Select hyperparameter values ---------------------
-# Select best model
+
+# Let's look at the top CV performance models
+show_best(knn_tuned, metric = "rmse")
+
+# We can select the top one:
 (best_knn <- select_best(knn_tuned, metric = "rmse"))
 
-# Or use the one-SE rule
+# But we can also see that k=200 falls within 1-SE of the best model.
+# We can select this lower-complexity model using the one-SE rule:
 select_by_one_std_err(knn_tuned, desc(neighbors), metric = "rmse")
 
 # Finalize workflow
