@@ -117,11 +117,11 @@ head(Auto.test_predictions)
 # In either case, the test set is preprocessed according to the recipe, and
 # predictions are then made.
 
-ggplot(Auto.test_predictions, aes(.pred, mpg)) +
+ggplot(Auto.test_predictions, aes(mpg, .pred)) +
   geom_abline() +
   geom_point() +
   coord_obs_pred() +
-  labs(x = expression("Estimated:" ~ hat(mpg)), y = "Truth: mpg")
+  labs(x = "mpg", y = "predicted")
 # What happened here?? Got back and fix it...
 
 # Performance metrics

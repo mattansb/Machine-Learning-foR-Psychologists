@@ -130,7 +130,7 @@ hr.test_predictions |> mset_reg(avg_price_per_room, .pred)
 hr.test_predictions.g |> mset_reg(avg_price_per_room, .pred) # The TRUE OOS!
 # Again - we are over estimating our out of sample performance :(
 
-ggplot(mapping = aes(.pred, avg_price_per_room)) +
+ggplot(mapping = aes(avg_price_per_room, .pred)) +
   geom_abline() +
   geom_point(aes(color = "Ignored"), data = hr.test_predictions) +
   geom_point(aes(color = "Accounted for"), data = hr.test_predictions.g) +

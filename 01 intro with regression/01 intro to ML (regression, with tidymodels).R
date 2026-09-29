@@ -91,13 +91,16 @@ Auto.test$mpg_pred <- predict(fit, newdata = Auto.test)
 
 # Plot estimated values vs truth
 plot(
-  Auto.test$mpg_pred,
   Auto.test$mpg,
-  xlab = expression("Estimated:" ~ hat(mpg)),
-  ylab = "Truth: mpg"
+  Auto.test$mpg_pred,
+  xlab = "mpg",
+  ylab = "predicted"
 )
 abline(a = 0, b = 1)
-
+# For observed-vs-predicted plots we typically plot the observed values (truth)
+# on the x-axis and the predicted values on the y-axis - this way points above
+# the diagonal (the line of perfect prediction) are over-estimates and points
+# under the diagonal are under-estimates.
 
 # How we assess model performance?
 # For regression problems- R-squared, MSE, RMSE, MAE...
@@ -231,11 +234,11 @@ head(Auto.test_predictions)
 # In either case, the test set is preprocessed according to the recipe, and
 # predictions are then made.
 
-ggplot(Auto.test_predictions, aes(.pred, mpg)) +
+ggplot(Auto.test_predictions, aes(mpg, .pred)) +
   geom_abline() +
   geom_point() +
   coord_obs_pred() +
-  labs(x = expression("Estimated:" ~ hat(mpg)), y = "Truth: mpg")
+  labs(x = "mpg", y = "predicted")
 
 # Performance metrics
 Auto.test_predictions |> rsq(mpg, .pred)

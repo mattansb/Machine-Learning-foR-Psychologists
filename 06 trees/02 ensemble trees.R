@@ -283,7 +283,7 @@ Boston.test_rf.pred <- augment(rf_fit, new_data = testing(splits))
 Boston.test_rf.pred |>
   mset_reg(medv, .pred)
 
-ggplot(Boston.test_rf.pred, aes(.pred, medv)) +
+ggplot(Boston.test_rf.pred, aes(medv, .pred)) +
   geom_point() +
   geom_abline() +
   coord_obs_pred()

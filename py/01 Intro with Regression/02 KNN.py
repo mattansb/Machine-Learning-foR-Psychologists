@@ -143,9 +143,9 @@ y_pred = knn_pipe.predict(X_test)
 
 plot_data = pd.DataFrame({"y_pred": y_pred, "y_test": y_test})
 p = (
-    ggplot(plot_data, aes(x="y_pred", y="y_test"))
+    ggplot(plot_data, aes(x="y_test", y="y_pred"))
     + geom_point()
-    + geom_abline(intercept=0, slope=1, color="red", linetype="dashed", size=1)
+    + geom_abline(linetype="dashed", size=1)
     + labs(x="Estimated: $\hat{mpg}$", y="Truth: mpg")
     + theme_minimal()
 )

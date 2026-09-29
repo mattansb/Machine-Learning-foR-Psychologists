@@ -245,23 +245,9 @@ min_val = ht_test[outcome].min()
 max_val = ht_test[outcome].max()
 
 p_predictions = (
-    ggplot(pred_df, aes(x="predicted", y="actual", color="approach"))
+    ggplot(pred_df, aes(x="actual", y="predicted", color="approach"))
     + geom_point(alpha=0.6, size=2)
-    + geom_abline(intercept=0, slope=1, color="grey", linetype="dashed", size=1)
-    + labs(
-        x="Predicted Average Daily Rate",
-        y="Actual Average Daily Rate",
-        title="Predicted vs Actual: Comparing Split Approaches",
-        color="Split Approach",
-    )
-    + scale_color_manual(
-        values={
-            "Grouping Ignored": "skyblue",
-            "Grouping Respected": "lightcoral",
-        }
-    )
+    + geom_abline(linetype="dashed", size=1)
     + theme_minimal()
-    + theme(figure_size=(10, 8))
 )
-
 p_predictions.draw(show=True)

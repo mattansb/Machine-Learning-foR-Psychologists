@@ -87,7 +87,7 @@ extract_fit_engine(linreg_fit) |>
   performance::model_performance(metrics = c("R2", "R2_adj", "RMSE"))
 # We can see that even the adjusted rsq gives an over-estimates...
 
-p_loo <- ggplot(attitude_preds, aes(.pred, rating)) +
+p_loo <- ggplot(attitude_preds, aes(rating, .pred)) +
   geom_abline() +
   geom_point() +
   coord_obs_pred(xlim = c(40, 90)) +

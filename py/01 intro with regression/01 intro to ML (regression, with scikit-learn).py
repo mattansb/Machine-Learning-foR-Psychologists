@@ -107,10 +107,10 @@ plot_data = pd.DataFrame(
     {"mpg_pred": Auto_test.mpg_pred, "mpg": Auto_test.mpg.values}
 )
 p = (
-    ggplot(plot_data, aes(x="mpg_pred", y="mpg"))
+    ggplot(plot_data, aes(x="mpg", y="mpg_pred"))
     + geom_point()
-    + geom_abline(intercept=0, slope=1, color="red", linetype="dashed", size=1)
-    + labs(x="Estimated: $\hat{mpg}$", y="Truth: mpg")
+    + geom_abline(linetype="dashed", size=1)
+    + labs(x="mpg", y="predicted")
     + theme_minimal()
 )
 p.draw(show=True)
@@ -266,10 +266,10 @@ y_pred = linreg_pipe.predict(X_test)
 # Plot estimated values vs truth
 plot_data = pd.DataFrame({"y_pred": y_pred, "y_test": y_test.values})
 p = (
-    ggplot(plot_data, aes(x="y_pred", y="y_test"))
+    ggplot(plot_data, aes(x="y_test", y="y_pred"))
     + geom_point()
-    + geom_abline(intercept=0, slope=1, color="red", linetype="dashed", size=1)
-    + labs(x="Estimated: $\hat{mpg}$", y="Truth: mpg")
+    + geom_abline(linetype="dashed", size=1)
+    + labs(x="mpg", y="predicted")
     + theme_minimal()
 )
 p.draw(show=True)
