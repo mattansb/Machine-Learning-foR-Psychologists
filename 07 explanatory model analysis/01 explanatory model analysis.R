@@ -1,4 +1,5 @@
 library(tidymodels)
+library(tailor)
 # library(kknn)
 # library(ranger)
 
@@ -21,11 +22,12 @@ data("Hitters", package = "ISLR")
 set.seed(20251201)
 splits <- initial_split(Hitters, prop = 0.7)
 Hitters.train <- training(splits)
-Hitters.test <- testing(splits)
 
 # fit a KNN with K=5
 rec <- recipe(Salary ~ ., data = Hitters.train) |>
   step_naomit(Salary) |>
+  # Only relevant for the training data
+  step_log(Salary, skip = TRUE) |>
   step_dummy(all_factor_predictors()) |>
   step_interact(~ PutOuts:Walks) |>
   step_normalize(all_numeric_predictors())
@@ -37,8 +39,11 @@ knn_spec <- nearest_neighbor(
   neighbors = 5
 )
 
+tlr <- tailor() |>
+  adjust_predictions_custom(.pred = exp(.pred))
+
 knn_fit <-
-  workflow(preprocessor = rec, spec = knn_spec) |>
+  workflow(preprocessor = rec, spec = knn_spec, postprocessor = tlr) |>
   fit(data = Hitters.train)
 
 
@@ -62,8 +67,10 @@ knn_xplnr <- explain(
 
 
 ### Explain a single prediction ------------------------------
+Hitters.test <- testing(splits)
+
 # Models make predictions. For example, we can see that our model predicts Bob
-# Horner will have a salary of 1173 (*1000 = 1,173,000$)
+# Horner will have a salary of 1127 (*1000 = 1,173,000$)
 predict(knn_fit, new_data = Hitters.test["-Bob Horner", ])
 
 

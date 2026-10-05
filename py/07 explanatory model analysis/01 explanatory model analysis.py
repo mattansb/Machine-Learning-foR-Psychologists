@@ -6,7 +6,11 @@ from plotnine import *
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.pipeline import Pipeline
-from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.compose import (
+    ColumnTransformer,
+    TransformedTargetRegressor,
+    make_column_selector,
+)
 from sklearn.preprocessing import (
     StandardScaler,
     OneHotEncoder,
@@ -82,7 +86,12 @@ preprocessor = Pipeline(
 knn = KNeighborsRegressor(n_neighbors=5)
 
 knn_pipe = Pipeline([("preprocessor", preprocessor), ("model", knn)])
-knn_pipe.fit(X_train, y_train)
+knn_model = TransformedTargetRegressor(
+    regressor=knn_pipe,
+    func=np.log,
+    inverse_func=np.exp,
+)
+knn_model.fit(X_train, y_train)
 
 
 ## Explain the model -----------------------------------------------
@@ -93,13 +102,13 @@ knn_pipe.fit(X_train, y_train)
 # https://ema.drwhy.ai/
 
 # We first need to setup an explainer:
-knn_xplnr = dx.Explainer(knn_pipe, label="KNN (K=5)", data=X_train, y=y_train)
+knn_xplnr = dx.Explainer(knn_model, label="KNN (K=5)", data=X_train, y=y_train)
 
 
 ### Explain a single prediction ------------------------------
 # Models make predictions. For example, we can see that our model predicts for
-# the obs. 44 a salary of 1112 (*1000 = 1,112,000$)
-print(knn_pipe.predict(X_test.iloc[[44], :]))
+# the obs. 44 a salary of 1017 (*1000 = 1,112,000$)
+print(knn_model.predict(X_test.iloc[[44], :]))
 
 
 # But why?
