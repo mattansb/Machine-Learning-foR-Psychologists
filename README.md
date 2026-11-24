@@ -21,13 +21,10 @@ for Psychologists*** (Psych Dep., Ben-Gurion University of the Negev;
 Psych Dep., Tel-Aviv University). This course assumes basic competence
 in R and Python (importing, regression modeling, plotting, etc.).[^2]
 
-> [!NOTE]
->
-> - This repo contains only materials relating to *Practical
->   Applications in R/Python*, and does not contain any theoretical or
->   introductory materials.
-> - Please note that some code does not work *on purpose*, to force
->   students to learn to debug.
+> \[!IMPORTANT\] - This repo contains only materials relating to
+> *Practical Applications in R/Python*, and does not contain any
+> theoretical or introductory materials. - Please note that some code
+> does not work *on purpose*, to force students to learn to debug.
 
 ## Setup
 
