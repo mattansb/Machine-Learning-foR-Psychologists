@@ -1,0 +1,13 @@
+ISLP>=0.4.0
+dalex>=1.8.0
+imbalanced-learn>=0.13.0
+matplotlib>=3.10.3
+numpy>=2.3.1
+palmerpenguins>=0.1.4
+pandas>=3.0.0
+patsy>=1.0.1
+plotnine>=0.15.0
+scikit-learn>=1.6.1
+scipy>=1.16.0
+seaborn>=0.13.2
+statsmodels>=0.14.5

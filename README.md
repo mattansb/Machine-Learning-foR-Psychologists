@@ -12,21 +12,22 @@
 This Github repo contains all lesson files for *Machine Learning in R
 and Python*. The goal is to impart students with the basic tools to
 construct, evaluate and compare various **machine learning models, using
-[`tidymodels`](https://www.tidymodels.org/) and
+[`tidymodels`](https://www.tidymodels.org/)[^1] and
 [`scikit-learn`](https://scikit-learn.org/)**, based on [*An
 Introduction to Statistical Learning*](https://www.statlearning.com/).
 
 These topics are taught in the graduate-level course ***Machine Learning
 for Psychologists*** (Psych Dep., Ben-Gurion University of the Negev;
 Psych Dep., Tel-Aviv University). This course assumes basic competence
-in R and Python (importing, regression modeling, plotting, etc.).[^1]
+in R and Python (importing, regression modeling, plotting, etc.).[^2]
 
-**Notes:**
-
-- This repo contains only materials relating to *Practical Applications
-  in R*, and does not contain any theoretical or introductory materials.
-- Please note that some code does not work *on purpose*, to force
-  students to learn to debug.
+> [!NOTE]
+>
+> - This repo contains only materials relating to *Practical
+>   Applications in R/Python*, and does not contain any theoretical or
+>   introductory materials.
+> - Please note that some code does not work *on purpose*, to force
+>   students to learn to debug.
 
 ## Setup
 
@@ -35,27 +36,25 @@ You will need:
 1.  A fresh installation of [**`R`**](https://cran.r-project.org/)
     (preferably 4.5.0+) and [**`Python`**](https://www.python.org/)
     (preferably 3.13+).
-2.  [Positron](https://positron.posit.co/download)[^2].
-3.  The following packages and modules:
+2.  [Positron](https://positron.posit.co/download)[^3].
+3.  The following packages and modules, listed by lesson:
 
-### R Packages
-
-| Lesson | Packages |
-|:---|:---|
-| [01 intro with regression](01%20intro%20with%20regression//) | `ISLR`, `tidymodels`, `stats`, `patchwork`, `kknn` |
-| [02 cross validation](02%20cross%20validation//) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `mirai`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` |
-| [03 classification](03%20classification//) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `mirai`, `pak`, `MSBMisc`, `themis`, `patchwork`, `modeldata`, `probably`, `desirability2` |
-| [04 the problem of over-dimensionality](04%20the%20problem%20of%20over-dimensionality//) | `stats`, `glmnet`, `tibble`, `ggplot2`, `hardhat`, `tidymodels`, `leaps`, `ISLR`, `MASS`, `insight`, `mirai`, `tidyr`, `vip`, `modeldata`, `kknn`, `mixOmics`, `pak`, `parsnip` |
-| [05 svm](05%20svm//) | `tidymodels`, `kernlab`, `mirai`, `ISLR`, `ISLR2` |
-| [06 trees](06%20trees//) | `tidymodels`, `rpart`, `rpart.plot`, `mirai`, `ISLR`, `scales`, `vip`, `MASS`, `baguette`, `ranger`, `xgboost`, `forcats`, `randomForest`, `glue` |
-| [07 explanatory model analysis](07%20explanatory%20model%20analysis//) | `tidymodels`, `tailor`, `kknn`, `ranger`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `datawizard`, `vip`, `randomForest` |
-| [08 clustering](08%20clustering//) | `tidymodels`, `tidyclust`, `MSBMisc`, `tibble`, `Rtsne`, `ggrepel`, `philentropy`, `randomForest`, `cluster`, `fpc`, `pak`, `clusterpval`, `modeldata` |
+| Lesson | R Packages | Python Modules |
+|:---|:---|:---|
+| [01 intro with regression](01%20intro%20with%20regression//) | `ISLR`, `tidymodels`, `stats`, `patchwork`, `kknn` | `numpy`, `pandas`, `plotnine`, `patsy`, `statsmodels`, `scipy`, `ISLP`, `sklearn` |
+| [02 cross validation](02%20cross%20validation//) | `tidymodels`, `kknn`, `finetune`, `ISLR`, `mirai`, `glue`, `modeldata`, `patchwork`, `datasets`, `tune`, `performance` | `pandas`, `plotnine`, `sklearn`, `ISLP`, `numpy` |
+| [03 classification](03%20classification//) | `tidymodels`, `ISLR`, `stats`, `parameters`, `kknn`, `mirai`, `pak`, `MSBMisc`, `themis`, `patchwork`, `modeldata`, `probably`, `desirability2` | `numpy`, `pandas`, `plotnine`, `sklearn`, `ISLP`, `numpy`, `pandas`, `matplotlib`, `sklearn`, `palmerpenguins`, `pandas`, `plotnine`, `sklearn`, `imblearn`, `ISLP`, `numpy`, `pandas`, `plotnine`, `sklearn`, `ISLP` |
+| [04 the problem of over-dimensionality](04%20the%20problem%20of%20over-dimensionality//) | `stats`, `glmnet`, `tibble`, `ggplot2`, `hardhat`, `tidymodels`, `leaps`, `ISLR`, `MASS`, `insight`, `mirai`, `tidyr`, `vip`, `modeldata`, `kknn`, `mixOmics`, `pak`, `parsnip` |  |
+| [05 svm](05%20svm//) | `tidymodels`, `kernlab`, `mirai`, `ISLR`, `ISLR2` |  |
+| [06 trees](06%20trees//) | `tidymodels`, `rpart`, `rpart.plot`, `mirai`, `ISLR`, `scales`, `vip`, `MASS`, `baguette`, `ranger`, `xgboost`, `forcats`, `randomForest`, `glue` |  |
+| [07 explanatory model analysis](07%20explanatory%20model%20analysis//) | `tidymodels`, `tailor`, `kknn`, `ranger`, `patchwork`, `DALEX`, `DALEXtra`, `marginaleffects`, `ISLR`, `datawizard`, `vip`, `randomForest` | `numpy`, `pandas`, `matplotlib`, `plotnine`, `sklearn`, `dalex`, `ISLP`, `palmerpenguins` |
+| [08 clustering](08%20clustering//) | `tidymodels`, `tidyclust`, `MSBMisc`, `tibble`, `Rtsne`, `ggrepel`, `philentropy`, `randomForest`, `cluster`, `fpc`, `pak`, `clusterpval`, `modeldata` | `pandas`, `numpy`, `matplotlib`, `seaborn`, `plotnine`, `sklearn`, `scipy`, `palmerpenguins` |
 
 <details>
 
 <summary>
 
-<i>Installing R Packages</i>
+<i>Installing R Packages ®️</i>
 </summary>
 
 You can install all the R packages used by running:
@@ -98,25 +97,15 @@ You can install all the R packages used by running:
 
 </details>
 
-### Python Modules
-
-| Lesson | Modules |
-|:---|:---|
-| [01 intro with regression](01%20intro%20with%20regression//) | `numpy`, `pandas`, `plotnine`, `patsy`, `statsmodels`, `scipy`, `ISLP`, `sklearn` |
-| [02 cross validation](02%20cross%20validation//) | `pandas`, `plotnine`, `sklearn`, `ISLP`, `numpy` |
-| [03 classification](03%20classification//) | `numpy`, `pandas`, `plotnine`, `sklearn`, `ISLP`, `numpy`, `pandas`, `matplotlib`, `sklearn`, `palmerpenguins`, `pandas`, `plotnine`, `sklearn`, `imblearn`, `ISLP`, `numpy`, `pandas`, `plotnine`, `sklearn`, `ISLP` |
-| [07 explanatory model analysis](07%20explanatory%20model%20analysis//) | `numpy`, `pandas`, `matplotlib`, `plotnine`, `sklearn`, `dalex`, `ISLP`, `palmerpenguins` |
-| [08 clustering](08%20clustering//) | `pandas`, `numpy`, `matplotlib`, `seaborn`, `plotnine`, `sklearn`, `scipy`, `palmerpenguins` |
-
 <details>
 
 <summary>
 
-<i>Installing Python Modules</i>
+<i>Installing Python Modules 🐍</i>
 </summary>
 
-You can install all the Python modules used by saving a
-`requirements.txt` file:
+You can install all the Python modules with the help of the
+[`requirements.txt`](requirements.txt) file:
 
     ISLP>=0.4.0
     dalex>=1.8.0
@@ -136,20 +125,23 @@ And then running
 
     pip install -r requirements.txt
 
-------------------------------------------------------------------------
+</details>
 
-Prior to 2025, this course was based on the `{caret}` package - this
-version can still be found
-[here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).
+------------------------------------------------------------------------
 
 ### Acknowledgements
 
 R materials were developed with Yael Bar-Shachar.
 
-[^1]: For R, this mean something along the lines of [*Practical
+[^1]: Prior to 2025, this course was based on the
+    [`{caret}`](https://topepo.github.io/caret/index.html) package -
+    this version can still be found
+    [here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).
+
+[^2]: For R, this mean something along the lines of [*Practical
     Applications in R for
     Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psychologists).
 
-[^2]: It is also possible to use
+[^3]: It is also possible to use
     [RStudio](https://www.rstudio.com/products/rstudio/download/), but
     Positron is preferred.

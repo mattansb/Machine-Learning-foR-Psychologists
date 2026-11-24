@@ -21,18 +21,20 @@ library(glue)
 <sub>*Last updated `r Sys.Date()`.*</sub>
 
 This Github repo contains all lesson files for *Machine Learning in R and Python*.
-The goal is to impart students with the basic tools to construct, evaluate and compare various **machine learning models, using [`tidymodels`](https://www.tidymodels.org/) and [`scikit-learn`](https://scikit-learn.org/)**,
+The goal is to impart students with the basic tools to construct, evaluate and compare various **machine learning models, using [`tidymodels`](https://www.tidymodels.org/)[^caret] and [`scikit-learn`](https://scikit-learn.org/)**,
 based on [_An Introduction to Statistical Learning_](https://www.statlearning.com/).
 
 These topics are taught in the graduate-level course ***Machine Learning for Psychologists*** (Psych Dep., Ben-Gurion University of the Negev; Psych Dep., Tel-Aviv University). This course assumes basic competence in R and Python (importing, regression modeling, plotting, etc.).[^rprev]
 
+[^caret]: Prior to 2025, this course was based on the [`{caret}`](https://topepo.github.io/caret/index.html) package - this version can still be found [here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).
+
 [^rprev]: For R, this mean something along the lines of [*Practical Applications in R for Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psychologists).
 
 
-**Notes:**
+> [!IMPORTANT]
+> - This repo contains only materials relating to *Practical Applications in R/Python*, and does not contain any theoretical or introductory materials.
+> - Please note that some code does not work *on purpose*, to force students to learn to debug.
 
-- This repo contains only materials relating to *Practical Applications in R*, and does not contain any theoretical or introductory materials.
-- Please note that some code does not work *on purpose*, to force students to learn to debug.
 
 ## Setup
 
@@ -40,13 +42,13 @@ You will need:
 
 1. A fresh installation of [**`R`**](https://cran.r-project.org/) (preferably 4.5.0+) and [**`Python`**](https://www.python.org/) (preferably 3.13+).
 2. [Positron](https://positron.posit.co/download)[^rstudio].
-3. The following packages and modules:
+3. The following packages and modules, listed by lesson:
 
 [^rstudio]: It is also possible to use [RStudio](https://www.rstudio.com/products/rstudio/download/), but Positron is preferred.
 
-### R Packages
-
 ```{r}
+#| label: r-packages
+
 script_deps <- function(fl, comment = FALSE) {
   txt <- read.delim(fl, header = FALSE)[[1]] |>
     stringr::str_trim()
@@ -66,13 +68,13 @@ script_deps <- function(fl, comment = FALSE) {
   unique(pkgs[nzchar(pkgs)])
 }
 
-pkgs <- tibble(
+r_pkgs <- tibble(
   script = list.files(pattern = ".R$", recursive = TRUE, full.names = TRUE),
   Lesson = dirname(script) |> str_remove("^\\./"),
   Packages = map(script, script_deps, comment = TRUE)
 )
 
-pkgs_info <- unlist(pkgs$Packages) |>
+r_pkgs_info <- unlist(r_pkgs$Packages) |>
   unique() |>
   setdiff(tidyverse::tidyverse_packages()) |>
   setdiff(tidymodels::tidymodels_packages()) |>
@@ -81,56 +83,17 @@ pkgs_info <- unlist(pkgs$Packages) |>
   c("tidyverse", "tidymodels", "easystats") |>
   sort() |>
   pak::pkg_status()
-```
 
-```{r}
-pkgs |>
+r_pkgs_df <- r_pkgs |>
   summarize(
     Packages = list(unique(unlist(Packages))),
     .by = Lesson
-  ) |>
-  reframe(
-    Lesson = glue("[{Lesson}]({Lesson}//)"),
-    Packages = sapply(Packages, \(x) glue('`{x}`') |> glue_collapse(sep = ", "))
-  ) |>
-  knitr::kable()
+  )
 ```
-
-<details><summary><i>Installing R Packages</i></summary>
-
-You can install all the R packages used by running:
-
-```{r}
-pak_list <- pkgs_info |>
-  transmute(
-    prefix = case_when(
-      repotype %in% c("cran", "bioc") ~ glue("{package}"),
-      remotetype == "github" ~ glue("github::{remotepkgref}")
-    ),
-    comma = rep(c(",", ""), c(nrow(pkgs_info) - 1, 1)),
-    version = glue("# {version}")
-  ) |>
-  glue_data('    "{prefix}"{comma} {version}') |>
-  glue_collapse(sep = "\n")
-
-cat(
-  "# in alphabetical order:",
-  "",
-  "pak::pak(",
-  "  c(",
-  pak_list,
-  "  )",
-  ")",
-  sep = "\n"
-)
-```
-
-</details>
-
-### Python Modules
 
 
 ```{r}
+#| label: py-modules
 extract_modules <- function(fl) {
   if (length(fl) == 1) {
     txt <- read.delim(fl, header = FALSE)[[1]]
@@ -171,19 +134,58 @@ py_df <- tibble(
   Lesson = names(py_mdls),
   Modules = py_mdls
 )
+```
 
-py_df |>
-  mutate(
+```{r}
+r_pkgs_df |>
+  full_join(py_df, by = "Lesson") |>
+  reframe(
     Lesson = glue("[{Lesson}]({Lesson}//)"),
-    Modules = sapply(Modules, \(x) glue('`{x}`') |> glue_collapse(sep = ", ")),
+    "R Packages" = sapply(Packages, \(x) {
+      glue('`{x}`') |> glue_collapse(sep = ", ")
+    }),
+    "Python Modules" = sapply(Modules, \(x) {
+      glue('`{x}`') |> glue_collapse(sep = ", ")
+    }),
   ) |>
   knitr::kable()
 ```
 
-<details>
-<summary><i>Installing Python Modules</i></summary>
+<details><summary><i>Installing R Packages ®️</i></summary>
 
-You can install all the Python modules used by saving a `requirements.txt` file:
+You can install all the R packages used by running:
+
+```{r}
+pak_list <- r_pkgs_info |>
+  transmute(
+    prefix = case_when(
+      repotype %in% c("cran", "bioc") ~ glue("{package}"),
+      remotetype == "github" ~ glue("github::{remotepkgref}")
+    ),
+    comma = rep(c(",", ""), c(nrow(r_pkgs_info) - 1, 1)),
+    version = glue("# {version}")
+  ) |>
+  glue_data('    "{prefix}"{comma} {version}') |>
+  glue_collapse(sep = "\n")
+
+cat(
+  "# in alphabetical order:",
+  "",
+  "pak::pak(",
+  "  c(",
+  pak_list,
+  "  )",
+  ")",
+  sep = "\n"
+)
+```
+
+</details>
+
+<details>
+<summary><i>Installing Python Modules 🐍</i></summary>
+
+You can install all the Python modules with the help of the [`requirements.txt`](requirements.txt) file:
 
 ```{r}
 # fmt: skip
@@ -213,12 +215,15 @@ py_mdl_info <- tibble(
 ) |>
   arrange(module)
 
-py_mdl_info |>
+py_requirements <- py_mdl_info |>
   glue_data(
     "{module}{ifelse(nzchar(py_mdl_info$version), '>=', '')}{version}"
   ) |>
-  glue_collapse(sep = "\n") |>
-  cat()
+  glue_collapse(sep = "\n")
+
+cat(py_requirements)
+
+writeLines(py_requirements, "requirements.txt")
 ```
 
 And then running
@@ -227,9 +232,9 @@ And then running
 pip install -r requirements.txt
 ```
 
----
+</details>
 
-Prior to 2025, this course was based on the `{caret}` package - this version can still be found [here](https://github.com/mattansb/Machine-Learning-foR-Psychologists/tree/caret).
+---
 
 ### Acknowledgements
 
