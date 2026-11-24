@@ -1,6 +1,6 @@
 
 
-# Machine Learning foR Psychologists
+# Machine Learning for Psychologists
 
 [![](https://img.shields.io/badge/Open%20Educational%20Resources-Compatable-brightgreen.png)](https://creativecommons.org/about/program-areas/education-oer/)
 [![](https://img.shields.io/badge/CC-BY--NC%204.0-lightgray)](http://creativecommons.org/licenses/by-nc/4.0/)
