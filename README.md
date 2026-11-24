@@ -68,7 +68,7 @@ You can install all the R packages used by running:
         "github::lucylgao/clusterpval", # 1.0.1
         "DALEX", # 2.5.4
         "DALEXtra", # 2.3.1
-        "NA", # 0.7.6
+        "easystats", # 0.7.6
         "finetune", # 1.3.0
         "ggrepel", # 0.9.8
         "glmnet", # 5.1
@@ -90,7 +90,7 @@ You can install all the R packages used by running:
         "scales", # 1.4.0
         "tidymodels", # 1.5.0
         "tidyverse", # 2.0.0
-        "NA", # 0.5.0
+        "bgreenwell/vip", # 0.5.0.9000
         "xgboost" # 3.2.1.1
       )
     )
