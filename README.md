@@ -65,7 +65,7 @@ You can install all the R packages used by running:
       c(
         "baguette", # 1.1.0
         "cluster", # 2.1.8.3
-        "github::github::lucylgao/clusterpval", # 1.0.1
+        "github::lucylgao/clusterpval", # 1.0.1
         "DALEX", # 2.5.4
         "DALEXtra", # 2.3.1
         "NA", # 0.7.6
@@ -80,7 +80,7 @@ You can install all the R packages used by running:
         "MASS", # 7.3-66
         "mirai", # 2.7.3
         "mixOmics", # 6.36.0
-        "github::github::mattansb/MSBMisc", # 0.0.1.15
+        "github::mattansb/MSBMisc", # 0.0.1.15
         "pak", # 0.11.1
         "patchwork", # 1.3.2
         "probably", # 1.2.0

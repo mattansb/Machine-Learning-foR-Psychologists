@@ -162,8 +162,8 @@ You can install all the R packages used by running:
 pak_list <- r_pkgs_info |>
   transmute(
     prefix = case_when(
-      repotype %in% c("cran", "bioc") ~ glue("{package}"),
-      remotetype == "github" ~ glue("github::{remotepkgref}")
+      repotype %in% c("cran", "bioc") ~ package,
+      remotetype == "github" ~ remotepkgref
     ),
     comma = rep(c(",", ""), c(nrow(r_pkgs_info) - 1, 1)),
     version = glue("# {version}")
