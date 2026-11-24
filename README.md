@@ -107,9 +107,9 @@ You can install all the R packages used by running:
 You can install all the Python modules with the help of the
 [`requirements.txt`](requirements.txt) file:
 
-    ISLP>=0.4.0
     dalex>=1.8.0
     imbalanced-learn>=0.13.0
+    ISLP>=0.4.0
     matplotlib>=3.10.3
     numpy>=2.3.1
     palmerpenguins>=0.1.4

@@ -218,7 +218,8 @@ py_mdl_info <- tibble(
 ) |>
   arrange(module)
 
-py_requirements <- py_mdl_info |>
+
+py_requirements <- py_mdl_info[order(py_mdl_info$module), ] |>
   glue_data(
     "{module}{ifelse(nzchar(py_mdl_info$version), '>=', '')}{version}"
   ) |>
