@@ -31,9 +31,12 @@ These topics are taught in the graduate-level course ***Machine Learning for Psy
 [^rprev]: For R, this mean something along the lines of [*Practical Applications in R for Psychologists*](https://github.com/mattansb/Practical-Applications-in-R-for-Psychologists).
 
 
-> [!IMPORTANT]
-> - This repo contains only materials relating to *Practical Applications in R/Python*, and does not contain any theoretical or introductory materials.
-> - Please note that some code does not work *on purpose*, to force students to learn to debug.
+::: {.callout-important}
+
+- This repo contains only materials relating to *Practical Applications in R/Python*, and does not contain any theoretical or introductory materials.
+- Please note that some code does not work *on purpose*, to force students to learn to debug.
+
+:::
 
 
 ## Setup
