@@ -59,41 +59,37 @@ You will need:
 
 You can install all the R packages used by running:
 
-    # in alphabetical order:
-
-    pak::pak(
-      c(
-        "baguette", # 1.1.0
-        "cluster", # 2.1.8.3
-        "github::lucylgao/clusterpval", # 1.0.1
-        "DALEX", # 2.5.4
-        "DALEXtra", # 2.3.1
-        "easystats", # 0.7.6
-        "finetune", # 1.3.0
-        "ggrepel", # 0.9.8
-        "glmnet", # 5.1
-        "glue", # 1.8.1
-        "ISLR", # 1.4
-        "kknn", # 1.4.1
-        "leaps", # 3.2
-        "marginaleffects", # 1.0.0
-        "MASS", # 7.3-66
-        "mirai", # 2.7.3
-        "mixOmics", # 6.36.0
-        "github::mattansb/MSBMisc", # 0.0.1.15
-        "pak", # 0.11.1
-        "patchwork", # 1.3.2
-        "probably", # 1.2.0
-        "randomForest", # 4.7-1.2
-        "ranger", # 0.18.0
-        "rpart.plot", # 3.1.5
-        "scales", # 1.4.0
-        "tidymodels", # 1.5.0
-        "tidyverse", # 2.0.0
-        "bgreenwell/vip", # 0.5.0.9000
-        "xgboost" # 3.2.1.1
-      )
-    )
+    pak::pak(c(
+      "baguette", # 1.1.0
+      "cluster", # 2.1.8.3
+      "github::lucylgao/clusterpval", # 1.0.1
+      "DALEX", # 2.5.4
+      "DALEXtra", # 2.3.1
+      "easystats", # 0.7.6
+      "finetune", # 1.3.0
+      "ggrepel", # 0.9.8
+      "glmnet", # 5.1
+      "glue", # 1.8.1
+      "ISLR", # 1.4
+      "kknn", # 1.4.1
+      "leaps", # 3.2
+      "marginaleffects", # 1.0.0
+      "MASS", # 7.3-66
+      "mirai", # 2.7.3
+      "mixOmics", # 6.36.0
+      "github::mattansb/MSBMisc", # 0.0.1.15
+      "pak", # 0.11.1
+      "patchwork", # 1.3.2
+      "probably", # 1.2.0
+      "randomForest", # 4.7-1.2
+      "ranger", # 0.18.0
+      "rpart.plot", # 3.1.5
+      "scales", # 1.4.0
+      "tidymodels", # 1.5.0
+      "tidyverse", # 2.0.0
+      "bgreenwell/vip", # 0.5.0.9000
+      "xgboost" # 3.2.1.1
+    ))
 
 </details>
 

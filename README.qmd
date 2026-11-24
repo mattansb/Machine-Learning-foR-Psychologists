@@ -168,17 +168,13 @@ pak_list <- r_pkgs_info |>
     comma = rep(c(",", ""), c(nrow(r_pkgs_info) - 1, 1)),
     version = glue("# {version}")
   ) |>
-  glue_data('    "{prefix}"{comma} {version}') |>
+  glue_data('  "{prefix}"{comma} {version}') |>
   glue_collapse(sep = "\n")
 
 cat(
-  "# in alphabetical order:",
-  "",
-  "pak::pak(",
-  "  c(",
+  "pak::pak(c(",
   pak_list,
-  "  )",
-  ")",
+  "))",
   sep = "\n"
 )
 ```
@@ -219,7 +215,8 @@ py_mdl_info <- tibble(
   arrange(module)
 
 
-py_requirements <- py_mdl_info[order(py_mdl_info$module), ] |>
+py_requirements <- py_mdl_info |>
+  arrange(str_to_lower(module)) |>
   glue_data(
     "{module}{ifelse(nzchar(py_mdl_info$version), '>=', '')}{version}"
   ) |>
