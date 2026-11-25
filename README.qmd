@@ -7,6 +7,7 @@ execute:
 
 ```{r}
 #| include: false
+#| label: setup
 library(tidyverse)
 library(glue)
 ```
@@ -140,6 +141,7 @@ py_df <- tibble(
 ```
 
 ```{r}
+#| label: tbl-lessons
 r_pkgs_df |>
   full_join(py_df, by = "Lesson") |>
   reframe(
@@ -159,6 +161,7 @@ r_pkgs_df |>
 You can install all the R packages used by running:
 
 ```{r}
+#| label: r-install
 pak_list <- r_pkgs_info |>
   transmute(
     prefix = case_when(
@@ -187,9 +190,10 @@ cat(
 You can install all the Python modules with the help of the [`requirements.txt`](requirements.txt) file:
 
 ```{r}
-# fmt: skip
+#| label: py-install
+
 reticulate::use_python(
-  fs::path_home("AppData", "Local", "Programs", "Python", "Python313", "python.exe"),
+  fs::path_home("AppData/Local/Programs/Python", "Python313/python.exe"),
   required = TRUE
 )
 
