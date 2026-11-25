@@ -131,23 +131,3 @@ Auto.test_predictions |> mset_reg(mpg, .pred)
 
 # Compare this to performance on the training set:
 augment(knn_fit, new_data = Auto.train) |> mset_reg(mpg, .pred)
-
-
-# Exercise ---------------------------------------------------------------
-
-# 1. Define a recipe for a new KNN model
-#   Add the required steps for KNN.
-rec2 <- recipe(
-  mpg ~ ., # all predictors,
-  data = Auto.train
-) |>
-  # Remove the {name} predictor
-  step_rm(name)
-
-# 2. Fit a KNN model with k=5
-
-# 3. Evaluate the new model on the test set.
-#   How does it compare to the k=5 model with 3 predictors?
-
-# 4. Repeat steps 2 and 3 with k=10.
-# What can we expect to happen?

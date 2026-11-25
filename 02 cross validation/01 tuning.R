@@ -171,20 +171,3 @@ glimpse(Wage.test_predictions)
 Wage.test_predictions |>
   mset_reg(truth = wage, estimate = .pred)
 # Overall, not amazing...
-
-# Exercises ----------------------------------------------------------------------
-
-# - Fit a KNN model - this time include all predictors (except...?)!
-#   Use the FULL dataset (without splitting to train/test sets.)
-# - Tune the model
-#   A. define a grid of K values
-#   B. use a metric(s) of your choice
-#     https://yardstick.tidymodels.org/reference/index.html
-#   C. Use the following resampling methods:
-#     1. With 50 bootstrap samples
-(bootstrap_samps <- bootstraps(Wage, times = 50))
-# (Note that the validation set is not always of the same size!)
-#     2. 10 repeated 5-fold CV:
-(cv_repeated_folds <- vfold_cv(Wage, v = 5, repeats = 10))
-#   D. Select K using best / one-SE rule.
-#     How did the resampling methods differ in their results?

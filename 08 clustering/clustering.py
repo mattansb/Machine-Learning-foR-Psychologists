@@ -1,21 +1,18 @@
 # ### Tutorial 6- Clustering  ###
 
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
-from plotnine import *
-
-from sklearn.preprocessing import StandardScaler
-from sklearn.manifold import TSNE
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, silhouette_samples
-from sklearn.datasets import load_wine
-from sklearn import set_config
-from scipy.spatial.distance import pdist, squareform
-from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
-
 from palmerpenguins import load_penguins
+from plotnine import *
+from scipy.cluster.hierarchy import dendrogram, fcluster, linkage
+from scipy.spatial.distance import pdist, squareform
+from sklearn import set_config
+from sklearn.cluster import KMeans
+from sklearn.manifold import TSNE
+from sklearn.metrics import silhouette_samples, silhouette_score
+from sklearn.preprocessing import StandardScaler
 
 # Configure sklearn to output pandas DataFrames
 set_config(transform_output="pandas")
@@ -302,24 +299,3 @@ print(pd.crosstab(penguins.species, cluster_km))
 
 # Ideally we would have other variables not used in the clustering to
 # validate the clusters. See R examples.
-
-
-# Exercise ----------------------------------------------------------------
-
-wine = load_wine(as_frame=True)
-wine_data = wine.data
-wine_data["target"] = wine.target.astype("category")
-print(wine_data.info())
-
-# 0. Build a t-SNE plot based on all columns (minus "target").
-#   - Color the point by target
-# 1. Cluster wines into groups based on these data
-#   - use hclust
-#   - decide on a distance metric
-#   - choose a linkage method
-#   - plot the dendrogram - and choose the number of clusters
-#   - plot the clusters on a t-SNE plot.
-# 2. Validate the clusters:
-#   - Are the results stable?
-#   - Do the clusters differ on the variables used to create them?
-#   - Do the clusters map nicely onto the "target" variable?

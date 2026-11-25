@@ -418,22 +418,3 @@ test_clusters_approx(
 
   ndraws = 200
 )
-
-
-# Exercise ----------------------------------------------------------------
-
-data("oils", package = "modeldata")
-?modeldata::oils
-
-# 0. Build a t-SNE plot based on all columns (minus "class").
-#   - Color the point by class
-# 1. Cluster oils into groups based on these data
-#   - use hclust
-#   - decide on a distance metric
-#   - choose a linkage method
-#   - plot the dendrogram - and choose the number of clusters
-#   - plot the clusters on a t-SNE plot.
-# 2. Validate the clusters:
-#   - Are the results stable?
-#   - Do the clusters map nicely onto the "class" variable?
-#   - Do the clusters differ on the variables used to create them?

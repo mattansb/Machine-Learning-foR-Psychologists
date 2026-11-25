@@ -288,25 +288,3 @@ ggplot(Boston.test_rf.pred, aes(medv, .pred)) +
   geom_abline() +
   coord_obs_pred()
 # That's very good!
-
-# Exercise  ---------------------------------------------------------------
-
-# Use the Hitters dataset.
-
-# Notes: when preparing the data:
-# - deal with missing values.
-# - split to train and test with p=0.6
-
-# A) Fit *regression* trees to predict Salary from the other variables
-# 1. Basic tree - tune the optimal cp with CV.
-#    What was the best cp?
-# 2. Random Forest - tune the optimal mtry with CV.
-#    What was the best mtry?
-# 3. Boosting - tune at least one of Complexity and one of the Gradient
-#    hyperparameters with CV.
-#    What was the best value(s)?
-
-# B) Compare the models:
-# 1. Which predictor was most "important" in each method?
-# 2. Use CV to see if the two best models differ.
-#    - What was the test-set performance of the best model?

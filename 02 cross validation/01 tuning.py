@@ -1,26 +1,22 @@
 import pandas as pd
+from ISLP import load_data
 from plotnine import *
-
-from sklearn.model_selection import (
-    train_test_split,
-    GridSearchCV,
-    KFold,
-    LeaveOneOut,
-    RepeatedKFold,
-)
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn import set_config
 from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
 from sklearn.metrics import (
+    make_scorer,
+    mean_absolute_error,
     r2_score,
     root_mean_squared_error,
-    mean_absolute_error,
-    make_scorer,
 )
-from sklearn import set_config
-
-from ISLP import load_data
+from sklearn.model_selection import (
+    GridSearchCV,
+    KFold,
+    train_test_split,
+)
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 set_config(display="diagram")
 
@@ -239,19 +235,3 @@ print(f"Rsq: {r2_score(y_test, y_pred_test):.3f}")
 print(f"RMSE: {root_mean_squared_error(y_test, y_pred_test):.3f}")
 print(f"MAE: {mean_absolute_error(y_test, y_pred_test):.3f}")
 # Overall, not amazing...
-
-# Exercises ----------------------------------------------------------------------
-
-# - Fit a KNN model - this time include all predictors (except...?)!
-#   Use the FULL dataset (without splitting to train/test sets.)
-# - Tune the model
-#   A. define a grid of K values
-#   B. use a metric(s) of your choice
-#     https://scikit-learn.org/stable/modules/model_evaluation.html
-#   C. Use the following resampling methods:
-#     1. LOO-CV
-cv_loo = LeaveOneOut()
-#     2. 10 repeated 5-fold CV:
-cv_repeated = RepeatedKFold(n_splits=5, n_repeats=10)
-#   D. Select K using best / one-SE rule.
-#     How did the resampling methods differ in their results?

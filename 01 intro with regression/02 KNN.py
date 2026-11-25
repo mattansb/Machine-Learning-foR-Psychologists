@@ -1,18 +1,17 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 from plotnine import *
-
+from sklearn import set_config
+from sklearn.compose import ColumnTransformer
+from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import (
-    StandardScaler,
     OneHotEncoder,
     PowerTransformer,
+    StandardScaler,
 )
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import r2_score, root_mean_squared_error
-from sklearn import set_config
 
 set_config(display="diagram", transform_output="pandas")
 
@@ -146,7 +145,7 @@ p = (
     ggplot(plot_data, aes(x="y_test", y="y_pred"))
     + geom_point()
     + geom_abline(linetype="dashed", size=1)
-    + labs(x="Estimated: $\hat{mpg}$", y="Truth: mpg")
+    + labs(x=r"Estimated: $\hat{mpg}$", y="Truth: mpg")
     + theme_minimal()
 )
 p.draw(show=True)
@@ -160,16 +159,3 @@ print(f"RMSE: {root_mean_squared_error(y_test, y_pred):.3f}")
 y_pred2 = knn_pipe.predict(X_train)
 print(f"R-squared: {r2_score(y_train, y_pred2):.3f}")
 print(f"RMSE: {root_mean_squared_error(y_train, y_pred2):.3f}")
-
-
-# Exercise ---------------------------------------------------------------
-
-# 1. Build a new model - this time use all avilable predictors.
-#  - Make sure to properly pre-process the data.
-
-# 2. Fit a KNN model with k=5
-
-# 3. Evaluate the new model on the test set.
-#   How does it compare to the k=5 model with 3 predictors?
-
-# 4. Repeat steps 2 and 3 with k=10. What can we expect to happen?

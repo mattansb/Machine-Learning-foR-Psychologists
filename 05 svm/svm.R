@@ -349,20 +349,3 @@ ggplot(College.test_preds, aes(Expend, Grad.Rate, color = Private)) +
   labs(
     linetype = "model"
   )
-
-# Exercise ---------------------------------------------------------------
-
-# 1. We saw that for radial SVM, the number of support vectors is quite high
-#    compared to the linear and polynomial SVM. Does having more support vectors
-#    always lead to better performance? Higher bias? Higher variance?
-data("Publication", package = "ISLR2")
-?ISLR2::Publication
-Publication$status <-
-  factor(
-    Publication$status,
-    levels = 1:0,
-    labels = c("Published", "Not Yet Published")
-  )
-# 2. Predict `status` from 3 variables of your choice - use two methods (linear,
-#    poly, radial) and compare their performance using CV model comparison (see
-#    "02 resampling/02 model selection.R").
